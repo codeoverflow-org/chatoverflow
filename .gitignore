@@ -14,3 +14,7 @@ project/plugins/project/
 
 # IntelliJ project files
 .idea
+
+# Sub projects
+api/
+plugins-public/
