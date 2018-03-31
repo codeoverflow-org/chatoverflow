@@ -1,0 +1,6 @@
+[submodule "api"]
+	path = api
+	url = https://github.com/codeoverflow-org/chatoverflow-api.git
+[submodule "plugins-public"]
+	path = plugins-public
+	url = https://github.com/codeoverflow-org/chatoverflow-plugins.git
