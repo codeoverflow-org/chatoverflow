@@ -18,3 +18,7 @@ project/plugins/project/
 # Sub projects
 api/
 plugins-public/
+plugins-private/
+
+# Plugin Framework
+plugins/
