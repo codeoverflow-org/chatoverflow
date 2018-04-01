@@ -32,44 +32,19 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Plugin framework settings
-lazy val pluginBuildFile = settingKey[String]("The filename of the plugin build file. Remember to gitignore it!")
-lazy val pluginFolders = settingKey[List[String]]("The folder names of all plugin source directories.")
-lazy val pluginTargetFolders = settingKey[List[String]]("The folder names of compiled and packaged plugins. Remember to gitignore these!")
+lazy val pluginBuildFileName = settingKey[String]("The filename of the plugin build file. Remember to gitignore it!")
+lazy val pluginFolderNames = settingKey[List[String]]("The folder names of all plugin source directories.")
+lazy val pluginTargetFolderNames = settingKey[List[String]]("The folder names of compiled and packaged plugins. Remember to gitignore these!")
 
 // Plugin framework tasks
 lazy val create = TaskKey[Unit]("create", "Creates a new plugin. Interactive command using the console.")
 lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin directories, builds the plugin build file.")
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 
-pluginBuildFile := "plugins.sbt"
-pluginFolders := List("plugins-public")
-pluginTargetFolders := List("plugins")
+pluginBuildFileName := "plugins.sbt"
+pluginFolderNames := List("plugins-public")
+pluginTargetFolderNames := List("plugins")
 
-
-
-
-
-// ---------------------------------------------------------------------------------------------------------------------
-// PLUGIN FRAMEWORK IMPLEMENTATION
-// ---------------------------------------------------------------------------------------------------------------------
-
-// Plugin reload task
-fetch := {
-
-  // TODO: Implement
-
-}
-
-// Plugin create task
-create := {
-
-  // TODO: Implement
-
-}
-
-// Plugin copy task
-copy := {
-
-  // TODO: Implement
-
-}
+create := BuildUtility(streams.value.log).createPluginTask(pluginFolderNames.value)
+fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value)
+copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaVersion.value)
