@@ -1,3 +1,5 @@
+import java.io.File
+
 import sbt.internal.util.ManagedLogger
 
 /**
@@ -13,45 +15,87 @@ class BuildUtility(logger: ManagedLogger) {
     * @param pluginFolderNames All folder names, containing plugin source code. Defined in build.sbt.
     */
   def createPluginTask(pluginFolderNames: List[String]): Unit = {
-    logger info "Running custom task: CREATE PLUGIN"
+    withTaskInfo("CREATE PLUGIN") {
 
-    if (pluginFolderNames.isEmpty) {
-      println("Before creating a new plugin, please define at least one plugin source folder in the build.sbt file.")
-      logger warn "Stopped task without plugin creation."
+      // Plugin folders have to be defined in the build.sbt file first
+      if (pluginFolderNames.isEmpty) {
+        println("Before creating a new plugin, please define at least one plugin source folder in the build.sbt file.")
+        logger warn "Aborting task without plugin creation."
 
-    } else {
-      println("Welcome to the \"create plugin\"-wizard. Please specify name, version and plugin source folder.")
+      } else {
+        println("Welcome to the \"create plugin\"-wizard. Please specify name, version and plugin source folder.")
 
-      val name = BuildUtility.askForInput(
-        "Please specify the name of the plugin. Do only use characters allowed for directories and files of your OS.",
-        "Plugin name",
-        repeatIfEmpty = true
-      )
-
-      var version = BuildUtility.askForInput(
-        "Please specify the version of the plugin. Just press enter for version \"0.1\".",
-        "Plugin version",
-        repeatIfEmpty = false
-      )
-      if (version == "") version = "0.1"
-
-      var pluginFolderName = ""
-      while (!pluginFolderNames.contains(pluginFolderName)) {
-        pluginFolderName = BuildUtility.askForInput(
-          s"Please specify the plugin source directory. Available directories: ${pluginFolderNames.mkString("[", ", ", "]")}",
-          "Plugin source directory",
+        // Plugin name
+        val name = BuildUtility.askForInput(
+          "Please specify the name of the plugin. Do only use characters allowed for directories and files of your OS.",
+          "Plugin name",
           repeatIfEmpty = true
         )
-      }
 
-      createPlugin(name, version, pluginFolderName)
+        // Plugin version (default: 0.1)
+        var version = BuildUtility.askForInput(
+          "Please specify the version of the plugin. Just press enter for version \"0.1\".",
+          "Plugin version",
+          repeatIfEmpty = false
+        )
+        if (version == "") version = "0.1"
+
+        // Plugin folder name (must be defined in build.sbt)
+        var pluginFolderName = ""
+        while (!pluginFolderNames.contains(pluginFolderName)) {
+          pluginFolderName = BuildUtility.askForInput(
+            s"Please specify the plugin source directory. Available directories: ${pluginFolderNames.mkString("[", ", ", "]")}",
+            "Plugin source directory",
+            repeatIfEmpty = true
+          )
+        }
+
+        createPlugin(name, version, pluginFolderName)
+      }
     }
   }
 
   private def createPlugin(name: String, version: String, pluginFolderName: String): Unit = {
     logger info s"Trying to create plugin $name (version $version) at plugin folder $pluginFolderName."
 
-    // TODO: Implement
+    val pluginFolder = new File(pluginFolderName)
+    if (!pluginFolder.exists()) {
+      logger error "Plugin source folder does not exist. Aborting task without plugin creation."
+
+    } else {
+
+      // Each plugin has its own sub directory in the plugin folder
+      val pluginBasePath = s"$pluginFolderName/${BuildUtility.toPluginName(name)}"
+      val pluginDirectory = new File(pluginBasePath)
+
+      if (pluginDirectory.exists()) {
+        logger error "Plugin does already exist. Aborting task without plugin creation."
+
+      } else {
+
+        // Create plugin directory
+        pluginDirectory.mkdir()
+        logger info s"Created plugin $name"
+
+        // Create src folder
+        if (new File(s"$pluginBasePath/src").mkdir() &&
+          new File(s"$pluginBasePath/src/main").mkdir() &&
+          new File(s"$pluginBasePath/src/main/scala").mkdir()) {
+          logger info "Successfully created source folder."
+        } else {
+          logger warn "Unable to create source folder."
+        }
+
+        // Create custom build.sbt
+        val sbtFile = new SbtFile(name, version)
+
+        if (sbtFile.save(pluginBasePath)) {
+          logger info "Successfully created plugins sbt file."
+        } else {
+          logger warn "Unable to create plugins sbt file."
+        }
+      }
+    }
   }
 
   /**
@@ -61,8 +105,11 @@ class BuildUtility(logger: ManagedLogger) {
     * @param pluginBuildFileName The generated sbt build file, containing all sub project references. Defined in build.sbt.
     */
   def fetchPluginsTask(pluginFolderNames: List[String], pluginBuildFileName: String): Unit = {
-    logger info "Running custom task: FETCH PLUGINS"
+    withTaskInfo("FETCH PLUGINS") {
 
+      // TODO: Implement
+
+    }
   }
 
   /**
@@ -73,8 +120,24 @@ class BuildUtility(logger: ManagedLogger) {
     * @param scalaVersion            The scala version string. Defined in build.sbt.
     */
   def copyPluginsTask(pluginFolderNames: List[String], pluginTargetFolderNames: List[String], scalaVersion: String): Unit = {
-    logger info "Running custom task: COPY PLUGINS"
+    withTaskInfo("COPY PLUGINS") {
 
+      // TODO: Implement
+
+    }
+  }
+
+  // Just practising the beauty of scala
+  private def withTaskInfo(taskName: String)(task: => Unit): Unit = {
+
+    // Info when task started (better log comprehension)
+    logger info s"Started custom task: $taskName"
+
+    // Doing the actual work
+    task
+
+    // Info when task stopped (better log comprehension)
+    logger info s"Finished custom task: $taskName"
   }
 
 }
@@ -95,5 +158,7 @@ object BuildUtility {
 
     input
   }
+
+  private def toPluginName(name: String) = name.replace(" ", "").toLowerCase
 
 }
