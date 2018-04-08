@@ -3,13 +3,13 @@ import java.io.{BufferedWriter, File, FileWriter, IOException}
 /**
   * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
   *
-  * @param name              the name of a sbt project
-  * @param version           the version of a sbt project
-  * @param pluginDirectories list of paths of sub projects
-  * @param apiProjectPath    the path of a base api project which every project depends on
-  * @param defineRoot        true, if a root project (".") should be defined in the sbt file
+  * @param name           the name of a sbt project
+  * @param version        the version of a sbt project
+  * @param plugins        list of paths of sub projects
+  * @param apiProjectPath the path of a base api project which every project depends on
+  * @param defineRoot     true, if a root project (".") should be defined in the sbt file
   */
-class SbtFile(var name: String, var version: String, var pluginDirectories: List[File], var apiProjectPath: String, var defineRoot: Boolean) {
+class SbtFile(var name: String, var version: String, var plugins: List[Plugin], var apiProjectPath: String, var defineRoot: Boolean) {
   /**
     * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
     *
@@ -26,13 +26,12 @@ class SbtFile(var name: String, var version: String, var pluginDirectories: List
   /**
     * Tries to save the sbt files content into a defined directory.
     *
-    * @param path the directory of the sbt file
+    * @param pathAndFileName the path of the sbt file (incl. file name)
     * @return true, if the save process was successful
     */
-  def save(path: String): Boolean = {
+  def save(pathAndFileName: String): Boolean = {
 
-    // TODO: Check if build.sbt can be named $pluginName.sbt
-    val buildFile = new File(s"$path/build.sbt")
+    val buildFile = new File(pathAndFileName)
 
     // Write the build file using the SbtFiles string representation
     val writer = new BufferedWriter(new FileWriter(buildFile))
@@ -53,7 +52,7 @@ class SbtFile(var name: String, var version: String, var pluginDirectories: List
     */
   override def toString: String = {
 
-    val sbtContent = new StringBuilder("// GENERATED FILE USING THE CHAT OVERFLOW PLUGIN FRAMEWORK")
+    val sbtContent = new StringBuilder("// GENERATED FILE USING THE CHAT OVERFLOW PLUGIN FRAMEWORK\n")
 
     if (name != "") {
       sbtContent append "\nname := \"%s\"".format(name)
@@ -63,7 +62,32 @@ class SbtFile(var name: String, var version: String, var pluginDirectories: List
       sbtContent append "\nversion := \"%s\"".format(version)
     }
 
-    // TODO: Implement pluginDirectories, root, apiProject
+    if (plugins.nonEmpty) {
+      for (plugin <- plugins) {
+        var pluginLine = "\nlazy val %s = (project in file(\"%s\"))".format(plugin.normalizedName, plugin.pluginDirectoryPath)
+
+        if (apiProjectPath != "") {
+          pluginLine += ".dependsOn(apiProject)"
+        }
+
+        sbtContent append pluginLine
+      }
+    }
+
+    if (apiProjectPath != "") {
+      sbtContent append "\n\nlazy val apiProject = project in file(\"%s\")".format(apiProjectPath)
+    }
+
+    if (defineRoot) {
+      var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(apiProject,%s)"
+        .format(plugins.map(_.normalizedName).mkString(", "))
+
+      if (apiProjectPath != "") {
+        rootLine += ".dependsOn(apiProject)"
+      }
+
+      sbtContent append rootLine
+    }
 
     sbtContent.mkString
   }

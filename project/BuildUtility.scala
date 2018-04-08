@@ -6,21 +6,87 @@ import sbt.internal.util.ManagedLogger
   * A build utility instance handles build tasks and prints debug information using the managed logger.
   *
   * @param logger The current logger instance. Usually: {{{streams.value.log}}}
+  * @note A brief introduction of the folder structure:
+  *       root
+  *       |  build.sbt
+  *       |  plugins.sbt
+  *       |  -> api project
+  *       |  -> a plugin source directory
+  *       |  -> -> a plugin folder = plugin
+  *       |  -> -> -> build.sbt
+  *       |  -> -> -> source etc.
+  *       |  -> -> another folder = another plugin
+  *       |  -> -> -> build.sbt
+  *       |  -> -> -> source etc.
+  *       |  -> another plugin source directory (optional)
+  *
   */
 class BuildUtility(logger: ManagedLogger) {
 
   /**
     * Searches for plugins in plugin directories, builds the plugin build file.
     *
-    * @param pluginFolderNames   All folder names, containing plugin source code. Defined in build.sbt.
-    * @param pluginBuildFileName The generated sbt build file, containing all sub project references. Defined in build.sbt.
+    * @param pluginSourceFolderNames All folder names, containing plugin source code. Defined in build.sbt.
+    * @param pluginBuildFileName     The generated sbt build file, containing all sub project references. Defined in build.sbt.
     */
-  def fetchPluginsTask(pluginFolderNames: List[String], pluginBuildFileName: String): Unit = {
+  def fetchPluginsTask(pluginSourceFolderNames: List[String], pluginBuildFileName: String,
+                       pluginTargetFolderNames: List[String], apiProjectPath: String): Unit = {
     withTaskInfo("FETCH PLUGINS") {
 
-      // TODO: Implement
+      // Check validity of plugin source folders
+      pluginSourceFolderNames.foreach(name => checkSourceFolderName(name, pluginTargetFolderNames))
 
+      // Get all plugins (= folders) in all plugin source directories. Flatten that list of lists
+      val allPlugins = (for (pluginSourceFolderName <- pluginSourceFolderNames) yield getPlugins(pluginSourceFolderName)).flatten
+
+      // Create a sbt file with all plugin dependencies (sub projects)
+      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true)
+
+      if (sbtFile.save(pluginBuildFileName)) {
+        logger info s"Successfully updated plugin file at '$pluginBuildFileName'."
+      } else {
+        logger error s"Unable to write plugin file at '$pluginBuildFileName'."
+      }
     }
+  }
+
+  private def checkSourceFolderName(pluginSourceFolderName: String, pluginTargetFolderNames: List[String]): Unit = {
+    if (pluginTargetFolderNames.map(_.toLowerCase).contains(pluginSourceFolderName.toLowerCase)) {
+      logger warn s"Plugin folder '$pluginSourceFolderName' is reserved for build plugin jar files!"
+    }
+  }
+
+  private def getPlugins(pluginSourceFolderName: String): Seq[Plugin] = {
+    logger info s"Fetching plugins from folder '$pluginSourceFolderName'."
+
+    val pluginSourceFolder = new File(pluginSourceFolderName)
+
+    // Check for invalid folder structure
+    if (!pluginSourceFolder.exists() || !pluginSourceFolder.isDirectory) {
+      logger error s"Plugin directory '$pluginSourceFolderName' does not exist."
+      Seq[Plugin]()
+    } else {
+
+      // A plugin is a folder in a plugin directory
+      val plugins = pluginSourceFolder.listFiles.filter(_.isDirectory)
+        .map(folder => new Plugin(pluginSourceFolderName, folder.getName))
+
+      logger info s"Found ${plugins.length} plugins."
+      plugins
+    }
+  }
+
+  // Just practising the beauty of scala
+  private def withTaskInfo(taskName: String)(task: => Unit): Unit = {
+
+    // Info when task started (better log comprehension)
+    logger info s"Started custom task: $taskName"
+
+    // Doing the actual work
+    task
+
+    // Info when task stopped (better log comprehension)
+    logger info s"Finished custom task: $taskName"
   }
 
   /**
@@ -36,19 +102,6 @@ class BuildUtility(logger: ManagedLogger) {
       // TODO: Implement
 
     }
-  }
-
-  // Just practising the beauty of scala
-  private def withTaskInfo(taskName: String)(task: => Unit): Unit = {
-
-    // Info when task started (better log comprehension)
-    logger info s"Started custom task: $taskName"
-
-    // Doing the actual work
-    task
-
-    // Info when task stopped (better log comprehension)
-    logger info s"Finished custom task: $taskName"
   }
 
   /**

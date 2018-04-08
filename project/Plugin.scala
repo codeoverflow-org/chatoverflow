@@ -3,11 +3,12 @@ import java.io.File
 /**
   * A plugin represents a directory in a plugin source directory. Every plugin has its own build file and source folder.
   *
-  * @param pluginBasePath the plugin base source directory
-  * @param name           the name of the plugin
+  * @param pluginSourceDirectoryName the plugin base source directory
+  * @param name                      the name of the plugin
   */
-class Plugin(pluginBasePath: String, name: String) {
-  val pluginDirectoryPath: String = s"$pluginBasePath/${toPluginPathName(name)}"
+class Plugin(val pluginSourceDirectoryName: String, val name: String) {
+  val normalizedName: String = toPluginPathName(name)
+  val pluginDirectoryPath: String = s"$pluginSourceDirectoryName/$normalizedName"
 
   /**
     * Creates the plugin folder inside of a plugin source directory
@@ -49,7 +50,9 @@ class Plugin(pluginBasePath: String, name: String) {
     */
   def createSbtFile(version: String): Boolean = {
     val sbtFile = new SbtFile(name, version)
-    sbtFile.save(pluginDirectoryPath)
+
+    // TODO: Check if build.sbt can be named $pluginName.sbt
+    sbtFile.save(s"$pluginDirectoryPath/build.sbt")
   }
 
   private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
