@@ -34,10 +34,12 @@ class BuildUtility(logger: ManagedLogger) {
     withTaskInfo("FETCH PLUGINS") {
 
       // Check validity of plugin source folders
-      pluginSourceFolderNames.foreach(name => checkSourceFolderName(name, pluginTargetFolderNames))
+      pluginSourceFolderNames.foreach(
+        name => if (!Plugin.isSourceFolderNameValid(name, pluginTargetFolderNames))
+          logger warn s"Plugin folder '$name' is reserved for build plugin jar files!"
+      )
 
-      // Get all plugins (= folders) in all plugin source directories. Flatten that list of lists
-      val allPlugins = (for (pluginSourceFolderName <- pluginSourceFolderNames) yield getPlugins(pluginSourceFolderName)).flatten
+      val allPlugins = getAllPlugins(pluginSourceFolderNames)
 
       // Create a sbt file with all plugin dependencies (sub projects)
       val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true)
@@ -50,30 +52,24 @@ class BuildUtility(logger: ManagedLogger) {
     }
   }
 
-  private def checkSourceFolderName(pluginSourceFolderName: String, pluginTargetFolderNames: List[String]): Unit = {
-    if (pluginTargetFolderNames.map(_.toLowerCase).contains(pluginSourceFolderName.toLowerCase)) {
-      logger warn s"Plugin folder '$pluginSourceFolderName' is reserved for build plugin jar files!"
-    }
-  }
+  private def getAllPlugins(pluginSourceFolderNames: List[String]): List[Plugin] = {
 
-  private def getPlugins(pluginSourceFolderName: String): Seq[Plugin] = {
-    logger info s"Fetching plugins from folder '$pluginSourceFolderName'."
+    // Get all plugins (= folders) in all plugin source directories. Flatten that list of lists
+    (for (pluginSourceFolderName <- pluginSourceFolderNames) yield {
 
-    val pluginSourceFolder = new File(pluginSourceFolderName)
+      logger info s"Fetching plugins from folder '$pluginSourceFolderName'."
 
-    // Check for invalid folder structure
-    if (!pluginSourceFolder.exists() || !pluginSourceFolder.isDirectory) {
-      logger error s"Plugin directory '$pluginSourceFolderName' does not exist."
-      Seq[Plugin]()
-    } else {
+      if (!Plugin.sourceFolderExists(pluginSourceFolderName)) {
+        logger error s"Plugin directory '$pluginSourceFolderName' does not exist."
+        List[Plugin]()
 
-      // A plugin is a folder in a plugin directory
-      val plugins = pluginSourceFolder.listFiles.filter(_.isDirectory)
-        .map(folder => new Plugin(pluginSourceFolderName, folder.getName))
+      } else {
 
-      logger info s"Found ${plugins.length} plugins."
-      plugins
-    }
+        val plugins = Plugin.getPlugins(pluginSourceFolderName)
+        logger info s"Found ${plugins.length} plugins."
+        plugins
+      }
+    }).flatten
   }
 
   // Just practising the beauty of scala

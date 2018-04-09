@@ -7,8 +7,10 @@ version := "0.1"
 mainClass := Some("org.codeoverflow.chatoverflow.ChatOverflow")
 
 // One version for all sub projects. Use "retrieveManaged := true" to download and show all library dependencies.
+val scalaMajorVersion = "2.12"
+val scalaMinorVersion = ".5"
 inThisBuild(List(
-  scalaVersion := "2.12.5",
+  scalaVersion := s"$scalaMajorVersion$scalaMinorVersion",
   retrieveManaged := false)
 )
 
@@ -44,7 +46,7 @@ lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the ta
 
 pluginBuildFileName := "plugins.sbt"
 pluginFolderNames := List("plugins-public")
-pluginTargetFolderNames := List("plugins")
+pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plugins")
 apiProjectPath := "api"
 
 create := BuildUtility(streams.value.log).createPluginTask(pluginFolderNames.value)

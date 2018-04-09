@@ -57,3 +57,41 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
 
   private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
 }
+
+object Plugin {
+
+  /**
+    * Checks if the plugin source folder is already used to store build jar plugin files.
+    *
+    * @param pluginSourceFolderName  the name of the source folder to test
+    * @param pluginTargetFolderNames all names of target plugin folders
+    * @return true, if the plugin source folder name does NOT exist in the plugin target folder list
+    */
+  def isSourceFolderNameValid(pluginSourceFolderName: String, pluginTargetFolderNames: List[String]): Boolean =
+    !pluginTargetFolderNames.map(_.toLowerCase).contains(pluginSourceFolderName.toLowerCase)
+
+  /**
+    * Returns a list of all plugins in a given plugin source folder.
+    *
+    * @param pluginSourceFolderName the defined source folder of plugins
+    * @return a seq of plugins
+    */
+  def getPlugins(pluginSourceFolderName: String): Seq[Plugin] = {
+    val pluginSourceFolder = new File(pluginSourceFolderName)
+    pluginSourceFolder.listFiles.filter(_.isDirectory)
+      .map(folder => new Plugin(pluginSourceFolderName, folder.getName))
+
+  }
+
+  /**
+    * Checks, if a plugin source folder exsists
+    *
+    * @param pluginSourceFolderName the source folder name
+    * @return true, if exists and is directory
+    */
+  def sourceFolderExists(pluginSourceFolderName: String): Boolean = {
+    val pluginSourceFolder = new File(pluginSourceFolderName)
+    pluginSourceFolder.exists() && pluginSourceFolder.isDirectory
+  }
+
+}
