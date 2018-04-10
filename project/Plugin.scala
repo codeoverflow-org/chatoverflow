@@ -7,7 +7,7 @@ import java.io.File
   * @param name                      the name of the plugin
   */
 class Plugin(val pluginSourceDirectoryName: String, val name: String) {
-  val normalizedName: String = toPluginPathName(name)
+  val normalizedName: String = Plugin.toPluginPathName(name)
   val pluginDirectoryPath: String = s"$pluginSourceDirectoryName/$normalizedName"
 
   /**
@@ -55,7 +55,23 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     sbtFile.save(s"$pluginDirectoryPath/build.sbt")
   }
 
-  private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
+  /**
+    * Fetches the build plugin jar from the target folder of a given scala version.
+    *
+    * @param scalaMajorVersion the major scala version (x.x)
+    * @return a seq of found jar files or a empty seq (e.g. if the target folder is not found)
+    */
+  def getBuildPluginFiles(scalaMajorVersion: String): Seq[File] = {
+
+    val pluginTargetFolder = new File(s"$pluginDirectoryPath/target/scala-$scalaMajorVersion")
+
+    if (!pluginTargetFolder.exists()) {
+      Seq[File]()
+    } else {
+      pluginTargetFolder.listFiles().filter(_.getName.endsWith(".jar"))
+    }
+  }
+
 }
 
 object Plugin {
@@ -94,4 +110,8 @@ object Plugin {
     pluginSourceFolder.exists() && pluginSourceFolder.isDirectory
   }
 
+  private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
+
 }
+
+

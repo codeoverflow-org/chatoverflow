@@ -1,4 +1,5 @@
-import java.io.File
+import java.io.{File, IOException}
+import java.nio.file.Files
 
 import sbt.internal.util.ManagedLogger
 
@@ -52,6 +53,37 @@ class BuildUtility(logger: ManagedLogger) {
     }
   }
 
+  /**
+    * Copies all packaged plugin jars to the target plugin folder.
+    *
+    * @param pluginSourceFolderNames All folder names, containing plugin source code. Defined in build.sbt.
+    * @param pluginTargetFolderNames The generated sbt build file, containing all sub project references. Defined in build.sbt.
+    * @param scalaMajorVersion       The major part (x.x) of the scala version string. Defined in build.sbt.
+    */
+  def copyPluginsTask(pluginSourceFolderNames: List[String], pluginTargetFolderNames: List[String], scalaMajorVersion: String): Unit = {
+    withTaskInfo("COPY PLUGINS") {
+
+      // Get all plugins first
+      val allPlugins = getAllPlugins(pluginSourceFolderNames)
+
+      // Now get all jar files in the target folders of the plugins, warn if not found
+      val allJarFiles = (for (plugin <- allPlugins) yield {
+        val jarFiles = plugin.getBuildPluginFiles(scalaMajorVersion)
+
+        if (jarFiles.isEmpty) {
+          logger warn s"Target jar file(s) of plugin '${plugin.name}' does not exist. Use 'sbt package' first."
+          Seq[File]()
+        } else {
+          jarFiles.foreach(jar => logger info s"Found archive: '${jar.getName}'.")
+          jarFiles
+        }
+      }).flatten
+
+      // Copy all jars to the target folders
+      for (pluginTargetFolderName <- pluginTargetFolderNames) copyPlugins(allJarFiles, pluginTargetFolderName)
+    }
+  }
+
   private def getAllPlugins(pluginSourceFolderNames: List[String]): List[Plugin] = {
 
     // Get all plugins (= folders) in all plugin source directories. Flatten that list of lists
@@ -72,32 +104,40 @@ class BuildUtility(logger: ManagedLogger) {
     }).flatten
   }
 
-  // Just practising the beauty of scala
-  private def withTaskInfo(taskName: String)(task: => Unit): Unit = {
+  private def copyPlugins(allJarFiles: List[File], pluginTargetFolderName: String): Unit = {
 
-    // Info when task started (better log comprehension)
-    logger info s"Started custom task: $taskName"
+    val pluginTargetFolder = new File(pluginTargetFolderName)
 
-    // Doing the actual work
-    task
-
-    // Info when task stopped (better log comprehension)
-    logger info s"Finished custom task: $taskName"
-  }
-
-  /**
-    * Copies all packaged plugin jars to the target plugin folder.
-    *
-    * @param pluginFolderNames       All folder names, containing plugin source code. Defined in build.sbt.
-    * @param pluginTargetFolderNames The generated sbt build file, containing all sub project references. Defined in build.sbt.
-    * @param scalaVersion            The scala version string. Defined in build.sbt.
-    */
-  def copyPluginsTask(pluginFolderNames: List[String], pluginTargetFolderNames: List[String], scalaVersion: String): Unit = {
-    withTaskInfo("COPY PLUGINS") {
-
-      // TODO: Implement
-
+    // Check target folder existence
+    if (!pluginTargetFolder.exists() && !pluginTargetFolder.mkdir()) {
+      logger warn s"Unable to create or find plugin folder '${pluginTargetFolder.getAbsolutePath}'."
+    } else {
+      logger info s"Found plugin folder '${pluginTargetFolder.getPath}'."
     }
+
+    // Clean first
+    // TODO: Should this be cleaned? How to handle external plugins? Separate folder?
+    for (jarFile <- pluginTargetFolder.listFiles().filter(_.getName.endsWith(".jar"))) {
+      try {
+        jarFile.delete()
+        logger info s"Deleted plugin '${jarFile.getName}' from target."
+      } catch {
+        case e: IOException => logger warn s"Unable to delete plugin '${jarFile.getAbsolutePath}' from target. Error: ${e.getMessage}."
+      }
+    }
+
+    // Copy jars
+    var successCounter = 0
+    for (jarFile <- allJarFiles) {
+      try {
+        Files.copy(jarFile.toPath, new File(pluginTargetFolder, jarFile.getName).toPath)
+        logger info s"Copied plugin '${jarFile.getName}'."
+        successCounter = successCounter + 1
+      } catch {
+        case e: IOException => logger warn s"Unable to copy plugin '${jarFile.getName}'. Error: ${e.getMessage}."
+      }
+    }
+    logger info s"Successfully copied $successCounter / ${allJarFiles.length} plugins to target '${pluginTargetFolder.getPath}'!"
   }
 
   /**
@@ -144,6 +184,19 @@ class BuildUtility(logger: ManagedLogger) {
         createPlugin(name, version, pluginFolderName)
       }
     }
+  }
+
+  // Just practising the beauty of scala
+  private def withTaskInfo(taskName: String)(task: => Unit): Unit = {
+
+    // Info when task started (better log comprehension)
+    logger info s"Started custom task: $taskName"
+
+    // Doing the actual work
+    task
+
+    // Info when task stopped (better log comprehension)
+    logger info s"Finished custom task: $taskName"
   }
 
   private def createPlugin(name: String, version: String, pluginFolderName: String): Unit = {
