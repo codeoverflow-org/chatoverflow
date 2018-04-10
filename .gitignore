@@ -13,7 +13,7 @@ project/plugins/project/
 .DS_Store
 
 # IntelliJ project files
-.idea
+.idea/*
 !.idea/runConfigurations
 
 # Sub projects
