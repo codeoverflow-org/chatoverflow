@@ -7,9 +7,13 @@ import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin}
 class PluginFramework(val pluginDirectoryPath: String) {
   val pluginDirectory = new File(pluginDirectoryPath)
 
-  def loadPluggables(): Seq[Pluggable] = ???
+  def init(): Unit = ???
 
-  def checkAndLoadPlugin(pluggable: Pluggable): Plugin = ???
+  def getLoadedPlugins: Seq[Plugin] = ???
+
+  private def loadPluggables(): Seq[Pluggable] = ???
+
+  private def checkAndLoadPlugin(pluggable: Pluggable): Plugin = ???
 
   private def isMajorAPIVersionValid(pluggable: Pluggable): Boolean = ???
 
@@ -20,5 +24,15 @@ class PluginFramework(val pluginDirectoryPath: String) {
   private def loadPlugin(pluggable: Pluggable): Plugin = ???
 
   private def asyncStartPlugin(plugin: Plugin): Boolean = ???
+
+  // TODO: Implement a cool way to store pluggable infos + (loaded) plugin reference without the getPlugin() part
+  // TODO: Alternative: Cut the plugin part from pluggable, provide a method to instanciate the plugin class later
+  // TODO: Unfortunately, this choice needs a fully implemented plugin framework to test things out :)
+
+}
+
+object PluginFramework {
+
+  def apply(pluginDirectoryPath: String): PluginFramework = new PluginFramework(pluginDirectoryPath)
 
 }
