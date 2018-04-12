@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration>
+    <appender name="CA" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-4r %d{HH:mm:ss.SSS} [%t] %-5p %c{2} %x - %m%n"/>
+        </layout>
+    </appender>
+
+    <!-- Disables pircbotx logging (Because raw password output on console is harmful) -->
+    <category name="org.pircbotx">
+        <priority value="off"/>
+    </category>
+
+    <root>
+        <level value="debug"/>
+        <appender-ref ref="CA"/>
+    </root>
+
+</log4j:configuration>

@@ -22,8 +22,11 @@ inThisBuild(List(
 // LIBRARY DEPENDENCIES
 // ---------------------------------------------------------------------------------------------------------------------
 
-// Command Line Parsing Dependencies
+// Command Line Parsing
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
+
+// log4j Logger
+libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.22"
 
 
 

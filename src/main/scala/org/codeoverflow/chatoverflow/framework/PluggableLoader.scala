@@ -3,13 +3,18 @@ package org.codeoverflow.chatoverflow.framework
 import java.io.{File, FileInputStream}
 import java.util.jar.{JarEntry, JarInputStream}
 
+import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.plugin.Pluggable
 
 import scala.collection.mutable.ListBuffer
 
 object PluggableLoader {
 
+  private val logger = Logger.getLogger(this.getClass)
+
   def loadPluggables(jar: File, cl: ClassLoader): Seq[Pluggable] = {
+
+    logger info s"Trying to load pluggables from jar file: ${jar.getPath}"
 
     // First: Extract all pluggable classes from the jar file
     val pluggableClasses = extractPluggablesFromJarFile(jar, cl)
@@ -17,8 +22,12 @@ object PluggableLoader {
     // Now: Try to instantiate the pluggable class
     val pluggableObjects = createPluggablObjects(pluggableClasses)
 
-    // TODO: Import logger and warn, if there is more than one! (Maybe possible, but not defined)
-    // TODO: Get rid of the printlns, where are we?
+    // TODO: More than one pluggable class / plugin is not supported right now. But might work?
+    pluggableObjects.length match {
+      case 0 => logger info "No pluggable classes found."
+      case 1 => logger info "Pluggable successful instantiated."
+      case _ => logger warn "More than one pluggable class found."
+    }
 
     pluggableObjects
   }
@@ -48,8 +57,7 @@ object PluggableLoader {
         }
         catch {
           case e: ClassNotFoundException =>
-            System.err.println(s"Can't load Class ${entry.getName}")
-            e.printStackTrace()
+            logger error(s"Can't load Class ${entry.getName}", e)
         }
       }
       entry = jarInputStream.getNextJarEntry
@@ -82,11 +90,9 @@ object PluggableLoader {
 
       } catch {
         case e: InstantiationException =>
-          System.err.println(s"Can't instantiate plugin: ${plug.getName}")
-          e.printStackTrace();
+          logger error(s"Can't instantiate plugin: ${plug.getName}", e)
         case e: IllegalAccessException =>
-          System.err.println(s"IllegalAccess for plugin: ${plug.getName}")
-          e.printStackTrace();
+          logger error(s"IllegalAccess for plugin: ${plug.getName}", e)
       }
     }
 
