@@ -11,14 +11,23 @@ object ChatOverflow {
   def main(args: Array[String]): Unit = {
     println("Minzig!")
 
-    logger info "Started Chat Overflow Framework!"
+    logger info "Started Chat Overflow Framework. Hello everybody!"
 
     // Create plugin framework and manager instance
     val pluginFramework = PluginFramework(pluginFolder)
     val pluginManager = new PluginManagerImpl
 
+    // Initialize plugin framework
     pluginFramework.init(pluginManager)
-    println(pluginFramework.getLoadedPlugins.mkString(", "))
-  }
+    logger info s"Loaded plugins list:\n ${pluginFramework.getLoadedPlugins.mkString("\n")}"
 
+    if (pluginFramework.getNotLoadedPlugins.nonEmpty) {
+      logger info s"Unable to load:\n ${pluginFramework.getNotLoadedPlugins.mkString("\n")}"
+    }
+
+    // Start plugins
+    for (plugin <- pluginFramework.getLoadedPlugins) {
+      pluginFramework.asyncStartPlugin(plugin)
+    }
+  }
 }
