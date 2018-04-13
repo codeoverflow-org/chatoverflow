@@ -166,9 +166,17 @@ class PluginFramework(pluginDirectoryPath: String) {
 
       try {
         // TODO: Manage all threads, passing arguments, maybe using actors rather than threads
-        new Thread(() => loadedPlugin.start()).start()
+        new Thread(() => {
+          try {
+            loadedPlugin.start()
+          } catch {
+            case e: AbstractMethodError => logger.error(s"Plugin '$plugin' just crashed. Looks like a plugin version error.", e)
+            case e: Exception => logger.error(s"Plugin '$plugin' just had an exception. Might be a plugin implementation fault.", e)
+            case e: Throwable => logger.error(s"Plugin '$plugin' just crashed.", e)
+          }
+        }).start()
       } catch {
-        case e: Exception => logger.error(s"Plugin '$plugin' just crashed.", e)
+        case e: Throwable => logger.error(s"Plugin starting process (Plugin: '$plugin') just crashed.", e)
       }
     }
   }
