@@ -28,6 +28,19 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
 // log4j Logger
 libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.22"
 
+// Scalatra (REST, ...)
+libraryDependencies ++= Seq(
+  "org.scalatra" %% "scalatra" % "2.6.+",
+  "org.scalatra" %% "scalatra-scalate" % "2.6.+",
+  "org.scalatra" %% "scalatra-specs2" % "2.6.+",
+  "ch.qos.logback" % "logback-classic" % "1.2.3" % "provided",
+  "org.eclipse.jetty" % "jetty-webapp" % "9.4.7.v20170914" % "provided",
+  "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
+  "org.scalatra" %% "scalatra-json" % "2.6.3",
+)
+
+// JSON Lib (Jackson)
+libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 
 
 
