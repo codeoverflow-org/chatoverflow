@@ -1,7 +1,6 @@
 package org.codeoverflow.chatoverflow.framework
 
 import java.io.File
-import java.net.URLClassLoader
 
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.APIVersion
@@ -9,7 +8,7 @@ import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManage
 
 import scala.collection.mutable
 
-class PluginFramework(pluginDirectoryPath: String) {
+class PluginFramework(val pluginDirectoryPath: String) {
 
   private val pluginDirectory = new File(pluginDirectoryPath)
   private val fancySeparator = "----------------------------------------------------"
@@ -45,7 +44,7 @@ class PluginFramework(pluginDirectoryPath: String) {
       logger info s"Found ${jarFiles.length} plugins."
 
       // Create own class loader
-      val classLoader = new URLClassLoader(jarUrls)
+      val classLoader = new PluginClassLoader(jarUrls)
 
 
       // Load pluggables

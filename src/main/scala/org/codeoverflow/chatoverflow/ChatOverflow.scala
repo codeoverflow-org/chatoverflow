@@ -1,7 +1,9 @@
 package org.codeoverflow.chatoverflow
 
+import java.security.Policy
+
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl}
+import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 
 object ChatOverflow {
 
@@ -16,6 +18,10 @@ object ChatOverflow {
     // Create plugin framework and manager instance
     val pluginFramework = PluginFramework(pluginFolder)
     val pluginManager = new PluginManagerImpl
+
+    // Create sandbox environment for plugins
+    Policy.setPolicy(new SandboxSecurityPolicy)
+    System.setSecurityManager(new SecurityManager)
 
     // Initialize plugin framework
     pluginFramework.init(pluginManager)
