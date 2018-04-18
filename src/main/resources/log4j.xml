@@ -12,6 +12,14 @@
         <priority value="off"/>
     </category>
 
+    <!-- Disables web server logging (spammy) -->
+    <category name="org.scalatra">
+        <priority value="off"/>
+    </category>
+    <category name="org.eclipse.jetty">
+        <priority value="off"/>
+    </category>
+
     <root>
         <level value="debug"/>
         <appender-ref ref="CA"/>
