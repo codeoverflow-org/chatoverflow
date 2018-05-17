@@ -94,7 +94,7 @@ object Plugin {
     */
   def getPlugins(pluginSourceFolderName: String): Seq[Plugin] = {
     val pluginSourceFolder = new File(pluginSourceFolderName)
-    pluginSourceFolder.listFiles.filter(_.isDirectory)
+    pluginSourceFolder.listFiles.filter(_.isDirectory).filter(_.getName != ".git")
       .map(folder => new Plugin(pluginSourceFolderName, folder.getName))
 
   }
