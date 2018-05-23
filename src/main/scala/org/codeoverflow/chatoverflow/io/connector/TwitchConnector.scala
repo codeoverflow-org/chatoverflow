@@ -31,11 +31,25 @@ class TwitchListener extends ListenerAdapter {
 
 class TwitchConnector(channelName: String, credentials: TwitchCredentials) extends Connector(channelName) {
 
-  private val bot = new PircBotX(getConfig)
-
   private val twitchListener: TwitchListener = new TwitchListener
 
+  private val bot = new PircBotX(getConfig)
+
   startBotAsync()
+
+  override def getType: ConnectorType = TwitchConnector.getType
+
+  def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
+    twitchListener.addMessageEventListener(listener)
+  }
+
+  def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
+    twitchListener.addUnknownEventListener(listener)
+  }
+
+  def sendChatMessage(chatMessage: String): Unit = {
+    bot.send().message(channelName, chatMessage)
+  }
 
   private def getConfig: Configuration = {
     new Configuration.Builder()
@@ -57,22 +71,8 @@ class TwitchConnector(channelName: String, credentials: TwitchCredentials) exten
       .buildConfiguration()
   }
 
-  override def getType: ConnectorType = TwitchConnector.getType
-
   private def startBotAsync(): Unit = {
     new Thread(() => bot.startBot()).start()
-  }
-
-  def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
-    twitchListener.addMessageEventListener(listener)
-  }
-
-  def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
-    twitchListener.addUnknownEventListener(listener)
-  }
-
-  def sendChatMessage(chatMessage: String): Unit = {
-    bot.send().message(channelName, chatMessage)
   }
 }
 
