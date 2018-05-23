@@ -42,7 +42,8 @@ libraryDependencies ++= Seq(
 // JSON Lib (Jackson)
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 
-
+// PIRCBotX
+libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
 
 
 // ---------------------------------------------------------------------------------------------------------------------
