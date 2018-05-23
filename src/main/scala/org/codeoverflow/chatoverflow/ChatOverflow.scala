@@ -3,8 +3,8 @@ package org.codeoverflow.chatoverflow
 import java.security.Policy
 
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.api.io.input.Input
-import org.codeoverflow.chatoverflow.api.plugin.configuration.SourceRequirement
+import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput
+import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirement, SourceRequirement}
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.io.connector.{TwitchConnector, TwitchCredentials}
 import org.codeoverflow.chatoverflow.io.input.chat.TwitchChatInputImpl
@@ -46,39 +46,39 @@ object ChatOverflow {
       logger info s"Unable to load:\n ${pluginFramework.getNotLoadedPlugins.mkString("\n")}"
     }
 
-    // Add a new test plugin
+    // ---------------------------------------------------
+
+    // This code will be executed when you create a new plugin from the list of pluggables in the GUI
+    // "I want a new "simpletest" plugin named "supercoolinstance1"
     val testPlug = pluginFramework.getPluggable(pluginFramework.getLoadedPlugins.filter(info => info.name == "simpletest").head)
-    println(testPlug)
-
-    // Work with plugin registry
     pluginRegistry.addPlugin("supercoolinstance1", testPlug)
-    pluginRegistry.addPlugin("supercoolinstance2", testPlug)
-    println(pluginRegistry.getPlugins.mkString(", "))
 
-    val config = pluginRegistry.getConfiguration("supercoolinstance1")
-
-    // Create connector and register it
+    // This code will be executed when you create a new service in the list with given credentials
+    // Either standalone or when needed from a created plugin
     val sourceId = "skate702"
-    // TODO: REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE!
-    val connector = new TwitchConnector(sourceId, TwitchCredentials("skate702", ""))
+    val connector = new TwitchConnector(sourceId, TwitchCredentials("skate702", "oauth:xxxx"))
     ConnectorRegistry.addConnector(connector)
 
-    // Manually created input
-    val input = new TwitchChatInputImpl
-    input.setSource(sourceId)
-    input.init()
-
-    // Put shit together
-    //this is a dirty scala hack
-    // don't do this at home
+    // Put shit together (kinda hacky)
+    // This code will be executed during plugin configuration. This connects the connector with the plugin input
+    val config = pluginRegistry.getConfiguration("supercoolinstance1")
     config.getInputs.forEach((_, value) => {
       value match {
-        case value: SourceRequirement[Input] => value.setSource(input)
+        case value: SourceRequirement[TwitchChatInput] =>
+          val input = new TwitchChatInputImpl
+          input.setSource(sourceId)
+          input.init()
+          value.setSource(input)
+      }
+    })
+    config.getParameters.forEach((_, value) => {
+      value match {
+        case value: ParameterRequirement[String] =>
+          value.setParameter("Hello world!")
       }
     })
 
-    // TODO: ParameterRequirement
-
+    // This starts the plugin!
     pluginRegistry.asyncStartPlugin("supercoolinstance1")
   }
 }
