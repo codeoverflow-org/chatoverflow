@@ -114,7 +114,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
     */
   private def loadPlugin(pluggable: Pluggable, pluginManager: PluginManager): Option[Plugin] = {
     try {
-      Some(pluggable.getPlugin(pluginManager))
+      Some(pluggable.createNewPluginInstance(pluginManager))
     } catch {
       case _: Exception => None
     }
