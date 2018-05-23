@@ -3,8 +3,12 @@ package org.codeoverflow.chatoverflow
 import java.security.Policy
 
 import org.apache.log4j.Logger
+import org.codeoverflow.chatoverflow.api.io.input.Input
+import org.codeoverflow.chatoverflow.api.plugin.configuration.SourceRequirement
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
-import org.codeoverflow.chatoverflow.registry.PluginRegistry
+import org.codeoverflow.chatoverflow.io.connector.{TwitchConnector, TwitchCredentials}
+import org.codeoverflow.chatoverflow.io.input.chat.TwitchChatInputImpl
+import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginRegistry}
 
 object ChatOverflow {
 
@@ -53,8 +57,28 @@ object ChatOverflow {
 
     val config = pluginRegistry.getConfiguration("supercoolinstance1")
 
+    // Create connector and register it
+    val sourceId = "skate702"
+    // TODO: REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE! REMOVE!
+    val connector = new TwitchConnector(sourceId, TwitchCredentials("skate702", ""))
+    ConnectorRegistry.addConnector(connector)
+
+    // Manually created input
+    val input = new TwitchChatInputImpl
+    input.setSource(sourceId)
+    input.init()
+
     // Put shit together
+    //this is a dirty scala hack
+    // don't do this at home
+    config.getInputs.forEach((_, value) => {
+      value match {
+        case value: SourceRequirement[Input] => value.setSource(input)
+      }
+    })
 
+    // TODO: ParameterRequirement
 
+    pluginRegistry.asyncStartPlugin("supercoolinstance1")
   }
 }

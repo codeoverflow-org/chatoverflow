@@ -2,12 +2,12 @@ package org.codeoverflow.chatoverflow.io.input.chat
 
 import java.util.Calendar
 import java.util.function.Consumer
-import collection.JavaConverters._
 
 import org.codeoverflow.chatoverflow.api.io.input.chat.{ChatMessage, TwitchChatInput}
 import org.codeoverflow.chatoverflow.io.source.TwitchSource
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
 class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
@@ -29,6 +29,7 @@ class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
     val isSub = if (event.getV3Tags.get("subscriber") == "1") true else false
     val msg: ChatMessage = new ChatMessage(event.getMessage, event.getUser.getNick, event.getTimestamp, isSub, color)
 
+    messageHandler.foreach(consumer => consumer.accept(msg))
     messages += msg
   }
 
@@ -41,11 +42,13 @@ class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
       val timestamp = event.getTimestamp
       val msg: ChatMessage = new ChatMessage(message, name, timestamp)
 
+      privateMessageHandler.foreach(consumer => consumer.accept(msg))
       privateMessages += msg
     }
   }
 
-  override def getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage] = {
+  override def
+  getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage] = {
     val currentTime = Calendar.getInstance.getTimeInMillis
 
     messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
