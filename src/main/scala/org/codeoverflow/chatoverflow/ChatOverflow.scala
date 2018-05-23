@@ -4,6 +4,7 @@ import java.security.Policy
 
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
+import org.codeoverflow.chatoverflow.registry.PluginRegistry
 
 object ChatOverflow {
 
@@ -27,6 +28,7 @@ object ChatOverflow {
     // Create plugin framework and manager instance
     val pluginFramework = PluginFramework(pluginFolder)
     val pluginManager = new PluginManagerImpl
+    val pluginRegistry = new PluginRegistry(pluginManager)
 
     // Create sandbox environment for plugins
     Policy.setPolicy(new SandboxSecurityPolicy)
@@ -40,10 +42,19 @@ object ChatOverflow {
       logger info s"Unable to load:\n ${pluginFramework.getNotLoadedPlugins.mkString("\n")}"
     }
 
+    // Add a new test plugin
+    val testPlug = pluginFramework.getPluggable(pluginFramework.getLoadedPlugins.filter(info => info.name == "simpletest").head)
+    println(testPlug)
 
-    // Start server
-    //    logger info "Starting server."
-    //    val server = new Server(8080)
-    //    server.startAsync()
+    // Work with plugin registry
+    pluginRegistry.addPlugin("supercoolinstance1", testPlug)
+    pluginRegistry.addPlugin("supercoolinstance2", testPlug)
+    println(pluginRegistry.getPlugins.mkString(", "))
+
+    val config = pluginRegistry.getConfiguration("supercoolinstance1")
+
+    // Put shit together
+
+
   }
 }

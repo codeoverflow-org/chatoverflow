@@ -6,12 +6,12 @@ import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManage
 
 import scala.collection.mutable
 
-object PluginRegistry {
+class PluginRegistry(pluginManager: PluginManager) {
 
   private val logger = Logger.getLogger(this.getClass)
   private val plugins = mutable.Map[String, Plugin]()
 
-  def addPlugin(pluginName: String, pluggable: Pluggable, pluginManager: PluginManager): Boolean = {
+  def addPlugin(pluginName: String, pluggable: Pluggable): Boolean = {
     if (plugins.contains(pluginName)) {
       false
     } else {
@@ -22,16 +22,17 @@ object PluginRegistry {
 
   def getPlugins: Seq[String] = plugins.keys.toSeq
 
-  def getConfigurationForPluginWithName(pluginName: String): Configuration = {
+  def getConfiguration(pluginName: String): Configuration = {
     plugins(pluginName).getRequirements
   }
 
   /**
-    * Creates a new thread and tries to start the plugin
+    * Creates a new thread and tries to start the plugin.
+    * Make sure to set the requirements (configuration) first!
     *
     * @param pluginName the pluginName with which it was added before
     */
-  def asyncStartPluginWithName(pluginName: String): Unit = {
+  def asyncStartPlugin(pluginName: String): Unit = {
 
     // Always escape!
     if (!plugins.contains(pluginName)) {
