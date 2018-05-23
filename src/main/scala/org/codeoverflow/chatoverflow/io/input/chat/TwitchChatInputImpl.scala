@@ -19,8 +19,10 @@ class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
   private val messageHandler = ListBuffer[Consumer[ChatMessage]]()
   private val privateMessageHandler = ListBuffer[Consumer[ChatMessage]]()
 
-  twitchConnector.addMessageEventListener(onMessage)
-  twitchConnector.addUnknownEventListener(onUnknown)
+  override def init(): Unit = {
+    twitchConnector.addMessageEventListener(onMessage)
+    twitchConnector.addUnknownEventListener(onUnknown)
+  }
 
   def onMessage(event: MessageEvent): Unit = {
     val color = if (event.getV3Tags.get("color").contains("#")) event.getV3Tags.get("color") else ""
