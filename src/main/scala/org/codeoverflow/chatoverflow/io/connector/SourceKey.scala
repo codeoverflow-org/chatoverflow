@@ -6,5 +6,5 @@ case class SourceKey(connectorType: ConnectorType, sourceIdentifier: String) {
 }
 
 object SourceKey {
-  def apply(connector: Connector) = SourceKey(connector.getType, connector.sourceId)
+  def apply(connector: Connector): SourceKey = SourceKey(connector.getType, connector.sourceId)
 }
