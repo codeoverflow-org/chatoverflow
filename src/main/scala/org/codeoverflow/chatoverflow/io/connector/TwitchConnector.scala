@@ -70,6 +70,10 @@ class TwitchConnector(channelName: String, credentials: TwitchCredentials) exten
   def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
     twitchListener.addUnknownEventListener(listener)
   }
+
+  def sendChatMessage(chatMessage: String): Unit = {
+    bot.send().message(channelName, chatMessage)
+  }
 }
 
 object TwitchConnector {
