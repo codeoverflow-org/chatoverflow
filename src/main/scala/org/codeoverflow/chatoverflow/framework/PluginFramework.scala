@@ -7,6 +7,7 @@ import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManager}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 class PluginFramework(val pluginDirectoryPath: String) {
 
@@ -15,9 +16,9 @@ class PluginFramework(val pluginDirectoryPath: String) {
   private val logger = Logger.getLogger(this.getClass)
   logger info s"Started plugin framework with plugin directory '$pluginDirectoryPath'."
 
-  private val pluginInfos = mutable.Map[(String, String), PluginInfo]()
-  private val notLoadedPluginInfos = mutable.Map[(String, String), PluginInfo]()
-  private val plugins = mutable.Map[(String, String), Plugin]()
+  private val loadedPlugins = ListBuffer[PluginInfo]()
+  private val notLoadedPlugins = ListBuffer[PluginInfo]()
+  private val pluggables = mutable.Map[PluginInfo, Pluggable]()
 
   /**
     * Initializes the Plugin Framework by loading all available Plugins from the plugin folder.
@@ -27,9 +28,9 @@ class PluginFramework(val pluginDirectoryPath: String) {
   def init(pluginManager: PluginManager): Unit = {
 
     // Reset state
-    pluginInfos.clear()
-    plugins.clear()
-    notLoadedPluginInfos.clear()
+    loadedPlugins.clear()
+    notLoadedPlugins.clear()
+    pluggables.clear()
 
     if (!pluginDirectory.exists() || !pluginDirectory.isDirectory) {
       logger warn s"Plugin directory '$pluginDirectory' does not exist!"
@@ -46,9 +47,8 @@ class PluginFramework(val pluginDirectoryPath: String) {
       // Create own class loader
       val classLoader = new PluginClassLoader(jarUrls)
 
-
       // Load pluggables
-      val pluggables = loadAllPluggables(jarFiles, classLoader)
+      val notTestedPluggables = loadAllPluggables(jarFiles, classLoader)
 
       logger info fancySeparator
       logger debug "Finished plugin gathering process."
@@ -59,7 +59,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
 
 
       // Check pluggables, load plugins
-      for (pluggable <- pluggables) {
+      for (pluggable <- notTestedPluggables) {
 
         logger info s"Plugin: ${pluggable.getName}"
         val pluginMajorVersion = pluggable.getMajorAPIVersion
@@ -68,7 +68,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
         // Check plugin version first
         if (pluginMajorVersion != apiMajorVersion) {
           logger warn s"API Version of plugin is $pluginMajorVersion.$pluginMinorVersion (API: $apiMajorVersion.$apiMinorVersion). Loading aborted."
-          notLoadedPluginInfos += (pluggable.getAuthor, pluggable.getName) -> pluggable
+          notLoadedPlugins += pluggable
         } else {
 
           if (pluginMinorVersion != apiMinorVersion) {
@@ -77,21 +77,21 @@ class PluginFramework(val pluginDirectoryPath: String) {
             logger info s"API Version of plugin is valid ($pluginMajorVersion.$pluginMinorVersion)."
           }
 
-          // Now try to load that plugin
+          // Now try to load that plugin, just to make sure it's possible
           val plugin = loadPlugin(pluggable, pluginManager)
           if (plugin.isEmpty) {
             logger warn "Plugin loading FAILED!"
-            notLoadedPluginInfos += (pluggable.getAuthor, pluggable.getName) -> pluggable
+            notLoadedPlugins += pluggable
           } else {
             logger info s"Loaded plugin ${pluggable.getName} successfull!"
 
             // Insert the plugin
-            if (!plugins.contains((pluggable.getAuthor, pluggable.getName))) {
-              plugins += (pluggable.getAuthor, pluggable.getName) -> plugin.get
-              pluginInfos += (pluggable.getAuthor, pluggable.getName) -> pluggable
+            if (!pluggables.contains(pluggable)) {
+              pluggables += toPluginInfo(pluggable) -> pluggable
+              loadedPlugins += pluggable
             } else {
               logger warn s"Unable to manage plugin: '${pluggable.getAuthor}.${pluggable.getName}'. Signature already used."
-              notLoadedPluginInfos += (pluggable.getAuthor, pluggable.getName) -> pluggable
+              notLoadedPlugins += pluggable
             }
           }
         }
@@ -99,7 +99,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
 
       // Info
       logger info fancySeparator
-      logger info s"Successfully loaded ${plugins.toList.length} / ${pluggables.length} Plugins (${jarFiles.length} files)!"
+      logger info s"Successfully loaded ${pluggables.toList.length} / ${notTestedPluggables.length} Plugins (${jarFiles.length} files)!"
     }
   }
 
@@ -121,65 +121,28 @@ class PluginFramework(val pluginDirectoryPath: String) {
   }
 
   /**
-    * Retrieves the plugin information of a given (loaded) plugin name.
+    * Returns a pluggable object from the given info.
     *
-    * @param plugin the plugin signature (authorName.pluginName)
-    * @return information about name, author and description
+    * @param pluginInfo the plugin info object. Use getLoadedPlugins to get these.
+    * @return a (already tested) pluggable object ready to instantiate
     */
-  def getPluginInfo(plugin: (String, String)): Option[PluginInfo] = {
-    if (pluginInfos.contains(plugin))
-      Some(pluginInfos(plugin))
-    else if (notLoadedPluginInfos.contains(plugin))
-      Some(notLoadedPluginInfos(plugin))
-    else
-      None
-  }
+  def getPluggable(pluginInfo: PluginInfo): Pluggable = pluggables(pluginInfo)
 
   /**
     * Returns all names of loaded plugins
     *
-    * @return a list with all loaded plugin (authorName.pluginName)
+    * @return a list with all loaded plugin infos
     */
-  def getLoadedPlugins: List[(String, String)] = pluginInfos.keys.toList
+  def getLoadedPlugins: List[PluginInfo] = loadedPlugins.toList
 
   /**
     * Returns a list of all plugins with loading failures.
     *
     * @return a list of plugin signatures (authorName.pluginName)
     */
-  def getNotLoadedPlugins: List[(String, String)] = notLoadedPluginInfos.keys.toList
+  def getNotLoadedPlugins: List[PluginInfo] = notLoadedPlugins.toList
 
-  /**
-    * Creates a new thread and tries to start the plugin
-    *
-    * @param plugin the plugin signature (authorName.pluginName)
-    */
-  def asyncStartPlugin(plugin: (String, String)): Unit = {
-
-    // Always escape!
-    if (!plugins.contains(plugin)) {
-      logger warn s"Plugin '$plugin' was not loaded. Unable to start."
-    } else {
-      logger info s"Starting plugin '$plugin' in new thread!"
-      val loadedPlugin = plugins(plugin)
-
-      try {
-        // TODO: Manage all threads, passing arguments, maybe using actors rather than threads
-        new Thread(() => {
-          try {
-            loadedPlugin.start()
-          } catch {
-            case e: AbstractMethodError => logger.error(s"Plugin '$plugin' just crashed. Looks like a plugin version error.", e)
-            case e: Exception => logger.error(s"Plugin '$plugin' just had an exception. Might be a plugin implementation fault.", e)
-            case e: Throwable => logger.error(s"Plugin '$plugin' just crashed.", e)
-          }
-        }).start()
-      } catch {
-        case e: Throwable => logger.error(s"Plugin starting process (Plugin: '$plugin') just crashed.", e)
-      }
-    }
-  }
-
+  // Implicit conversion from pluggable to PluginInfo
   private implicit def toPluginInfo(pluggable: Pluggable): PluginInfo =
     PluginInfo(pluggable.getName, pluggable.getAuthor, pluggable.getDescription)
 

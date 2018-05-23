@@ -4,21 +4,18 @@ import java.security.Policy
 
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
-import org.codeoverflow.chatoverflow.web.Server
 
 object ChatOverflow {
 
   val pluginFolder = "plugins/"
   private val logger = Logger.getLogger(this.getClass)
 
-  private var plugins = List[(String, String)]()
-
   /**
     * Returns all currently loaded plugins
     *
     * @return a list of plugin declarations (pluginAuthor,pluginName)
     */
-  def getPlugins: List[(String, String)] = plugins
+  def getPlugins: List[(String, String)] = null
 
   def main(args: Array[String]): Unit = {
     println("Minzig!")
@@ -43,16 +40,10 @@ object ChatOverflow {
       logger info s"Unable to load:\n ${pluginFramework.getNotLoadedPlugins.mkString("\n")}"
     }
 
-    plugins = pluginFramework.getLoadedPlugins
-
-    // Start plugins
-    for (plugin <- pluginFramework.getLoadedPlugins) {
-      pluginFramework.asyncStartPlugin(plugin)
-    }
 
     // Start server
-    logger info "Starting server."
-    val server = new Server(8080)
-    server.startAsync()
+    //    logger info "Starting server."
+    //    val server = new Server(8080)
+    //    server.startAsync()
   }
 }
