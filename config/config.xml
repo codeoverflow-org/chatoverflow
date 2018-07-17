@@ -1,0 +1,13 @@
+<config>
+    <pluginInstances>
+        <pluginInstance>
+            <pluginName>simpletest</pluginName>
+            <pluginAuthor>sebinside</pluginAuthor>
+            <instanceName>supercoolinstance1</instanceName>
+        </pluginInstance>
+        <pluginInstance>
+            <pluginName>DO NOT FIND ME</pluginName>
+            <instanceName>DO NOT CREATE ME</instanceName>
+        </pluginInstance>
+    </pluginInstances>
+</config>

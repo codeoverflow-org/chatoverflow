@@ -18,7 +18,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
 
   private val loadedPlugins = ListBuffer[PluginInfo]()
   private val notLoadedPlugins = ListBuffer[PluginInfo]()
-  private val pluggables = mutable.Map[PluginInfo, Pluggable]()
+  private val pluggables = mutable.Map[PluginId, Pluggable]()
 
   /**
     * Initializes the Plugin Framework by loading all available Plugins from the plugin folder.
@@ -87,7 +87,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
 
             // Insert the plugin
             if (!pluggables.contains(pluggable)) {
-              pluggables += toPluginInfo(pluggable) -> pluggable
+              pluggables += toPluginId(pluggable) -> pluggable
               loadedPlugins += pluggable
             } else {
               logger warn s"Unable to manage plugin: '${pluggable.getAuthor}.${pluggable.getName}'. Signature already used."
@@ -123,10 +123,23 @@ class PluginFramework(val pluginDirectoryPath: String) {
   /**
     * Returns a pluggable object from the given info.
     *
-    * @param pluginInfo the plugin info object. Use getLoadedPlugins to get these.
+    * @param pluginInfo the plugin info object. Use getLoadedPlugins() to retrieve these.
     * @return a (already tested) pluggable object ready to instantiate
     */
-  def getPluggable(pluginInfo: PluginInfo): Pluggable = pluggables(pluginInfo)
+  def getPluggable(pluginInfo: PluginInfo): Option[Pluggable] = getPluggable(pluginInfoToPluginId(pluginInfo))
+
+  /**
+    * Returns a pluggable object from the given info.
+    *
+    * @param pluginId the plugin id object. Contains plugin name and author.
+    * @return a (already tested) pluggable object ready to instantiate
+    */
+  def getPluggable(pluginId: PluginId): Option[Pluggable] = {
+    if (pluggables.contains(pluginId))
+      Some(pluggables(pluginId))
+    else
+      None
+  }
 
   /**
     * Returns all names of loaded plugins
@@ -142,9 +155,15 @@ class PluginFramework(val pluginDirectoryPath: String) {
     */
   def getNotLoadedPlugins: List[PluginInfo] = notLoadedPlugins.toList
 
-  // Implicit conversion from pluggable to PluginInfo
+  // Implicit conversion for plugin info/id objects
   private implicit def toPluginInfo(pluggable: Pluggable): PluginInfo =
     PluginInfo(pluggable.getName, pluggable.getAuthor, pluggable.getDescription)
+
+  private implicit def toPluginId(pluggable: Pluggable): PluginId =
+    PluginId(pluggable.getName, pluggable.getAuthor)
+
+  private implicit def pluginInfoToPluginId(pluginInfo: PluginInfo): PluginId =
+    PluginId(pluginInfo.name, pluginInfo.author)
 
 }
 
@@ -155,3 +174,5 @@ object PluginFramework {
 }
 
 case class PluginInfo(name: String, author: String, description: String)
+
+case class PluginId(name: String, author: String)

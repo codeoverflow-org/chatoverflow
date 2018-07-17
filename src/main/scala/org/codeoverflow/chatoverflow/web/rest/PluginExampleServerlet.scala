@@ -1,6 +1,5 @@
 package org.codeoverflow.chatoverflow.web.rest
 
-import org.codeoverflow.chatoverflow.ChatOverflow
 import org.codeoverflow.chatoverflow.web.JsonServlet
 
 /**
@@ -9,7 +8,7 @@ import org.codeoverflow.chatoverflow.web.JsonServlet
 class PluginExampleServerlet extends JsonServlet {
 
   get("/plugins") {
-    ChatOverflow.getPlugins
+    //ChatOverflow.getPlugins
   }
 
 }
