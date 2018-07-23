@@ -1,37 +1,30 @@
 package org.codeoverflow.chatoverflow.config
 
-import java.io.File
+import scala.xml.{Elem, Node}
 
-class Configuration(val configDirectoryPath: String) {
-  val configFile = s"$configDirectoryPath/config.xml"
+trait Configuration {
+  def toXml: xml.Elem
+}
 
-  var pluginInstances: Seq[PluginInstanceConfigEntry] = Seq[PluginInstanceConfigEntry]()
+case class PluginInstance(pluginName: String, pluginAuthor: String, instanceName: String) extends Configuration {
+  override def toXml: Elem =
+    <pluginInstance>
+      <pluginName>
+        {pluginName}
+      </pluginName>
+      <pluginAuthor>
+        {pluginAuthor}
+      </pluginAuthor>
+      <instanceName>
+        {instanceName}
+      </instanceName>
+    </pluginInstance>
 
-  def load(): Unit = {
-
-    // Create file if non existent
-    if (!new File(configFile).exists()) {
-      save()
-    }
-
-    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFile))
-
-    pluginInstances = for (pluginInstance <- xmlContent \ "pluginInstances" \ "_") yield
-      new PluginInstanceConfigEntry(pluginInstance)
-
-  }
-
-  def save(): Unit = {
-
-    val xmlContent =
-      <config>
-        <pluginInstances>
-          {for (pluginInstance <- pluginInstances) yield pluginInstance.toXml}
-        </pluginInstances>
-      </config>
-
-    xml.XML.save(configFile, xmlContent)
-
-  }
+  def this(xmlNode: Node) = this(
+    (xmlNode \ "pluginName").text,
+    (xmlNode \ "pluginAuthor").text,
+    (xmlNode \ "instanceName").text)
 
 }
+
+// Insert new config options here

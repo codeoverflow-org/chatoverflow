@@ -6,24 +6,24 @@ import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManage
 
 import scala.collection.mutable
 
-class PluginRegistry(pluginManager: PluginManager) {
+class PluginInstanceRegistry(pluginManager: PluginManager) {
 
   private val logger = Logger.getLogger(this.getClass)
-  private val plugins = mutable.Map[String, Plugin]()
+  private val pluginInstances = mutable.Map[String, Plugin]()
 
-  def addPlugin(instanceName: String, pluggable: Pluggable): Boolean = {
-    if (plugins.contains(instanceName)) {
+  def addPluginInstance(instanceName: String, pluggable: Pluggable): Boolean = {
+    if (pluginInstances.contains(instanceName)) {
       false
     } else {
-      plugins += instanceName -> pluggable.createNewPluginInstance(pluginManager)
+      pluginInstances += instanceName -> pluggable.createNewPluginInstance(pluginManager)
       true
     }
   }
 
-  def getPlugins: Seq[String] = plugins.keys.toSeq
+  def getPluginInstances: Seq[String] = pluginInstances.keys.toSeq
 
   def getConfiguration(instanceName: String): Configuration = {
-    plugins(instanceName).getRequirements
+    pluginInstances(instanceName).getRequirements
   }
 
   /**
@@ -35,11 +35,11 @@ class PluginRegistry(pluginManager: PluginManager) {
   def asyncStartPlugin(instanceName: String): Unit = {
 
     // Always escape!
-    if (!plugins.contains(instanceName)) {
+    if (!pluginInstances.contains(instanceName)) {
       logger warn s"Plugin '$instanceName' was not loaded. Unable to start."
     } else {
       logger info s"Starting plugin '$instanceName' in new thread!"
-      val loadedPlugin = plugins(instanceName)
+      val loadedPlugin = pluginInstances(instanceName)
 
       try {
         // TODO: Manage all threads, passing arguments, maybe using actors rather than threads

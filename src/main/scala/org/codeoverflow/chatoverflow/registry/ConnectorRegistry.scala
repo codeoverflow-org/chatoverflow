@@ -1,7 +1,8 @@
 package org.codeoverflow.chatoverflow.registry
 
-import org.codeoverflow.chatoverflow.io.connector.ConnectorType.ConnectorType
-import org.codeoverflow.chatoverflow.io.connector.{Connector, SourceKey}
+/*
+import org.codeoverflow.chatoverflow.service.ConnectorType.ConnectorType
+import org.codeoverflow.chatoverflow.service.{Connector, SourceKey}
 
 import scala.collection.mutable
 
@@ -24,4 +25,4 @@ object ConnectorRegistry {
     }
   }
 
-}
+}*/

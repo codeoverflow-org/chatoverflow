@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.web
+package org.codeoverflow.chatoverflow.ui.web
 
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.ScalatraServlet

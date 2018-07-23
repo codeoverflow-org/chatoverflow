@@ -5,21 +5,23 @@ import java.security.Policy
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirement, SourceRequirement}
-import org.codeoverflow.chatoverflow.config.Configuration
-import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginId, PluginManagerImpl, SandboxSecurityPolicy}
-import org.codeoverflow.chatoverflow.io.connector.{TwitchConnector, TwitchCredentials}
-import org.codeoverflow.chatoverflow.io.input.chat.TwitchChatInputImpl
-import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginRegistry}
+import org.codeoverflow.chatoverflow.config.{ConfigurationService, CredentialsService}
+import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
+import org.codeoverflow.chatoverflow.registry.PluginInstanceRegistry
+//import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
+//import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
 object ChatOverflow {
 
   val pluginFolderPath = "plugins/"
   val configFolderPath = "config/"
+  val credentialsFilePath = "credentials.xml"
   private val logger = Logger.getLogger(this.getClass)
 
   private var pluginFramework: PluginFramework = _
-  private var pluginRegistry: PluginRegistry = _
-  private var configuration: Configuration = _
+  private var pluginRegistry: PluginInstanceRegistry = _
+  private var configurationService: ConfigurationService = _
+  private var credentialsService: CredentialsService = _
 
   def main(args: Array[String]): Unit = {
     println("Minzig!")
@@ -28,8 +30,21 @@ object ChatOverflow {
     // Initialize chat overflow plugin framework
     init()
 
-    // Add all configured plugins to the plugin registry
-    loadPlugins()
+    // Add all configured plugin instances to the plugin registry
+    loadPluginInstances()
+
+    // Play with some credentials
+    credentialsService = new CredentialsService(credentialsFilePath, "test123".toCharArray)
+    /*val cred1 = new Credentials("skate702")
+    cred1.addValue("apiKey", "oauth:xxx")
+    cred1.addValue("anotherKey", "xyz")
+    val cred2 = new Credentials("sebinside")
+    cred2.addValue("a key", "a value")
+    credentialsService.addCredentials("codeoverflow.twitch.api", cred1)
+    credentialsService.addCredentials("codeoverflow.youtube.login", cred2)*/
+    credentialsService.load()
+    println(credentialsService.getCredentials("codeoverflow.twitch.api", "skate702").get.getValue("apiKey"))
+    //credentialsService.save()
 
     // Testing
     System.exit(0)
@@ -39,8 +54,8 @@ object ChatOverflow {
     // This code will be executed when you create a new service in the list with given credentials
     // Either standalone or when needed from a created plugin
     val sourceId = "skate702"
-    val connector = new TwitchConnector(sourceId, TwitchCredentials("skate702", "oauth:xxxx"))
-    ConnectorRegistry.addConnector(connector)
+    //val connector = new TwitchConnector(sourceId, TwitchCredentials("skate702", "oauth:xxxx"))
+    //ConnectorRegistry.addConnector(connector)
 
     // Put shit together (kinda hacky)
     // This code will be executed during plugin configuration. This connects the connector with the plugin input
@@ -48,10 +63,10 @@ object ChatOverflow {
     config.getInputs.forEach((_, value) => {
       value match {
         case value: SourceRequirement[TwitchChatInput] =>
-          val input = new TwitchChatInputImpl
-          input.setSource(sourceId)
-          input.init()
-          value.setSource(input)
+        //val input = new TwitchChatInputImpl
+        //input.setSource(sourceId)
+        //input.init()
+        //value.setSource(input)
       }
     })
     config.getParameters.forEach((_, value) => {
@@ -71,7 +86,7 @@ object ChatOverflow {
     // Create plugin framework, registry and manager instance
     val pluginManager = new PluginManagerImpl
     pluginFramework = PluginFramework(pluginFolderPath)
-    pluginRegistry = new PluginRegistry(pluginManager)
+    pluginRegistry = new PluginInstanceRegistry(pluginManager)
 
     // Create sandbox environment for plugins
     Policy.setPolicy(new SandboxSecurityPolicy)
@@ -87,24 +102,24 @@ object ChatOverflow {
     }
 
     // Load Configuration
-    configuration = new Configuration(configFolderPath)
-    configuration.load()
+    configurationService = new ConfigurationService(configFolderPath)
+    configurationService.load()
     logger info s"Loaded configuration from '$configFolderPath'."
 
     logger debug "Finished init phase."
   }
 
-  def loadPlugins(): Unit = {
+  def loadPluginInstances(): Unit = {
     logger info "Loading plugins from config file."
 
-    for (pluginInstance <- configuration.pluginInstances) {
+    for (pluginInstance <- configurationService.pluginInstances) {
 
-      val pluggable = pluginFramework.getPluggable(PluginId(pluginInstance.pluginName, pluginInstance.pluginAuthor))
+      val pluggable = pluginFramework.getPluggable(pluginInstance.pluginName, pluginInstance.pluginAuthor)
 
       pluggable match {
         case Some(p) =>
           logger info s"Loaded plugin config $pluginInstance."
-          pluginRegistry.addPlugin(pluginInstance.instanceName, p)
+          pluginRegistry.addPluginInstance(pluginInstance.instanceName, p)
         case None => logger debug s"Unable to load plugin config $pluginInstance. Plugin not found."
       }
     }

@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.io.input.event
+package org.codeoverflow.chatoverflow.service.twitch.impl
 
 import org.codeoverflow.chatoverflow.api.io.input.event.TwitchSubscriptionEventInput
 

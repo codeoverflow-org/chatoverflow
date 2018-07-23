@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.web
+package org.codeoverflow.chatoverflow.ui.web
 
 import org.eclipse.jetty.servlet.DefaultServlet
 import org.eclipse.jetty.webapp.WebAppContext

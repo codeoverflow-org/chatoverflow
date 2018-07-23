@@ -1,9 +1,9 @@
-package org.codeoverflow.chatoverflow.io.source
+package org.codeoverflow.chatoverflow.service.twitch
 
-import org.codeoverflow.chatoverflow.io.connector.{ConnectorType, TwitchConnector}
-import org.codeoverflow.chatoverflow.registry.ConnectorRegistry
+//import org.codeoverflow.chatoverflow.registry.ConnectorRegistry
+//import org.codeoverflow.chatoverflow.service.{ConnectorType, Source}
 
-
+/*
 trait TwitchSource extends Source {
   protected var twitchConnector: TwitchConnector = _
 
@@ -16,3 +16,4 @@ trait TwitchSource extends Source {
   }
 
 }
+*/

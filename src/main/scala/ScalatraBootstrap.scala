@@ -1,5 +1,5 @@
 import javax.servlet.ServletContext
-import org.codeoverflow.chatoverflow.web.rest.PluginExampleServerlet
+import org.codeoverflow.chatoverflow.ui.web.rest.PluginExampleServerlet
 import org.scalatra._
 
 /**

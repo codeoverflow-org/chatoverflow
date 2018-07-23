@@ -131,6 +131,16 @@ class PluginFramework(val pluginDirectoryPath: String) {
   /**
     * Returns a pluggable object from the given info.
     *
+    * @param pluginName   name of the plugin
+    * @param pluginAuthor name of the plugin author
+    * @return a (already tested) pluggable object ready to instantiate
+    */
+  def getPluggable(pluginName: String, pluginAuthor: String): Option[Pluggable] =
+    getPluggable(PluginId(pluginName, pluginAuthor))
+
+  /**
+    * Returns a pluggable object from the given info.
+    *
     * @param pluginId the plugin id object. Contains plugin name and author.
     * @return a (already tested) pluggable object ready to instantiate
     */
@@ -151,7 +161,7 @@ class PluginFramework(val pluginDirectoryPath: String) {
   /**
     * Returns a list of all plugins with loading failures.
     *
-    * @return a list of plugin signatures (authorName.pluginName)
+    * @return a list with all not loaded plugin infos
     */
   def getNotLoadedPlugins: List[PluginInfo] = notLoadedPlugins.toList
 
