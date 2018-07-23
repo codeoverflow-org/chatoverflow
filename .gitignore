@@ -24,3 +24,6 @@ plugins-private/
 # Plugin Framework
 plugins/
 plugins.sbt
+
+# Credentials
+credentials.xml
