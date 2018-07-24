@@ -1,8 +1,7 @@
 package org.codeoverflow.chatoverflow.registry
 
-/*
-import org.codeoverflow.chatoverflow.service.ConnectorType.ConnectorType
-import org.codeoverflow.chatoverflow.service.{Connector, SourceKey}
+
+import org.codeoverflow.chatoverflow.service.Connector
 
 import scala.collection.mutable
 
@@ -10,19 +9,23 @@ object ConnectorRegistry {
   private val sources = mutable.Map[SourceKey, Connector]()
 
   def addConnector(connector: Connector): Unit = {
-    if (!sources.contains(SourceKey(connector))) {
-      sources += SourceKey(connector.getType, connector.sourceId) -> connector
+    val key = SourceKey(connector)
+    if (!sources.contains(key)) {
+      sources += key -> connector
     } else {
-      throw new IllegalArgumentException("Source key does already exist!")
+      throw new IllegalArgumentException(s"Source key '$key' does already exist!")
     }
   }
 
-  def getConnector(connectorType: ConnectorType, sourceId: String): Option[Connector] = {
-    if (!sources.contains(SourceKey(connectorType, sourceId))) {
-      None
-    } else {
-      Some(sources(SourceKey(connectorType, sourceId)))
-    }
+  def getConnector(connectorType: String, sourceIdentifier: String): Option[Connector] = {
+    val key = SourceKey(connectorType, sourceIdentifier)
+    sources.get(key)
   }
 
-}*/
+}
+
+case class SourceKey(connectorType: String, sourceIdentifier: String)
+
+object SourceKey {
+  def apply(connector: Connector): SourceKey = SourceKey(connector.getUniqueTypeString, connector.sourceIdentifier)
+}

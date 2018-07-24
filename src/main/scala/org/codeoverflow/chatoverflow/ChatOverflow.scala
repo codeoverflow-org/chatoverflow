@@ -7,7 +7,8 @@ import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirement, SourceRequirement}
 import org.codeoverflow.chatoverflow.config.{ConfigurationService, CredentialsService}
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
-import org.codeoverflow.chatoverflow.registry.PluginInstanceRegistry
+import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
+import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
@@ -33,29 +34,24 @@ object ChatOverflow {
     // Add all configured plugin instances to the plugin registry
     loadPluginInstances()
 
-    // Play with some credentials
-    credentialsService = new CredentialsService(credentialsFilePath, "test123".toCharArray)
-    /*val cred1 = new Credentials("skate702")
-    cred1.addValue("apiKey", "oauth:xxx")
-    cred1.addValue("anotherKey", "xyz")
-    val cred2 = new Credentials("sebinside")
-    cred2.addValue("a key", "a value")
-    credentialsService.addCredentials("codeoverflow.twitch.api", cred1)
-    credentialsService.addCredentials("codeoverflow.youtube.login", cred2)*/
-    credentialsService.load()
-    println(credentialsService.getCredentials("codeoverflow.twitch.api", "skate702").get.getValue("apiKey"))
-    //credentialsService.save()
+    // Load credentials for service login
+    loadCredentials()
+
+    // This code will be executed when you create a new service in the list with given credentials
+    // Either standalone or when needed from a created plugin
+    val id = "skate702"
+    val credentials = credentialsService.getCredentials("codeoverflow.twitch.generic", id).get
+    val connector = new TwitchConnector(id, credentials)
+    ConnectorRegistry.addConnector(connector)
+
+    // TODO: Next up: Create config for registered connectors
+    // TODO: Find a way to be flexible while creating connector intances (from type string only)
 
     // Testing
     System.exit(0)
 
     // TODO: Beginning here, a lot has to be made. More input (e.g. arguments), more output (e.g. web interface), ...
 
-    // This code will be executed when you create a new service in the list with given credentials
-    // Either standalone or when needed from a created plugin
-    val sourceId = "skate702"
-    //val connector = new TwitchConnector(sourceId, TwitchCredentials("skate702", "oauth:xxxx"))
-    //ConnectorRegistry.addConnector(connector)
 
     // Put shit together (kinda hacky)
     // This code will be executed during plugin configuration. This connects the connector with the plugin input
@@ -125,5 +121,11 @@ object ChatOverflow {
     }
 
     logger info "Finished loading."
+  }
+
+  def loadCredentials(): Unit = {
+    // TODO: Ask for real password!
+    credentialsService = new CredentialsService(credentialsFilePath, "test123".toCharArray)
+    credentialsService.load()
   }
 }
