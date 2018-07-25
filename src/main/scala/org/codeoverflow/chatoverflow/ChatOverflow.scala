@@ -16,7 +16,7 @@ object ChatOverflow {
 
   val pluginFolderPath = "plugins/"
   val configFolderPath = "config/"
-  val credentialsFilePath = "config/credentials.xml"
+  val credentialsFilePath = s"$configFolderPath/credentials.xml"
   private val logger = Logger.getLogger(this.getClass)
 
   private var pluginFramework: PluginFramework = _
@@ -33,9 +33,11 @@ object ChatOverflow {
 
     // Add all configured plugin instances to the plugin registry
     loadPluginInstances()
+    // TODO: Add method to add instance by console
 
     // Load credentials for service login
     loadCredentials()
+    // TODO: Add method to add credentials by console
 
     // This code will be executed when you create a new service in the list with given credentials
     // Either standalone or when needed from a created plugin
@@ -44,8 +46,16 @@ object ChatOverflow {
     val connector = new TwitchConnector(id, credentials)
     ConnectorRegistry.addConnector(connector)
 
+
+    /*
+    import java.lang.reflect.Constructor
+val c: Class[_] = Class.forName("mypackage.MyClass")
+val cons: Constructor[_] = c.getConstructor(classOf[String])
+val `object`: Any = cons.newInstance("MyAttributeValue")
+     */
+
     // TODO: Next up: Create config for registered connectors
-    // TODO: Find a way to be flexible while creating connector intances (from type string only)
+    // TODO: Add method to add connector by console (saved in configs)
 
     // Testing
     System.exit(0)
@@ -74,6 +84,10 @@ object ChatOverflow {
 
     // This starts the plugin!
     pluginRegistry.asyncStartPlugin("supercoolinstance1")
+
+    // TODO: Write console stuff
+    // TODO: Write documentation
+    // TODO: Write wiki for new connector types
   }
 
   def init(): Unit = {

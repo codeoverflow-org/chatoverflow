@@ -24,7 +24,7 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
 
   override def init(): Unit = {
     if (!running) {
-      logger info s"Starting connector for source '$sourceIdentifier' of type '${TwitchConnector.connectorType}'."
+      logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
 
       bot = new PircBotX(getConfig)
       startBotAsync()
@@ -72,15 +72,14 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
   override def shutdown(): Unit = {
     bot.sendIRC().quitServer()
     bot.close()
-    logger info s"Stopped connector for source '$sourceIdentifier' of type '${TwitchConnector.connectorType}'."
+    logger info s"Stopped connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
   }
 
-  override def getUniqueTypeString: String = TwitchConnector.connectorType
+  override def getUniqueTypeString: String = this.getClass.getName
 
   def sendChatMessage(channelName: String, chatMessage: String): Unit = bot.send().message(channelName, chatMessage)
 }
 
 object TwitchConnector {
-  val connectorType = "chatoverflow.twitch.generic"
   val credentialsOauthKey = "oauth"
 }
