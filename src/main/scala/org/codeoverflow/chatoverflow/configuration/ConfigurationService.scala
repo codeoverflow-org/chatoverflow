@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.config
+package org.codeoverflow.chatoverflow.configuration
 
 import java.io.File
 

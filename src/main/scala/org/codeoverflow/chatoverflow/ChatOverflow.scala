@@ -5,7 +5,7 @@ import java.security.Policy
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirement, SourceRequirement}
-import org.codeoverflow.chatoverflow.config.{ConfigurationService, CredentialsService}
+import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, CredentialsService}
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
 import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
@@ -16,7 +16,7 @@ object ChatOverflow {
 
   val pluginFolderPath = "plugins/"
   val configFolderPath = "config/"
-  val credentialsFilePath = "credentials.xml"
+  val credentialsFilePath = "config/credentials.xml"
   private val logger = Logger.getLogger(this.getClass)
 
   private var pluginFramework: PluginFramework = _
