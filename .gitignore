@@ -24,3 +24,4 @@ plugins-private/
 # Plugin Framework
 plugins/
 plugins.sbt
+config/

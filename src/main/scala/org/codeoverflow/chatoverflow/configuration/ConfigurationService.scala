@@ -7,6 +7,10 @@ class ConfigurationService(val configDirectoryPath: String) {
 
   var pluginInstances: Seq[PluginInstance] = Seq[PluginInstance]()
 
+  if (!new File(configDirectoryPath).exists()) {
+    new File(configDirectoryPath).mkdir()
+  }
+
   def load(): Unit = {
 
     // Create file if non existent
