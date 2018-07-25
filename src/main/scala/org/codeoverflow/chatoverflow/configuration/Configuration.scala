@@ -27,4 +27,20 @@ case class PluginInstance(pluginName: String, pluginAuthor: String, instanceName
 
 }
 
+case class ConnectorInstance(connectorType: String, sourceIdentifier: String) extends Configuration {
+  override def toXml: Elem =
+    <connectorInstance>
+      <connectorType>
+        {connectorType}
+      </connectorType>
+      <sourceIdentifier>
+        {sourceIdentifier}
+      </sourceIdentifier>
+    </connectorInstance>
+
+  def this(xmlNode: Node) = this(
+    (xmlNode \ "connectorType").text,
+    (xmlNode \ "sourceIdentifier").text)
+}
+
 // Insert new config options here

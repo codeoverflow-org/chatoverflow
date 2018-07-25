@@ -6,6 +6,7 @@ class ConfigurationService(val configDirectoryPath: String) {
   val configFile = s"$configDirectoryPath/config.xml"
 
   var pluginInstances: Seq[PluginInstance] = Seq[PluginInstance]()
+  var connectorInstances: Seq[ConnectorInstance] = Seq[ConnectorInstance]()
 
   if (!new File(configDirectoryPath).exists()) {
     new File(configDirectoryPath).mkdir()
@@ -23,6 +24,9 @@ class ConfigurationService(val configDirectoryPath: String) {
     pluginInstances = for (node <- xmlContent \ "pluginInstances" \ "_") yield
       new PluginInstance(node)
 
+    connectorInstances = for (node <- xmlContent \ "connectorInstances" \ "_") yield
+      new ConnectorInstance(node)
+
     // Insert new config options here
 
   }
@@ -34,6 +38,9 @@ class ConfigurationService(val configDirectoryPath: String) {
         <pluginInstances>
           {for (pluginInstance <- pluginInstances) yield pluginInstance.toXml}
         </pluginInstances>
+        <connectorInstances>
+          {for (connectorInstance <- connectorInstances) yield connectorInstance.toXml}
+        </connectorInstances>
       </config>
 
     // Insert new config options here

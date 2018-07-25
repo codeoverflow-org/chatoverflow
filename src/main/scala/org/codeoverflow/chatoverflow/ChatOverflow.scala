@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow
 
+import java.lang.reflect.Constructor
 import java.security.Policy
 
 import org.apache.log4j.Logger
@@ -8,7 +9,7 @@ import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirem
 import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, CredentialsService}
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
-import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
+import org.codeoverflow.chatoverflow.service.{Connector, Credentials}
 //import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
@@ -27,36 +28,51 @@ object ChatOverflow {
   def main(args: Array[String]): Unit = {
     println("Minzig!")
     logger info "Started Chat Overflow Framework. Hello everybody!"
+    logger debug "INITIALIZATION STARTED!"
 
     // Initialize chat overflow plugin framework
-    init()
+    logger info "[1/6] Phase 1: Loading plugin framework and plugins."
+    loadFramework()
+
+    // Load configuration
+    logger info "[2/6] Phase 2: Loading framework configuration."
+    loadConfiguration()
 
     // Add all configured plugin instances to the plugin registry
+    logger info "[3/6] Phase 3: Loading plugin instances."
     loadPluginInstances()
     // TODO: Add method to add instance by console
 
     // Load credentials for service login
+    logger info "[4/6] Phase 4: Loading credentials."
     loadCredentials()
     // TODO: Add method to add credentials by console
 
-    // This code will be executed when you create a new service in the list with given credentials
-    // Either standalone or when needed from a created plugin
-    val id = "skate702"
-    val credentials = credentialsService.getCredentials("codeoverflow.twitch.generic", id).get
-    val connector = new TwitchConnector(id, credentials)
-    ConnectorRegistry.addConnector(connector)
+    // Load all connectors with the given credentials
+    logger info "[5/6] Phase 5: Loading platform connectors with given credentials."
+    loadConnectors()
+    // TODO: Add method to add controllers by console
 
+    // Load plugin instance configuration (e.g. specified target platforms)
+    logger info "[6/6] Load plugin instance configuration."
+    // TODO: Implement
+    // TODO: Add method to add configs by console
+
+    logger debug "INITIALIZATION FINISHED!"
+
+    // TODO: Start plugins
 
     /*
-    import java.lang.reflect.Constructor
-val c: Class[_] = Class.forName("mypackage.MyClass")
-val cons: Constructor[_] = c.getConstructor(classOf[String])
-val `object`: Any = cons.newInstance("MyAttributeValue")
-     */
+    configurationService.pluginInstances = Seq[PluginInstance](PluginInstance("simpletest", "sebinside", "myfirstinstance"))
+    val c = new Credentials("skate702")
+    c.addValue("ouath", "oauth:xxx")
+    val t = new TwitchConnector("skate702", c)
+    credentialsService.addCredentials(t.getUniqueTypeString, c)
+    configurationService.connectorInstances = Seq[ConnectorInstance](ConnectorInstance(t.getUniqueTypeString, "skate702"))
 
-    // TODO: Next up: Create config for registered connectors
-    // TODO: Add method to add connector by console (saved in configs)
-
+    credentialsService.save()
+    configurationService.save()
+*/
     // Testing
     System.exit(0)
 
@@ -88,11 +104,10 @@ val `object`: Any = cons.newInstance("MyAttributeValue")
     // TODO: Write console stuff
     // TODO: Write documentation
     // TODO: Write wiki for new connector types
+    // TODO: Write wiki for new plugins
   }
 
-  def init(): Unit = {
-    logger debug "Started init phase."
-
+  def loadFramework(): Unit = {
     // Create plugin framework, registry and manager instance
     val pluginManager = new PluginManagerImpl
     pluginFramework = PluginFramework(pluginFolderPath)
@@ -111,16 +126,10 @@ val `object`: Any = cons.newInstance("MyAttributeValue")
       logger info s"Unable to load:\n\t - ${pluginFramework.getNotLoadedPlugins.mkString("\n\t - ")}"
     }
 
-    // Load Configuration
-    configurationService = new ConfigurationService(configFolderPath)
-    configurationService.load()
-    logger info s"Loaded configuration from '$configFolderPath'."
-
-    logger debug "Finished init phase."
+    logger debug "Finished loading."
   }
 
   def loadPluginInstances(): Unit = {
-    logger info "Loading plugins from config file."
 
     for (pluginInstance <- configurationService.pluginInstances) {
 
@@ -139,7 +148,59 @@ val `object`: Any = cons.newInstance("MyAttributeValue")
 
   def loadCredentials(): Unit = {
     // TODO: Ask for real password!
-    credentialsService = new CredentialsService(credentialsFilePath, "test123".toCharArray)
+
+    logger info s"Loading credentials from '$credentialsFilePath'."
+
+    credentialsService = new CredentialsService(credentialsFilePath, "kappa123".toCharArray)
     credentialsService.load()
+
+    logger info "Finished loading."
+  }
+
+  def loadConfiguration(): Unit = {
+
+    logger info s"Loading credentials from '$configFolderPath'."
+
+    configurationService = new ConfigurationService(configFolderPath)
+    configurationService.load()
+
+    logger info "Finished loading."
+  }
+
+  def loadConnectors(): Unit = {
+
+    for (connectorInstance <- configurationService.connectorInstances) {
+
+      logger info s"Loading connector of type '${connectorInstance.connectorType}' " +
+        s"for source '${connectorInstance.sourceIdentifier}'."
+
+      val credentials = credentialsService.getCredentials(connectorInstance.connectorType, connectorInstance.sourceIdentifier)
+
+      if (credentials.isEmpty) {
+        logger warn s"Unable to find credentials."
+      } else {
+        logger info "Found credentials. Trying to create connector now."
+
+        try {
+          val connectorClass: Class[_] = Class.forName(connectorInstance.connectorType)
+          logger info "Found connector class."
+
+          val connectorConstructor: Constructor[_] = connectorClass.getConstructor(classOf[String], classOf[Credentials])
+          val connector: Connector = connectorConstructor.
+            newInstance(connectorInstance.sourceIdentifier, credentials.get).asInstanceOf[Connector]
+
+          ConnectorRegistry.addConnector(connector)
+
+          logger info "Successfully created and registered connector."
+        } catch {
+          case notfound: ClassNotFoundException => logger warn "Unable to find connector class."
+          case nomethod: NoSuchMethodException => logger warn "Unable to find correct constructor."
+          case e: Exception => logger warn s"Unable to create connector. A wild exception appeared: ${e.getMessage}"
+        }
+      }
+
+    }
+
+    logger info "Finished loading."
   }
 }
