@@ -2,8 +2,6 @@ package org.codeoverflow.chatoverflow.configuration
 
 import java.io.File
 
-import org.codeoverflow.chatoverflow.service.Credentials
-
 import scala.collection.mutable
 
 class CredentialsService(val credentialsFilePath: String, password: Array[Char]) {

@@ -6,10 +6,11 @@ import java.security.Policy
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirement, SourceRequirement}
-import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, CredentialsService}
+import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, Credentials, CredentialsService}
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
-import org.codeoverflow.chatoverflow.service.{Connector, Credentials}
+import org.codeoverflow.chatoverflow.service.Connector
+import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatOutputImpl
 //import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
@@ -72,7 +73,13 @@ object ChatOverflow {
 
     credentialsService.save()
     configurationService.save()
+
 */
+
+    val output = new TwitchChatOutputImpl
+    output.setSourceConnector("skate702")
+
+
     // Testing
     System.exit(0)
 

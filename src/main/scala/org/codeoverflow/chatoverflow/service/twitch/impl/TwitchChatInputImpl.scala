@@ -1,9 +1,17 @@
 package org.codeoverflow.chatoverflow.service.twitch.impl
 
-//import org.codeoverflow.chatoverflow.service.twitch.TwitchSource
+import java.util.Calendar
+import java.util.function.Consumer
 
-/*
-class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
+import org.codeoverflow.chatoverflow.api.io.input.chat.{ChatMessage, TwitchChatInput}
+import org.codeoverflow.chatoverflow.service.Connection
+import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
+import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
+
+class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInput {
 
   private val messages: ListBuffer[ChatMessage] = ListBuffer[ChatMessage]()
   private val privateMessages: ListBuffer[ChatMessage] = ListBuffer[ChatMessage]()
@@ -13,8 +21,8 @@ class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
   private val privateMessageHandler = ListBuffer[Consumer[ChatMessage]]()
 
   override def init(): Unit = {
-    //twitchConnector.addMessageEventListener(onMessage)
-    //twitchConnector.addUnknownEventListener(onUnknown)
+    sourceConnector.addMessageEventListener(onMessage)
+    sourceConnector.addUnknownEventListener(onUnknown)
   }
 
   def onMessage(event: MessageEvent): Unit = {
@@ -58,4 +66,3 @@ class TwitchChatInputImpl extends TwitchSource with TwitchChatInput {
 
   override def registerPrivateMessageHandler(handler: Consumer[ChatMessage]): Unit = privateMessageHandler += handler
 }
-*/

@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.service
+package org.codeoverflow.chatoverflow.configuration
 
 import scala.collection.mutable
 

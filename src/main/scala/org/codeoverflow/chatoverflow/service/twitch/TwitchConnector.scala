@@ -1,7 +1,8 @@
 package org.codeoverflow.chatoverflow.service.twitch
 
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.service.{Connector, Credentials}
+import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.service.Connector
 import org.pircbotx.cap.EnableCapHandler
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 import org.pircbotx.{Configuration, PircBotX}
