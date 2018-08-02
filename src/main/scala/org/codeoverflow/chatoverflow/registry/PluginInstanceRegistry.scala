@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow.registry
 
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.api.plugin.configuration.Configuration
+import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirements
 import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManager}
 
 import scala.collection.mutable
@@ -22,7 +22,7 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
 
   def getPluginInstances: Seq[String] = pluginInstances.keys.toSeq
 
-  def getConfiguration(instanceName: String): Configuration = {
+  def getRequirements(instanceName: String): Requirements = {
     pluginInstances(instanceName).getRequirements
   }
 

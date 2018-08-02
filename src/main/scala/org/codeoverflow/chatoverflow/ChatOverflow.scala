@@ -4,13 +4,10 @@ import java.lang.reflect.Constructor
 import java.security.Policy
 
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput
-import org.codeoverflow.chatoverflow.api.plugin.configuration.{ParameterRequirement, SourceRequirement}
-import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, Credentials, CredentialsService}
+import org.codeoverflow.chatoverflow.configuration._
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
 import org.codeoverflow.chatoverflow.service.Connector
-import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatOutputImpl
 //import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
@@ -56,12 +53,19 @@ object ChatOverflow {
 
     // Load plugin instance configuration (e.g. specified target platforms)
     logger info "[6/6] Load plugin instance configuration."
-    // TODO: Implement
+    loadAndSetRequirements()
     // TODO: Add method to add configs by console
 
     logger debug "INITIALIZATION FINISHED!"
 
     // TODO: Start plugins
+    /*
+        configurationService.pluginInstances.head.parameterRequirements = Seq(ParameterRequirementConfig("helloReq", "This is skate!"))
+        configurationService.pluginInstances.head.sourceRequirements =
+          Seq(SourceRequirementConfig("input", isInput = true, "org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl", "skate702"))
+        configurationService.save()
+    */
+    //pluginRegistry.getRequirements("myfirstinstance").addInputRequirement()
 
     /*
     configurationService.pluginInstances = Seq[PluginInstance](PluginInstance("simpletest", "sebinside", "myfirstinstance"))
@@ -76,19 +80,21 @@ object ChatOverflow {
 
 */
 
-    val output = new TwitchChatOutputImpl
-    output.setSourceConnector("skate702")
-
-
-    // Testing
     System.exit(0)
 
     // TODO: Beginning here, a lot has to be made. More input (e.g. arguments), more output (e.g. web interface), ...
 
 
+    // This never happens.
+    // From config: XML with Input ID (impl?) and sourceId -> Reflection logic
+    // From wizard: Direct reflection logic
+    // Trough reflection: Find implementation of e.g. TwitchChatInput -> TwitchChatInputImpl?
+
     // Put shit together (kinda hacky)
     // This code will be executed during plugin configuration. This connects the connector with the plugin input
-    val config = pluginRegistry.getConfiguration("supercoolinstance1")
+
+
+    /*val config = pluginRegistry.getRequirements("supercoolinstance1")
     config.getInputs.forEach((_, value) => {
       value match {
         case value: SourceRequirement[TwitchChatInput] =>
@@ -104,14 +110,38 @@ object ChatOverflow {
           value.setParameter("Hello world!")
       }
     })
-
+*/
     // This starts the plugin!
     pluginRegistry.asyncStartPlugin("supercoolinstance1")
 
-    // TODO: Write console stuff
+    // TODO: Split this class when finished? class should do what they can / know. No god class
+    // TODO: Write console stuff for setting configs (Updating config, updating running system?)
     // TODO: Write documentation
     // TODO: Write wiki for new connector types
     // TODO: Write wiki for new plugins
+  }
+
+  def loadAndSetRequirements(): Unit = {
+    for (pluginInstance <- configurationService.pluginInstances) {
+      val requirements = pluginRegistry.getRequirements(pluginInstance.instanceName)
+      /*
+            requirements.getAllInputRequirements.forEach((_, value) => {
+              value match {
+                case value: SourceRequirement[TwitchChatInput] =>
+                //val input = new TwitchChatInputImpl
+                //input.setSource(sourceId)
+                //input.init()
+                //value.setSource(input)
+              }
+            })
+
+            for(sourceRequirementConfig <- pluginInstance.sourceRequirements) {
+              if(sourceRequirementConfig.isInput) {
+                //requirements.get)
+              }
+            }
+          }*/
+    }
   }
 
   def loadFramework(): Unit = {
