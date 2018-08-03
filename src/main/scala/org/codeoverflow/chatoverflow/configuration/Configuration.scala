@@ -7,8 +7,7 @@ trait Configuration {
 }
 
 case class PluginInstance(pluginName: String, pluginAuthor: String, instanceName: String,
-                          var sourceRequirements: Seq[SourceRequirementConfig],
-                          var parameterRequirements: Seq[ParameterRequirementConfig]) extends Configuration {
+                          var requirements: Seq[RequirementConfig]) extends Configuration {
   override def toXml: Elem =
     <pluginInstance>
       <pluginName>
@@ -20,67 +19,48 @@ case class PluginInstance(pluginName: String, pluginAuthor: String, instanceName
       <instanceName>
         {instanceName}
       </instanceName>
-      <config>
-        <sourceRequirements>
-          {for (sourceReq <- sourceRequirements) yield sourceReq.toXml}
-        </sourceRequirements>
-        <parameterRequirements>
-          {for (parameterReq <- parameterRequirements) yield parameterReq.toXml}
-        </parameterRequirements>
-      </config>
+      <requirements>
+        {for (req <- requirements) yield req.toXml}
+      </requirements>
     </pluginInstance>
 
   def this(xmlNode: Node) = this(
     (xmlNode \ "pluginName").text,
     (xmlNode \ "pluginAuthor").text,
     (xmlNode \ "instanceName").text,
-    for (node <- xmlNode \ "config" \ "sourceRequirements" \ "_") yield new SourceRequirementConfig(node),
-    for (node <- xmlNode \ "config" \ "parameterRequirements" \ "_") yield new ParameterRequirementConfig(node))
+    for (node <- xmlNode \ "requirements" \ "_") yield new RequirementConfig(node))
 
 }
 
-case class SourceRequirementConfig(uniqueRequirementId: String, isInput: Boolean, sourceType: String, sourceId: String)
-  extends Configuration {
+case class RequirementConfig(uniqueRequirementId: String, name: String, isOptional: Boolean,
+                             targetType: Class[_], serializedContent: String) extends Configuration {
 
   override def toXml: Elem =
-    <sourceRequirement>
+    <requirement>
       <uniqueRequirementId>
         {uniqueRequirementId}
       </uniqueRequirementId>
-      <isInput>
-        {isInput}
-      </isInput>
-      <sourceType>
-        {sourceType}
-      </sourceType>
-      <sourceId>
-        {sourceId}
-      </sourceId>
-    </sourceRequirement>
+      <name>
+        {name}
+      </name>
+      <isOptional>
+        {isOptional}
+      </isOptional>
+      <targetType>
+        {targetType.getName}
+      </targetType>
+      <content>
+        {serializedContent}
+      </content>
+    </requirement>
 
   def this(xmlNode: Node) = this(
     (xmlNode \ "uniqueRequirementId").text,
-    if ((xmlNode \ "isInput").text == "true") true else false,
-    (xmlNode \ "sourceType").text,
-    (xmlNode \ "sourceId").text)
-
-}
-
-case class ParameterRequirementConfig(uniqueRequirementId: String, value: String) extends Configuration {
-  override def toXml: Elem =
-    <parameterRequirement>
-      <uniqueRequirementId>
-        {uniqueRequirementId}
-      </uniqueRequirementId>
-      <value>
-        {value}
-      </value>
-    </parameterRequirement>
-
-  def this(xmlNode: Node) = this(
-    (xmlNode \ "uniqueRequirementId").text,
-    (xmlNode \ "value").text)
-
+    (xmlNode \ "name").text,
+    if ((xmlNode \ "isOptional").text == "true") true else false,
+    Class.forName((xmlNode \ "targetType").text),
+    (xmlNode \ "content").text
+  )
 }
 
 case class ConnectorInstance(connectorType: String, sourceIdentifier: String) extends Configuration {

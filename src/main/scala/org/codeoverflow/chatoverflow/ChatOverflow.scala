@@ -8,6 +8,7 @@ import org.codeoverflow.chatoverflow.configuration._
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
 import org.codeoverflow.chatoverflow.service.Connector
+import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 //import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
@@ -51,6 +52,8 @@ object ChatOverflow {
     loadConnectors()
     // TODO: Add method to add controllers by console
 
+    System.exit(0)
+
     // Load plugin instance configuration (e.g. specified target platforms)
     logger info "[6/6] Load plugin instance configuration."
     loadAndSetRequirements()
@@ -80,37 +83,9 @@ object ChatOverflow {
 
 */
 
-    System.exit(0)
 
     // TODO: Beginning here, a lot has to be made. More input (e.g. arguments), more output (e.g. web interface), ...
 
-
-    // This never happens.
-    // From config: XML with Input ID (impl?) and sourceId -> Reflection logic
-    // From wizard: Direct reflection logic
-    // Trough reflection: Find implementation of e.g. TwitchChatInput -> TwitchChatInputImpl?
-
-    // Put shit together (kinda hacky)
-    // This code will be executed during plugin configuration. This connects the connector with the plugin input
-
-
-    /*val config = pluginRegistry.getRequirements("supercoolinstance1")
-    config.getInputs.forEach((_, value) => {
-      value match {
-        case value: SourceRequirement[TwitchChatInput] =>
-        //val input = new TwitchChatInputImpl
-        //input.setSource(sourceId)
-        //input.init()
-        //value.setSource(input)
-      }
-    })
-    config.getParameters.forEach((_, value) => {
-      value match {
-        case value: ParameterRequirement[String] =>
-          value.setParameter("Hello world!")
-      }
-    })
-*/
     // This starts the plugin!
     pluginRegistry.asyncStartPlugin("supercoolinstance1")
 
@@ -124,23 +99,30 @@ object ChatOverflow {
   def loadAndSetRequirements(): Unit = {
     for (pluginInstance <- configurationService.pluginInstances) {
       val requirements = pluginRegistry.getRequirements(pluginInstance.instanceName)
-      /*
-            requirements.getAllInputRequirements.forEach((_, value) => {
-              value match {
-                case value: SourceRequirement[TwitchChatInput] =>
-                //val input = new TwitchChatInputImpl
-                //input.setSource(sourceId)
-                //input.init()
-                //value.setSource(input)
-              }
-            })
 
-            for(sourceRequirementConfig <- pluginInstance.sourceRequirements) {
-              if(sourceRequirementConfig.isInput) {
-                //requirements.get)
-              }
-            }
-          }*/
+      for (requirementConfig <- pluginInstance.requirements) {
+
+        // TODO: Auf Typ prüfen -> ggf. mittels eigener Sprache oder Typzuordnungen
+        // z.B: requirementConfig.targetType = TwitchChatInput -> erzeuge TwitchChatInputImpl (nehme hierfür serializedValue)
+
+        val requirement = requirements.input.requireTwitchChatInput(requirementConfig.uniqueRequirementId, requirementConfig.name, requirementConfig.isOptional)
+        val input = new TwitchChatInputImpl
+        input.setSourceConnector(requirementConfig.serializedContent)
+        input.init()
+        requirement.setValue(input)
+
+        // oder: targetType = String -> erzeuge String aus serializedValue
+
+        val req2 = requirements.parameter.requireString(requirementConfig.uniqueRequirementId, requirementConfig.name, requirementConfig.isOptional)
+        val parameter = requirementConfig.serializedContent
+        req2.setValue(parameter)
+      }
+
+      // TODO: Mapping von Interface auf ZielTyp der erstellt wird (später: Menge von Typen)
+      // TODO: Was muss das Mapping beinhalten?
+      // Von generischer Typ (TwitchChatInput) auf spezifischen Typ (TwitchChatInputImpl)
+      // Methode für Deserialisierung und Initialisierung (setSourceConnector, init)
+      // Methode zur Serialisierung
     }
   }
 
