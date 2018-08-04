@@ -1,14 +1,22 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="[Advanced] Full Reload and Run ChatOverflow" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.ChatOverflow" />
-    <module name="root" />
-    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
-    <extension name="coverage">
+    <extension name="coverage" enabled="false" merge="false" runner="idea">
       <pattern>
-        <option name="PATTERN" value="org.codeoverflow.chatoverflow.*" />
+        <option name="PATTERN" value="org.codeoverflow.chatoverflow.service.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
+    <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.ChatOverflow" />
+    <option name="VM_PARAMETERS" />
+    <option name="PROGRAM_PARAMETERS" />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="root" />
+    <envs />
     <method>
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Clean (sbt clean)" run_configuration_type="SbtRunConfiguration" />
       <option name="Make" enabled="true" />

@@ -6,9 +6,8 @@ import java.security.Policy
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.configuration._
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
-import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry}
-import org.codeoverflow.chatoverflow.service.Connector
-import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
+import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry, TypeRegistry}
+import org.codeoverflow.chatoverflow.service.{Connector, IO}
 //import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 //import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
@@ -52,8 +51,6 @@ object ChatOverflow {
     loadConnectors()
     // TODO: Add method to add controllers by console
 
-    System.exit(0)
-
     // Load plugin instance configuration (e.g. specified target platforms)
     logger info "[6/6] Load plugin instance configuration."
     loadAndSetRequirements()
@@ -61,7 +58,11 @@ object ChatOverflow {
 
     logger debug "INITIALIZATION FINISHED!"
 
+    System.exit(0)
+
     // TODO: Start plugins
+
+
     /*
         configurationService.pluginInstances.head.parameterRequirements = Seq(ParameterRequirementConfig("helloReq", "This is skate!"))
         configurationService.pluginInstances.head.sourceRequirements =
@@ -81,6 +82,16 @@ object ChatOverflow {
     credentialsService.save()
     configurationService.save()
 
+
+    configurationService.pluginInstances.head.requirements = Seq(
+      RequirementConfig("reqTwitch", "A twitch channel", false,
+        "org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput", "skate702"),
+      RequirementConfig("reqHello", "Your name", true, "java.lang.String", "seb"))
+
+    configurationService.save()
+
+
+
 */
 
 
@@ -89,6 +100,7 @@ object ChatOverflow {
     // This starts the plugin!
     pluginRegistry.asyncStartPlugin("supercoolinstance1")
 
+    // TODO: Encryption for credentials
     // TODO: Split this class when finished? class should do what they can / know. No god class
     // TODO: Write console stuff for setting configs (Updating config, updating running system?)
     // TODO: Write documentation
@@ -98,32 +110,23 @@ object ChatOverflow {
 
   def loadAndSetRequirements(): Unit = {
     for (pluginInstance <- configurationService.pluginInstances) {
+      logger info s"Loading requirements for instance '${pluginInstance.instanceName}'."
+
       val requirements = pluginRegistry.getRequirements(pluginInstance.instanceName)
 
       for (requirementConfig <- pluginInstance.requirements) {
+        logger info s"Setting requirement '${requirementConfig.uniqueRequirementId}' of type '${requirementConfig.targetType}'."
 
-        // TODO: Auf Typ prüfen -> ggf. mittels eigener Sprache oder Typzuordnungen
-        // z.B: requirementConfig.targetType = TwitchChatInput -> erzeuge TwitchChatInputImpl (nehme hierfür serializedValue)
-
-        val requirement = requirements.input.requireTwitchChatInput(requirementConfig.uniqueRequirementId, requirementConfig.name, requirementConfig.isOptional)
-        val input = new TwitchChatInputImpl
-        input.setSourceConnector(requirementConfig.serializedContent)
-        input.init()
-        requirement.setValue(input)
-
-        // oder: targetType = String -> erzeuge String aus serializedValue
-
-        val req2 = requirements.parameter.requireString(requirementConfig.uniqueRequirementId, requirementConfig.name, requirementConfig.isOptional)
-        val parameter = requirementConfig.serializedContent
-        req2.setValue(parameter)
+        TypeRegistry.createRequirement(requirements, requirementConfig.targetType, requirementConfig.uniqueRequirementId,
+          requirementConfig.name, requirementConfig.isOptional, requirementConfig.serializedContent)
       }
 
-      // TODO: Mapping von Interface auf ZielTyp der erstellt wird (später: Menge von Typen)
-      // TODO: Was muss das Mapping beinhalten?
-      // Von generischer Typ (TwitchChatInput) auf spezifischen Typ (TwitchChatInputImpl)
-      // Methode für Deserialisierung und Initialisierung (setSourceConnector, init)
-      // Methode zur Serialisierung
+      if (!requirements.allNeededRequirementsSet()) {
+        logger warn s"Not all required Requirements for $pluginInstance had been set!"
+      }
     }
+
+    logger info "Finished loading."
   }
 
   def loadFramework(): Unit = {
@@ -144,6 +147,9 @@ object ChatOverflow {
     if (pluginFramework.getNotLoadedPlugins.nonEmpty) {
       logger info s"Unable to load:\n\t - ${pluginFramework.getNotLoadedPlugins.mkString("\n\t - ")}"
     }
+
+    IO.registerTypes()
+    logger info "Registered input / output / parameter types."
 
     logger debug "Finished loading."
   }

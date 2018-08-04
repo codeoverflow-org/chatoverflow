@@ -33,7 +33,7 @@ case class PluginInstance(pluginName: String, pluginAuthor: String, instanceName
 }
 
 case class RequirementConfig(uniqueRequirementId: String, name: String, isOptional: Boolean,
-                             targetType: Class[_], serializedContent: String) extends Configuration {
+                             targetType: String, serializedContent: String) extends Configuration {
 
   override def toXml: Elem =
     <requirement>
@@ -47,7 +47,7 @@ case class RequirementConfig(uniqueRequirementId: String, name: String, isOption
         {isOptional}
       </isOptional>
       <targetType>
-        {targetType.getName}
+        {targetType}
       </targetType>
       <content>
         {serializedContent}
@@ -58,7 +58,7 @@ case class RequirementConfig(uniqueRequirementId: String, name: String, isOption
     (xmlNode \ "uniqueRequirementId").text,
     (xmlNode \ "name").text,
     if ((xmlNode \ "isOptional").text == "true") true else false,
-    Class.forName((xmlNode \ "targetType").text),
+    (xmlNode \ "targetType").text,
     (xmlNode \ "content").text
   )
 }
