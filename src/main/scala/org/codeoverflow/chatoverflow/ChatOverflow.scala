@@ -1,19 +1,18 @@
 package org.codeoverflow.chatoverflow
 
-import java.lang.reflect.Constructor
 import java.security.Policy
 
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.configuration._
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry, TypeRegistry}
-import org.codeoverflow.chatoverflow.service.{Connector, IO}
+import org.codeoverflow.chatoverflow.service.IO
 
 object ChatOverflow {
 
-  val pluginFolderPath = "plugins/"
-  val configFolderPath = "config/"
-  val credentialsFilePath = s"$configFolderPath/credentials.xml"
+  var pluginFolderPath = "plugins/"
+  var configFolderPath = "config/"
+  var credentialsFilePath = s"$configFolderPath/credentials.xml"
   private val logger = Logger.getLogger(this.getClass)
 
   private var pluginFramework: PluginFramework = _
@@ -21,7 +20,7 @@ object ChatOverflow {
   private var configurationService: ConfigurationService = _
   private var credentialsService: CredentialsService = _
 
-  def main(args: Array[String]): Unit = {
+  def init(): Unit = {
     println("Minzig!")
     logger info "Started Chat Overflow Framework. Hello everybody!"
     logger debug "INITIALIZATION STARTED!"
@@ -56,12 +55,6 @@ object ChatOverflow {
 
     logger debug "INITIALIZATION FINISHED!"
 
-    // This starts the plugin!
-    pluginRegistry.asyncStartPlugin("myfirstinstance")
-
-    // TODO: Start plugins
-
-
     /*
         configurationService.pluginInstances.head.parameterRequirements = Seq(ParameterRequirementConfig("helloReq", "This is skate!"))
         configurationService.pluginInstances.head.sourceRequirements =
@@ -94,19 +87,14 @@ object ChatOverflow {
 */
 
 
-    // TODO: Beginning here, a lot has to be made. More input (e.g. arguments), more output (e.g. web interface), ...
-
-
-
-    // TODO: Encryption for credentials
-    // TODO: Split this class when finished? class should do what they can / know. No god class
     // TODO: Write console stuff for setting configs (Updating config, updating running system?)
+    // TODO: Encryption for credentials
     // TODO: Write documentation
     // TODO: Write wiki for new connector types
     // TODO: Write wiki for new plugins
   }
 
-  def loadAndSetRequirements(): Unit = {
+  private def loadAndSetRequirements(): Unit = {
     for (pluginInstance <- configurationService.pluginInstances) {
       logger info s"Loading requirements for instance '${pluginInstance.instanceName}'."
 
@@ -127,32 +115,25 @@ object ChatOverflow {
     logger info "Finished loading."
   }
 
-  def loadFramework(): Unit = {
-    // Create plugin framework, registry and manager instance
-    val pluginManager = new PluginManagerImpl
-    pluginFramework = PluginFramework(pluginFolderPath)
-    pluginRegistry = new PluginInstanceRegistry(pluginManager)
-
+  private def loadFramework(): Unit = {
     // Create sandbox environment for plugins
     Policy.setPolicy(new SandboxSecurityPolicy)
     System.setSecurityManager(new SecurityManager)
 
-    // Initialize plugin framework
+    // Create plugin framework, registry and manager instance
+    val pluginManager = new PluginManagerImpl
+    pluginRegistry = new PluginInstanceRegistry(pluginManager)
+    pluginFramework = PluginFramework(pluginFolderPath)
     pluginFramework.init(pluginManager)
 
-    // Log infos from loaded plugins
-    logger info s"Loaded plugins list:\n\t + ${pluginFramework.getLoadedPlugins.mkString("\n\t + ")}"
-    if (pluginFramework.getNotLoadedPlugins.nonEmpty) {
-      logger info s"Unable to load:\n\t - ${pluginFramework.getNotLoadedPlugins.mkString("\n\t - ")}"
-    }
-
+    // Register types
     IO.registerTypes()
     logger info "Registered input / output / parameter types."
 
     logger debug "Finished loading."
   }
 
-  def loadPluginInstances(): Unit = {
+  private def loadPluginInstances(): Unit = {
 
     for (pluginInstance <- configurationService.pluginInstances) {
 
@@ -169,7 +150,7 @@ object ChatOverflow {
     logger info "Finished loading."
   }
 
-  def loadCredentials(): Unit = {
+  private def loadCredentials(): Unit = {
     // TODO: Ask for real password!
 
     logger info s"Loading credentials from '$credentialsFilePath'."
@@ -180,7 +161,7 @@ object ChatOverflow {
     logger info "Finished loading."
   }
 
-  def loadConfiguration(): Unit = {
+  private def loadConfiguration(): Unit = {
 
     logger info s"Loading credentials from '$configFolderPath'."
 
@@ -190,7 +171,7 @@ object ChatOverflow {
     logger info "Finished loading."
   }
 
-  def loadConnectors(): Unit = {
+  private def loadConnectors(): Unit = {
 
     for (connectorInstance <- configurationService.connectorInstances) {
 
@@ -199,31 +180,13 @@ object ChatOverflow {
 
       val credentials = credentialsService.getCredentials(connectorInstance.connectorType, connectorInstance.sourceIdentifier)
 
-      if (credentials.isEmpty) {
-        logger warn s"Unable to find credentials."
-      } else {
-        logger info "Found credentials. Trying to create connector now."
-
-        try {
-          val connectorClass: Class[_] = Class.forName(connectorInstance.connectorType)
-          logger info "Found connector class."
-
-          val connectorConstructor: Constructor[_] = connectorClass.getConstructor(classOf[String], classOf[Credentials])
-          val connector: Connector = connectorConstructor.
-            newInstance(connectorInstance.sourceIdentifier, credentials.get).asInstanceOf[Connector]
-
-          ConnectorRegistry.addConnector(connector)
-
-          logger info "Successfully created and registered connector."
-        } catch {
-          case _: ClassNotFoundException => logger warn "Unable to find connector class."
-          case _: NoSuchMethodException => logger warn "Unable to find correct constructor."
-          case e: Exception => logger warn s"Unable to create connector. A wild exception appeared: ${e.getMessage}"
-        }
-      }
-
+      ConnectorRegistry.addConnector(connectorInstance.connectorType, connectorInstance.sourceIdentifier, credentials)
     }
 
     logger info "Finished loading."
+  }
+
+  def startPlugin(instanceName: String): Unit = {
+    pluginRegistry.asyncStartPlugin(instanceName)
   }
 }

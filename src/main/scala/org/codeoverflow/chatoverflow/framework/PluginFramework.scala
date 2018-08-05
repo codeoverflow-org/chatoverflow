@@ -100,6 +100,13 @@ class PluginFramework(val pluginDirectoryPath: String) {
       // Info
       logger info fancySeparator
       logger info s"Successfully loaded ${pluggables.toList.length} / ${notTestedPluggables.length} Plugins (${jarFiles.length} files)!"
+
+
+      // Log infos from loaded plugins
+      logger info s"Loaded plugins list:\n\t + ${getLoadedPlugins.mkString("\n\t + ")}"
+      if (getNotLoadedPlugins.nonEmpty) {
+        logger info s"Unable to load:\n\t - ${getNotLoadedPlugins.mkString("\n\t - ")}"
+      }
     }
   }
 

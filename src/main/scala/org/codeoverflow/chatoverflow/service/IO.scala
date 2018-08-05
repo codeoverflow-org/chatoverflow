@@ -55,7 +55,7 @@ object IO {
 
   "INSERT GENERIC TYPE FROM API HERE" ->
       ("INSERT EXACT TYPE FORM FRAMEWORK HERE", {
-        (requirements: Requirements, id: String, name: String, isOptional: Boolean, serialized: String) =>
+        (requirements: Requirements, id: String, serialized: String) =>
           val requirement = requirements. ...
 
           INSERT CODE TO CREATE A REQUIREMENT AND SET VALUE USING THE SERIALIZED STRING HERE
