@@ -2,24 +2,19 @@ package org.codeoverflow.chatoverflow.configuration
 
 import java.io.File
 
-class ConfigurationService(val configDirectoryPath: String) {
-  val configFile = s"$configDirectoryPath/config.xml"
+class ConfigurationService(val configFilePath: String) {
 
   var pluginInstances: Seq[PluginInstance] = Seq[PluginInstance]()
   var connectorInstances: Seq[ConnectorInstance] = Seq[ConnectorInstance]()
 
-  if (!new File(configDirectoryPath).exists()) {
-    new File(configDirectoryPath).mkdir()
-  }
-
   def load(): Unit = {
 
     // Create file if non existent
-    if (!new File(configFile).exists()) {
+    if (!new File(configFilePath).exists()) {
       save()
     }
 
-    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFile))
+    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFilePath))
 
     pluginInstances = for (node <- xmlContent \ "pluginInstances" \ "_") yield
       new PluginInstance(node)
@@ -45,7 +40,7 @@ class ConfigurationService(val configDirectoryPath: String) {
 
     // Insert new config options here
 
-    xml.XML.save(configFile, xmlContent)
+    xml.XML.save(configFilePath, xmlContent)
 
   }
 

@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow
 
+import java.io.File
 import java.security.Policy
 
 import org.apache.log4j.Logger
@@ -10,10 +11,11 @@ import org.codeoverflow.chatoverflow.service.IO
 
 object ChatOverflow {
 
+  private val logger = Logger.getLogger(this.getClass)
   var pluginFolderPath = "plugins/"
   var configFolderPath = "config/"
+  var configFilePath = s"$configFolderPath/config.xml"
   var credentialsFilePath = s"$configFolderPath/credentials.xml"
-  private val logger = Logger.getLogger(this.getClass)
 
   private var pluginFramework: PluginFramework = _
   private var pluginRegistry: PluginInstanceRegistry = _
@@ -163,9 +165,14 @@ object ChatOverflow {
 
   private def loadConfiguration(): Unit = {
 
-    logger info s"Loading credentials from '$configFolderPath'."
+    logger info s"Loading credentials from '$configFilePath'."
 
-    configurationService = new ConfigurationService(configFolderPath)
+
+    if (!new File(configFolderPath).exists()) {
+      new File(configFolderPath).mkdir()
+    }
+
+    configurationService = new ConfigurationService(configFilePath)
     configurationService.load()
 
     logger info "Finished loading."
