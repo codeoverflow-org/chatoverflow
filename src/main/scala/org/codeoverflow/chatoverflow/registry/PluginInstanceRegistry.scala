@@ -41,19 +41,24 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
       logger info s"Starting plugin '$instanceName' in new thread!"
       val loadedPlugin = pluginInstances(instanceName)
 
-      try {
-        // TODO: Manage all threads, passing arguments, maybe using actors rather than threads
-        new Thread(() => {
-          try {
-            loadedPlugin.start()
-          } catch {
-            case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
-            case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)
-            case e: Throwable => logger.error(s"Plugin '$instanceName' just crashed.", e)
-          }
-        }).start()
-      } catch {
-        case e: Throwable => logger.error(s"Plugin starting process (Plugin: '$instanceName') just crashed.", e)
+      if (!loadedPlugin.getRequirements.allNeededRequirementsSet()) {
+        logger error s"At least one requirement of '$instanceName' has not been set. Unable to start!"
+      } else {
+
+        try {
+          // TODO: Manage all threads, passing arguments, maybe using actors rather than threads
+          new Thread(() => {
+            try {
+              loadedPlugin.start()
+            } catch {
+              case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
+              case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)
+              case e: Throwable => logger.error(s"Plugin '$instanceName' just crashed.", e)
+            }
+          }).start()
+        } catch {
+          case e: Throwable => logger.error(s"Plugin starting process (Plugin: '$instanceName') just crashed.", e)
+        }
       }
     }
   }

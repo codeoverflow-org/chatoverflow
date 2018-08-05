@@ -23,6 +23,7 @@ class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInp
   override def init(): Unit = {
     sourceConnector.addMessageEventListener(onMessage)
     sourceConnector.addUnknownEventListener(onUnknown)
+    sourceConnector.init()
   }
 
   def onMessage(event: MessageEvent): Unit = {

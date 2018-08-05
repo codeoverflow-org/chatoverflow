@@ -8,8 +8,6 @@ import org.codeoverflow.chatoverflow.configuration._
 import org.codeoverflow.chatoverflow.framework.{PluginFramework, PluginManagerImpl, SandboxSecurityPolicy}
 import org.codeoverflow.chatoverflow.registry.{ConnectorRegistry, PluginInstanceRegistry, TypeRegistry}
 import org.codeoverflow.chatoverflow.service.{Connector, IO}
-//import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
-//import org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl
 
 object ChatOverflow {
 
@@ -58,7 +56,8 @@ object ChatOverflow {
 
     logger debug "INITIALIZATION FINISHED!"
 
-    System.exit(0)
+    // This starts the plugin!
+    pluginRegistry.asyncStartPlugin("myfirstinstance")
 
     // TODO: Start plugins
 
@@ -97,8 +96,7 @@ object ChatOverflow {
 
     // TODO: Beginning here, a lot has to be made. More input (e.g. arguments), more output (e.g. web interface), ...
 
-    // This starts the plugin!
-    pluginRegistry.asyncStartPlugin("supercoolinstance1")
+
 
     // TODO: Encryption for credentials
     // TODO: Split this class when finished? class should do what they can / know. No god class
@@ -117,8 +115,8 @@ object ChatOverflow {
       for (requirementConfig <- pluginInstance.requirements) {
         logger info s"Setting requirement '${requirementConfig.uniqueRequirementId}' of type '${requirementConfig.targetType}'."
 
-        TypeRegistry.createRequirement(requirements, requirementConfig.targetType, requirementConfig.uniqueRequirementId,
-          requirementConfig.name, requirementConfig.isOptional, requirementConfig.serializedContent)
+        TypeRegistry.createRequirement(requirements, requirementConfig.targetType,
+          requirementConfig.uniqueRequirementId, requirementConfig.serializedContent)
       }
 
       if (!requirements.allNeededRequirementsSet()) {
@@ -218,8 +216,8 @@ object ChatOverflow {
 
           logger info "Successfully created and registered connector."
         } catch {
-          case notfound: ClassNotFoundException => logger warn "Unable to find connector class."
-          case nomethod: NoSuchMethodException => logger warn "Unable to find correct constructor."
+          case _: ClassNotFoundException => logger warn "Unable to find connector class."
+          case _: NoSuchMethodException => logger warn "Unable to find correct constructor."
           case e: Exception => logger warn s"Unable to create connector. A wild exception appeared: ${e.getMessage}"
         }
       }

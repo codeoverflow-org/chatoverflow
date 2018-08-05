@@ -32,20 +32,13 @@ case class PluginInstance(pluginName: String, pluginAuthor: String, instanceName
 
 }
 
-case class RequirementConfig(uniqueRequirementId: String, name: String, isOptional: Boolean,
-                             targetType: String, serializedContent: String) extends Configuration {
+case class RequirementConfig(uniqueRequirementId: String, targetType: String, serializedContent: String) extends Configuration {
 
   override def toXml: Elem =
     <requirement>
       <uniqueRequirementId>
         {uniqueRequirementId}
       </uniqueRequirementId>
-      <name>
-        {name}
-      </name>
-      <isOptional>
-        {isOptional}
-      </isOptional>
       <targetType>
         {targetType}
       </targetType>
@@ -56,8 +49,6 @@ case class RequirementConfig(uniqueRequirementId: String, name: String, isOption
 
   def this(xmlNode: Node) = this(
     (xmlNode \ "uniqueRequirementId").text,
-    (xmlNode \ "name").text,
-    if ((xmlNode \ "isOptional").text == "true") true else false,
     (xmlNode \ "targetType").text,
     (xmlNode \ "content").text
   )

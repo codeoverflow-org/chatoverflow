@@ -9,8 +9,8 @@ object IO {
     InputTypes(
       "org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput" ->
         ("org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl", {
-          (requirements: Requirements, id: String, name: String, isOptional: Boolean, serialized: String) =>
-            val requirement = requirements.input.twitchChat(id, name, isOptional)
+          (requirements: Requirements, id: String, serialized: String) =>
+            val requirement = requirements.input.twitchChat(id, null, false)
             val input = new TwitchChatInputImpl
             input.setSourceConnector(serialized)
             input.init()
@@ -25,8 +25,8 @@ object IO {
     OutputTypes(
       "org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput" ->
         ("org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatOutputImpl", {
-          (requirements: Requirements, id: String, name: String, isOptional: Boolean, serialized: String) =>
-            val requirement = requirements.output.twitchChat(id, name, isOptional)
+          (requirements: Requirements, id: String, serialized: String) =>
+            val requirement = requirements.output.twitchChat(id, null, false)
             val output = new TwitchChatOutputImpl
             output.setSourceConnector(serialized)
             requirement.setValue(output)
@@ -40,8 +40,8 @@ object IO {
     ParameterTypes(
       "java.lang.String" ->
         ("java.lang.String", {
-          (requirements: Requirements, id: String, name: String, isOptional: Boolean, serialized: String) =>
-            val requirement = requirements.parameter.string(id, name, isOptional)
+          (requirements: Requirements, id: String, serialized: String) =>
+            val requirement = requirements.parameter.string(id, null, false)
             requirement.setValue(serialized)
             requirement
         }, {

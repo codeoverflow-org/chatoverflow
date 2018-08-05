@@ -7,4 +7,6 @@ import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
 
 class TwitchChatOutputImpl extends Connection[TwitchConnector] with TwitchChatOutput {
   override def sendChatMessage(message: String): Unit = sourceConnector.sendChatMessage("", message)
+
+  override def init(): Unit = sourceConnector.init()
 }

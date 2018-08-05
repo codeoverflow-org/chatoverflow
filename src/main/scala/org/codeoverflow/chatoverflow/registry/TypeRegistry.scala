@@ -18,13 +18,13 @@ object TypeRegistry {
 
   def ParameterTypes(typeDefs: (String, FrameworkType)*): Unit = registerTypes(typeDefs)
 
-  implicit def tripleToFrameworkType(quad: (String, (Requirements, String, String, Boolean, String) => Requirement[_], Requirement[_] => String)): FrameworkType = {
-    FrameworkType(quad._1, quad._2, quad._3)
+  implicit def tripleToFrameworkType(triple: (String, (Requirements, String, String) => Requirement[_], Requirement[_] => String)): FrameworkType = {
+    FrameworkType(triple._1, triple._2, triple._3)
   }
 
   def createRequirement(requirements: Requirements, typeString: String, uniqueRequirementId: String,
-                        name: String, isOptional: Boolean, serializedValue: String): Requirement[_] = {
-    registeredTypes(typeString).createRequirement(requirements, uniqueRequirementId, name, isOptional, serializedValue)
+                        serializedValue: String): Requirement[_] = {
+    registeredTypes(typeString).createRequirement(requirements, uniqueRequirementId, serializedValue)
   }
 
   def serializeRequirementContent(requirement: Requirement[_]): String = {
@@ -32,5 +32,5 @@ object TypeRegistry {
   }
 }
 
-case class FrameworkType(specificType: String, createRequirement: (Requirements, String, String, Boolean, String) => Requirement[_],
+case class FrameworkType(specificType: String, createRequirement: (Requirements, String, String) => Requirement[_],
                          serialize: Requirement[_] => String)
