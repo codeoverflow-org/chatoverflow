@@ -13,7 +13,7 @@ object ChatOverflow {
 
   private val logger = Logger.getLogger(this.getClass)
   var pluginFolderPath = "plugins/"
-  var configFolderPath = "config/"
+  private var configFolderPath = "config/"
   var configFilePath = s"$configFolderPath/config.xml"
   var credentialsFilePath = s"$configFolderPath/credentials.xml"
 
