@@ -63,6 +63,8 @@ object CLI {
     cmd(modeAddCredentialsEntry).action((_, c) => c.copy(mode = modeAddCredentialsEntry)).
       text("Adds a credentials entry to a existing placeholder. Restart required.").
       children(
+        opt[String]("credentialsType").abbr("t").required().action((x, c) =>
+          c.copy(addCredentialsEntry_type = x)).text("the type string of the credentials (same as the connector)"),
         opt[String]("credentialsId").abbr("i").required().action((x, c) =>
           c.copy(addCredentialsEntry_sourceIdentifier = x)).text("the source id of the credentials (same as the connector)"),
         opt[String]("credentialsKey").abbr("k").required().action((x, c) =>
@@ -115,7 +117,7 @@ object CLI {
                     addInstance_PluginAuthor: String = "",
                     addConnector_type: String = "", addConnector_sourceIdentifier: String = "",
                     addCredentials_type: String = "", addCredentials_sourceIdentifier: String = "",
-                    addCredentialsEntry_sourceIdentifier: String = "",
+                    addCredentialsEntry_sourceIdentifier: String = "", addCredentialsEntry_type: String = "",
                     addCredentialsEntry_Key: String = "", addCredentialsEntry_Value: String = "",
                     addRequirement_instanceName: String = "", addRequirement_uniqueId: String = "",
                     addRequirement_targetType: String = "", addRequirement_content: String = "",

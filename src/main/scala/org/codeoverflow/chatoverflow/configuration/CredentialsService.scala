@@ -60,4 +60,7 @@ class CredentialsService(val credentialsFilePath: String, password: Array[Char])
   def removeCredentials(credentialsType: String, credentialsIdentifier: String): Unit =
     credentials -= ((credentialsType, credentialsIdentifier))
 
+  def existCredentials(credentialsType: String, credentialsIdentifier: String): Boolean =
+    credentials.get((credentialsType, credentialsIdentifier)).isDefined
+
 }

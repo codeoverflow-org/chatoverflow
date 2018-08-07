@@ -9,6 +9,8 @@ class Credentials(val credentialsIdentifier: String) {
 
   def getValue(key: String): Option[String] = values.get(key)
 
+  def exists(key: String): Boolean = values.get(key).isDefined
+
   def toXML: xml.Node = {
     <values>
       {for (value <- values) yield {

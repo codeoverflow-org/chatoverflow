@@ -13,10 +13,9 @@ object ChatOverflow {
 
   private val logger = Logger.getLogger(this.getClass)
   var pluginFolderPath = "plugins/"
-  private var configFolderPath = "config/"
+  var configFolderPath = "config/"
   var configFilePath = s"$configFolderPath/config.xml"
   var credentialsFilePath = s"$configFolderPath/credentials.xml"
-
   private var pluginFramework: PluginFramework = _
   private var pluginRegistry: PluginInstanceRegistry = _
   private var configurationService: ConfigurationService = _
@@ -38,62 +37,26 @@ object ChatOverflow {
     // Add all configured plugin instances to the plugin registry
     logger info "[3/6] Phase 3: Loading plugin instances."
     loadPluginInstances()
-    // TODO: Add method to add instance by console
 
     // Load credentials for service login
     logger info "[4/6] Phase 4: Loading credentials."
     loadCredentials()
-    // TODO: Add method to add credentials by console
 
     // Load all connectors with the given credentials
     logger info "[5/6] Phase 5: Loading platform connectors with given credentials."
     loadConnectors()
-    // TODO: Add method to add controllers by console
 
     // Load plugin instance configuration (e.g. specified target platforms)
     logger info "[6/6] Load plugin instance configuration."
     loadAndSetRequirements()
-    // TODO: Add method to add configs by console
 
     logger debug "INITIALIZATION FINISHED!"
 
-    /*
-        configurationService.pluginInstances.head.parameterRequirements = Seq(ParameterRequirementConfig("helloReq", "This is skate!"))
-        configurationService.pluginInstances.head.sourceRequirements =
-          Seq(SourceRequirementConfig("input", isInput = true, "org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl", "skate702"))
-        configurationService.save()
-    */
-    //pluginRegistry.getRequirements("myfirstinstance").addInputRequirement()
-
-    /*
-    configurationService.pluginInstances = Seq[PluginInstance](PluginInstance("simpletest", "sebinside", "myfirstinstance"))
-    val c = new Credentials("skate702")
-    c.addValue("ouath", "oauth:xxx")
-    val t = new TwitchConnector("skate702", c)
-    credentialsService.addCredentials(t.getUniqueTypeString, c)
-    configurationService.connectorInstances = Seq[ConnectorInstance](ConnectorInstance(t.getUniqueTypeString, "skate702"))
-
-    credentialsService.save()
-    configurationService.save()
-
-
-    configurationService.pluginInstances.head.requirements = Seq(
-      RequirementConfig("reqTwitch", "A twitch channel", false,
-        "org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput", "skate702"),
-      RequirementConfig("reqHello", "Your name", true, "java.lang.String", "seb"))
-
-    configurationService.save()
-
-
-
-*/
-
-
-    // TODO: Write console stuff for setting configs (Updating config, updating running system?)
     // TODO: Encryption for credentials
     // TODO: Write documentation
     // TODO: Write wiki for new connector types
     // TODO: Write wiki for new plugins
+    // TODO: Write wiki how to use the CLI
   }
 
   private def loadAndSetRequirements(): Unit = {
@@ -191,6 +154,65 @@ object ChatOverflow {
     }
 
     logger info "Finished loading."
+  }
+
+  def addPluginInstance(pluginName: String, pluginAuthor: String, instanceName: String): Unit = {
+    configurationService.pluginInstances = configurationService.pluginInstances ++
+      Seq(PluginInstance(pluginName, pluginAuthor, instanceName, Seq[RequirementConfig]()))
+    logger info s"Added plugin instance '$instanceName'."
+    configurationService.save()
+  }
+
+  def addConnector(connectorType: String, sourceIdentifier: String): Unit = {
+    configurationService.connectorInstances = configurationService.connectorInstances ++
+      Seq(ConnectorInstance(connectorType, sourceIdentifier))
+    logger info s"Added connector '$sourceIdentifier'."
+    configurationService.save()
+  }
+
+  def addCredentials(credentialsType: String, credentialsIdentifier: String): Unit = {
+    val c = new Credentials(credentialsIdentifier)
+    if (credentialsService.existCredentials(credentialsType, credentialsIdentifier)) {
+      logger warn s"Credentials of type '$credentialsType' for '$credentialsIdentifier' do already exist."
+    } else {
+      credentialsService.addCredentials(credentialsType, c)
+      logger info s"Added credentials for '$credentialsIdentifier'."
+      credentialsService.save()
+    }
+  }
+
+  def addCredentialsEntry(credentialsType: String, credentialsIdentifier: String, key: String, value: String): Unit = {
+    val c = credentialsService.getCredentials(credentialsType, credentialsIdentifier)
+
+    if (c.isEmpty) {
+      logger warn s"Credentials of type '$credentialsType' for '$credentialsIdentifier' do not exist."
+    } else {
+      if (c.get.exists(key)) {
+        logger warn "In '$credentialsIdentifier', a value named '$key' is already defined."
+      } else {
+        c.get.addValue(key, value)
+        logger info s"Added credentials entry '$value' to '$credentialsIdentifier'."
+      }
+    }
+    credentialsService.save()
+  }
+
+  def addRequirement(instanceName: String, uniqueId: String, requirementType: String, serializedContent: String): Unit = {
+    val instances = configurationService.pluginInstances.filter(_.instanceName == instanceName)
+
+    if (instances.length != 1) {
+      logger warn s"Unable to find the specified plugin instance '$instanceName'."
+    } else {
+
+      // Remove old entry first
+      instances.head.requirements = instances.head.requirements.filter(_.uniqueRequirementId != uniqueId)
+
+      instances.head.requirements = instances.head.requirements ++
+        Seq(RequirementConfig(uniqueId, requirementType, serializedContent))
+
+      logger info s"Added requirement '$uniqueId' to plugin instance '$instanceName'."
+      configurationService.save()
+    }
   }
 
   def startPlugin(instanceName: String): Unit = {

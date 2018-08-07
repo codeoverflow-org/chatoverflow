@@ -38,11 +38,22 @@ object Launcher {
 
     config.mode match {
       case CLI.modeAddInstance =>
+        ChatOverflow.addPluginInstance(config.addInstance_PluginName,
+          config.addInstance_PluginAuthor, config.addInstance_instanceName)
       case CLI.modeAddConnector =>
+        ChatOverflow.addConnector(config.addConnector_type, config.addConnector_sourceIdentifier)
       case CLI.modeAddCredentials =>
+        ChatOverflow.addCredentials(config.addCredentials_type, config.addCredentials_sourceIdentifier)
       case CLI.modeAddCredentialsEntry =>
+        ChatOverflow.addCredentialsEntry(config.addCredentialsEntry_type, config.addCredentialsEntry_sourceIdentifier,
+          config.addCredentialsEntry_Key, config.addCredentialsEntry_Value)
       case CLI.modeAddRequirement =>
+        ChatOverflow.addRequirement(config.addRequirement_instanceName, config.addRequirement_uniqueId,
+          config.addRequirement_targetType, config.addRequirement_content)
       case CLI.modeRunPlugins =>
+        config.runPlugins.foreach(s => ChatOverflow.startPlugin(s))
+      case _ =>
+        logger info "Doing nothing. Much wow!"
     }
   }
 }

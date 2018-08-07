@@ -8,7 +8,7 @@
     </extension>
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
     <option name="VM_PARAMETERS" value="" />
-    <option name="PROGRAM_PARAMETERS" value="runPlugins -p myfirstinstance" />
+    <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
     <option name="ALTERNATIVE_JRE_PATH" />
