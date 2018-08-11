@@ -15,7 +15,7 @@ object ChatOverflow {
   var pluginFolderPath = "plugins/"
   var configFolderPath = "config/"
   var configFilePath = s"$configFolderPath/config.xml"
-  var credentialsFilePath = s"$configFolderPath/credentials.xml"
+  var credentialsFilePath = s"$configFolderPath/credentials"
   private var pluginFramework: PluginFramework = _
   private var pluginRegistry: PluginInstanceRegistry = _
   private var configurationService: ConfigurationService = _
@@ -25,7 +25,7 @@ object ChatOverflow {
     * The init method initializes the complete framework. This includes configuration loading and dynamic type instantiation.
     * Also, all plugin jars are loaded here.
     */
-  def init(): Unit = {
+  def preInit(): Unit = {
     println("Minzig!")
     logger info "Started Chat Overflow Framework. Hello everybody!"
     logger debug "INITIALIZATION STARTED!"
@@ -46,20 +46,22 @@ object ChatOverflow {
     logger info "[4/6] Phase 4: Loading credentials."
     loadCredentials()
 
-    // Load all connectors with the given credentials
-    logger info "[5/6] Phase 5: Loading platform connectors with given credentials."
-    loadConnectors()
+    logger debug "PRE INIT PHASE FINISHED."
 
-    // Load plugin instance configuration (e.g. specified target platforms)
-    logger info "[6/6] Load plugin instance configuration."
-    loadAndSetRequirements()
-
-    logger debug "INITIALIZATION FINISHED!"
-
-    // TODO: Encryption for credentials
     // TODO: Write wiki for new connector types
     // TODO: Write wiki for new plugins
     // TODO: Write wiki how to use the CLI
+  }
+
+  private def loadCredentials(): Unit = {
+    logger info s"Loading credentials from '$credentialsFilePath'."
+
+    val password = scala.io.StdIn.readLine("Please enter password > ")
+
+    credentialsService = new CredentialsService(credentialsFilePath, password.toCharArray)
+    credentialsService.load()
+
+    logger info "Finished loading."
   }
 
   private def loadAndSetRequirements(): Unit = {
@@ -118,15 +120,21 @@ object ChatOverflow {
     logger info "Finished loading."
   }
 
-  private def loadCredentials(): Unit = {
-    // TODO: Ask for real password!
+  /**
+    * The second init phase includes dynamic configuration. To work properly, the CLI must be checked first.
+    */
+  def postInit(): Unit = {
+    logger debug "STARTED POST INITIALIZATION."
 
-    logger info s"Loading credentials from '$credentialsFilePath'."
+    // Load all connectors with the given credentials
+    logger info "[5/6] Phase 5: Loading platform connectors with given credentials."
+    loadConnectors()
 
-    credentialsService = new CredentialsService(credentialsFilePath, "kappa123".toCharArray)
-    credentialsService.load()
+    // Load plugin instance configuration (e.g. specified target platforms)
+    logger info "[6/6] Load plugin instance configuration."
+    loadAndSetRequirements()
 
-    logger info "Finished loading."
+    logger debug "INITIALIZATION FINISHED!"
   }
 
   private def loadConfiguration(): Unit = {
@@ -194,7 +202,7 @@ object ChatOverflow {
         logger warn "In '$credentialsIdentifier', a value named '$key' is already defined."
       } else {
         c.get.addValue(key, value)
-        logger info s"Added credentials entry '$value' to '$credentialsIdentifier'."
+        logger info s"Added credentials entry '$key' to '$credentialsIdentifier'."
       }
     }
     credentialsService.save()

@@ -29,11 +29,18 @@ object Launcher {
       if (config.configFilePath != "")
         ChatOverflow.configFilePath = config.configFilePath
 
-      // Init
-      ChatOverflow.init()
+      // pre init
+      ChatOverflow.preInit()
 
       // Handle custom commands
       handleCommands(config)
+
+      // post init
+      ChatOverflow.postInit()
+
+      // If specified, run plugins now!
+      if (config.mode == CLI.modeRunPlugins)
+        config.runPlugins.foreach(s => ChatOverflow.startPlugin(s))
 
       // TODO: Start web server, web gui, etc.
 
@@ -58,7 +65,7 @@ object Launcher {
         ChatOverflow.addRequirement(config.addRequirement_instanceName, config.addRequirement_uniqueId,
           config.addRequirement_targetType, config.addRequirement_content)
       case CLI.modeRunPlugins =>
-        config.runPlugins.foreach(s => ChatOverflow.startPlugin(s))
+        logger info "Delaying running plugins until post init has finished."
       case _ =>
         logger info "Doing nothing. Much wow!"
     }

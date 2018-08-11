@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.configuration
 
-import java.io.File
+import java.io.{BufferedWriter, File, FileWriter}
 
 import scala.collection.mutable
 
@@ -23,8 +23,9 @@ class CredentialsService(val credentialsFilePath: String, password: Array[Char])
       save()
     }
 
-    // TODO: Decrypt
-    val xmlContent = xml.Utility.trim(xml.XML.loadFile(credentialsFilePath))
+    val encrypted = scala.io.Source.fromFile(credentialsFilePath).getLines().mkString
+    val decrypted = CryptoUtil.decrypt(password, encrypted)
+    val xmlContent = xml.Utility.trim(xml.XML.loadString(decrypted.get)) // TODO: Maybe, check for wrong password...
 
     credentials.clear()
 
@@ -58,8 +59,13 @@ class CredentialsService(val credentialsFilePath: String, password: Array[Char])
       }}
       </credentials>
 
-    // TODO: Encrypt
-    xml.XML.save(credentialsFilePath, xmlContent)
+    // Encrypt and save
+    val encrypted = CryptoUtil.encrypt(password, xmlContent.toString())
+
+    val file = new File(credentialsFilePath)
+    val bw = new BufferedWriter(new FileWriter(file))
+    bw.write(encrypted)
+    bw.close()
 
   }
 

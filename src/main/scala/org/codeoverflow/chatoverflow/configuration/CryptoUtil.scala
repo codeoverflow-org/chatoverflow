@@ -29,7 +29,7 @@ object CryptoUtil {
     val key = generateKeyFromString(password, salt)
 
     // Use the AES algorithm to encrypt the plaintext
-    val decrypted = plaintext.getBytes
+    val decrypted = ("CHECK" + plaintext).getBytes // Stupid integrity test
     val cipher = Cipher.getInstance(key.getAlgorithm + "/CBC/PKCS5Padding")
     cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv))
     val encrypted = cipher.doFinal(decrypted)
@@ -63,7 +63,7 @@ object CryptoUtil {
     *
     * @param password   the password used for the encryption process
     * @param ciphertext the encrypted ciphertext
-    * @return the decrypted plaintext
+    * @return some decrypted plaintext or none if the password was incorrect
     */
   def decrypt(password: Array[Char], ciphertext: String): Option[String] = {
 
@@ -81,7 +81,14 @@ object CryptoUtil {
       val cipher = Cipher.getInstance(key.getAlgorithm + "/CBC/PKCS5Padding")
       cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv))
       val decrypted = cipher.doFinal(encrypted)
-      Some(new String(decrypted))
+      val decrString = new String(decrypted)
+
+      // Stupid integrity check
+      if (!decrString.startsWith("CHECK")) {
+        None
+      } else {
+        Some(decrString.substring(5))
+      }
     } catch {
       case _: Exception => None
     }
