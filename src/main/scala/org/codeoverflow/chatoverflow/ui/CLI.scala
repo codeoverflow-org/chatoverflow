@@ -1,5 +1,8 @@
 package org.codeoverflow.chatoverflow.ui
 
+/**
+  * The command line interface provides all methods needed to configure the framework and run plugins.
+  */
 object CLI {
 
   val modeAddInstance = "addInstance"
@@ -9,6 +12,9 @@ object CLI {
   val modeAddRequirement = "addRequirement"
   val modeRunPlugins = "runPlugins"
 
+  /**
+    * Creating a big parser with all inputs and commands using the SCOPT framework.
+    */
   private val argsParser = new scopt.OptionParser[Config]("Chat Overflow") {
     head("Chat Overflow")
 
@@ -102,6 +108,12 @@ object CLI {
     note("\nFor more information, please visit http://codeoverflow.org/")
   }
 
+  /**
+    * This method takes all command line args and fills the information into the Config case class.
+    *
+    * @param args a plain command line args from the vm
+    * @param code this code is executed when all args had been parsed
+    */
   def parse(args: Array[String])(code: Config => Unit): Unit = {
 
     argsParser.parse(args, Config()) match {
@@ -111,6 +123,9 @@ object CLI {
 
   }
 
+  /**
+    * This case class holds all information that can be set when starting the framework from command line.
+    */
   case class Config(pluginFolderPath: String = "", configFilePath: String = "", credentialsFilePath: String = "",
                     mode: String = "",
                     addInstance_instanceName: String = "", addInstance_PluginName: String = "",

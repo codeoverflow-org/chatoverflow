@@ -12,6 +12,13 @@ object PluggableLoader {
 
   private val logger = Logger.getLogger(this.getClass)
 
+  /**
+    * Loads all pluggables from the specified jar file with the specified class loader.
+    *
+    * @param jar the jar file to loak into
+    * @param cl  the class loader to open the jar file
+    * @return a seq of pluggables, found in the jar file
+    */
   def loadPluggables(jar: File, cl: ClassLoader): Seq[Pluggable] = {
 
     logger info s"Trying to load pluggables from jar file: ${jar.getPath}"

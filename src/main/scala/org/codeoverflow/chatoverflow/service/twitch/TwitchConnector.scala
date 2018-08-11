@@ -7,11 +7,19 @@ import org.pircbotx.cap.EnableCapHandler
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 import org.pircbotx.{Configuration, PircBotX}
 
+/**
+  * The twitch connector connects to the irc service to work with chat messages.
+  *
+  * @param sourceIdentifier the name to the twitch account
+  * @param credentials      the credentials to log into the irc chat
+  */
 class TwitchConnector(override val sourceIdentifier: String, credentials: Credentials) extends Connector(sourceIdentifier, credentials) {
   private val logger = Logger.getLogger(this.getClass)
   private val twitchChatListener = new TwitchChatListener
   private var bot: PircBotX = _
   private var running = false
+
+  // TODO: Support the twitch api too!
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     twitchChatListener.addMessageEventListener(listener)
@@ -70,13 +78,13 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
 
   }
 
+  override def getUniqueTypeString: String = this.getClass.getName
+
   override def shutdown(): Unit = {
     bot.sendIRC().quitServer()
     bot.close()
     logger info s"Stopped connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
   }
-
-  override def getUniqueTypeString: String = this.getClass.getName
 
   def sendChatMessage(channelName: String, chatMessage: String): Unit = bot.send().message(channelName, chatMessage)
 }

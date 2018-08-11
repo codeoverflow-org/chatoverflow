@@ -11,6 +11,9 @@ import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
+/**
+  * This is the implementation of the twitch chat input, using the twitch connector.
+  */
 class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInput {
 
   private val messages: ListBuffer[ChatMessage] = ListBuffer[ChatMessage]()
@@ -21,12 +24,14 @@ class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInp
   private val privateMessageHandler = ListBuffer[Consumer[ChatMessage]]()
 
   override def init(): Unit = {
+
+    // Add the own message handler to the twitch connector
     sourceConnector.addMessageEventListener(onMessage)
     sourceConnector.addUnknownEventListener(onUnknown)
     sourceConnector.init()
   }
 
-  def onMessage(event: MessageEvent): Unit = {
+  private def onMessage(event: MessageEvent): Unit = {
     val color = if (event.getV3Tags.get("color").contains("#")) event.getV3Tags.get("color") else ""
     val isSub = if (event.getV3Tags.get("subscriber") == "1") true else false
     val msg: ChatMessage = new ChatMessage(event.getMessage, event.getUser.getNick, event.getTimestamp, isSub, color)
@@ -35,7 +40,7 @@ class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInp
     messages += msg
   }
 
-  def onUnknown(event: UnknownEvent): Unit = {
+  private def onUnknown(event: UnknownEvent): Unit = {
     val matchedElement = whisperRegex.findFirstMatchIn(event.getLine)
 
     if (matchedElement.isDefined) {

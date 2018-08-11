@@ -6,11 +6,23 @@ import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManage
 
 import scala.collection.mutable
 
+/**
+  * The plugin instance registry holds all loaded plugin instances, ready to be executed (or already running).
+  *
+  * @param pluginManager the plugin manager to hand to the plugin instances
+  */
 class PluginInstanceRegistry(pluginManager: PluginManager) {
 
   private val logger = Logger.getLogger(this.getClass)
   private val pluginInstances = mutable.Map[String, Plugin]()
 
+  /**
+    * Adds a new plugin instance with a unique name and loaded pluggable from the plugin jars from the framework.
+    *
+    * @param instanceName the unique plugin instance name (does not need to be the plugin name to instantiate!)
+    * @param pluggable    the pluggable, already loaded by the framework
+    * @return true, if the plugin could be loaded correctly
+    */
   def addPluginInstance(instanceName: String, pluggable: Pluggable): Boolean = {
     if (pluginInstances.contains(instanceName)) {
       false
@@ -20,8 +32,19 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
     }
   }
 
+  /**
+    * Returns a seq of names of all plugin instances.
+    *
+    * @return a seq of names (not the plugins themselves)
+    */
   def getPluginInstances: Seq[String] = pluginInstances.keys.toSeq
 
+  /**
+    * Returns the requirements object of a plugin to fill in information from the configs.
+    *
+    * @param instanceName the instance name of the loaded plugin instance
+    * @return a requirements object, holding requirements to fill
+    */
   def getRequirements(instanceName: String): Requirements = {
     pluginInstances(instanceName).getRequirements
   }

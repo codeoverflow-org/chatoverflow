@@ -4,10 +4,17 @@ import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.ui.CLI
 import org.codeoverflow.chatoverflow.ui.CLI.{Config, parse}
 
+/**
+  * The launcher object is the entry point to the chat overflow framework.
+  * All UI and framework related tasks are started here.
+  */
 object Launcher {
 
   private val logger = Logger.getLogger(this.getClass)
 
+  /**
+    * Software entry point.
+    */
   def main(args: Array[String]): Unit = {
 
     parse(args) { config =>
@@ -33,7 +40,7 @@ object Launcher {
     }
   }
 
-  def handleCommands(config: Config): Unit = {
+  private def handleCommands(config: Config): Unit = {
     logger info s"Chat Overflow started with command: '${config.mode}'."
 
     config.mode match {

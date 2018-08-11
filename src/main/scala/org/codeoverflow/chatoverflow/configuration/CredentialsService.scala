@@ -4,9 +4,18 @@ import java.io.File
 
 import scala.collection.mutable
 
+/**
+  * The credential service works with all needed login information for running services.
+  *
+  * @param credentialsFilePath the file path of the credentials file
+  * @param password            a optional password to encrypt the saved credentials
+  */
 class CredentialsService(val credentialsFilePath: String, password: Array[Char]) {
   private val credentials = mutable.Map[(String, String), Credentials]()
 
+  /**
+    * Loads the credentials form the credentials file and decrypts them.
+    */
   def load(): Unit = {
 
     // Create file if non existent
@@ -30,6 +39,9 @@ class CredentialsService(val credentialsFilePath: String, password: Array[Char])
     }
   }
 
+  /**
+    * Encrypts the credentials and saves them to the credentials file.
+    */
   def save(): Unit = {
 
     val xmlContent =

@@ -2,6 +2,11 @@ package org.codeoverflow.chatoverflow.configuration
 
 import scala.collection.mutable
 
+/**
+  * A credentials object encapsulates all login information for one service. Multiple information sets can be added.
+  *
+  * @param credentialsIdentifier the identifier of the source the credentials are working with
+  */
 class Credentials(val credentialsIdentifier: String) {
   private val values = mutable.Map[String, String]()
 

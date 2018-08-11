@@ -4,6 +4,13 @@ import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requ
 import org.codeoverflow.chatoverflow.registry.TypeRegistry.{InputTypes, OutputTypes, ParameterTypes, tripleToFrameworkType}
 import org.codeoverflow.chatoverflow.service.twitch.impl.{TwitchChatInputImpl, TwitchChatOutputImpl}
 
+// TODO: The specific type argument is not in use by now - maybe it can be used later to define type options
+
+/**
+  * This object is used to register new input / output / parameter types. This process is needed because the requirement
+  * instantiation is statically typed, but the serialization is dynamic. By using a mapping from dynamic type to static
+  * instance creation, the framework is highly configurable but the plugin implementation is easy and type safe.
+  */
 object IO {
   def registerTypes(): Unit = {
     InputTypes(
@@ -50,22 +57,4 @@ object IO {
         })
     )
   }
-
-  /* SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE
-
-  "INSERT GENERIC TYPE FROM API HERE" ->
-      ("INSERT EXACT TYPE FORM FRAMEWORK HERE", {
-        (requirements: Requirements, id: String, serialized: String) =>
-          val requirement = requirements. ...
-
-          INSERT CODE TO CREATE A REQUIREMENT AND SET VALUE USING THE SERIALIZED STRING HERE
-
-          requirement
-      }, {
-        requirement: Requirement[_] =>
-          INSERT CODE TO GET THE IMPORTANT INFORMATION FROM THE REQUIREMENT RETURNED ABOVE AND SERIALIZE IT
-      })
-
-      SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE SAMPLE
-   */
 }

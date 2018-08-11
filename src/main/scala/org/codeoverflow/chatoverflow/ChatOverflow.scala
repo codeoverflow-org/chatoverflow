@@ -21,6 +21,10 @@ object ChatOverflow {
   private var configurationService: ConfigurationService = _
   private var credentialsService: CredentialsService = _
 
+  /**
+    * The init method initializes the complete framework. This includes configuration loading and dynamic type instantiation.
+    * Also, all plugin jars are loaded here.
+    */
   def init(): Unit = {
     println("Minzig!")
     logger info "Started Chat Overflow Framework. Hello everybody!"
@@ -53,7 +57,6 @@ object ChatOverflow {
     logger debug "INITIALIZATION FINISHED!"
 
     // TODO: Encryption for credentials
-    // TODO: Write documentation
     // TODO: Write wiki for new connector types
     // TODO: Write wiki for new plugins
     // TODO: Write wiki how to use the CLI

@@ -5,6 +5,9 @@ import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
 import scala.collection.mutable.ListBuffer
 
+/**
+  * The twitch chat listener class holds the handlers to react to messages using the IRC bot.
+  */
 class TwitchChatListener extends ListenerAdapter {
 
   private val messageEventListener = ListBuffer[MessageEvent => Unit]()
