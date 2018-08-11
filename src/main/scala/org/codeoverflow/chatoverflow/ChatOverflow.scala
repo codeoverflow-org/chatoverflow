@@ -47,10 +47,6 @@ object ChatOverflow {
     loadCredentials()
 
     logger debug "PRE INIT PHASE FINISHED."
-
-    // TODO: Write wiki for new connector types
-    // TODO: Write wiki for new plugins
-    // TODO: Write wiki how to use the CLI
   }
 
   private def loadCredentials(): Unit = {
