@@ -71,4 +71,6 @@ class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInp
   override def registerMessageHandler(handler: Consumer[ChatMessage]): Unit = messageHandler += handler
 
   override def registerPrivateMessageHandler(handler: Consumer[ChatMessage]): Unit = privateMessageHandler += handler
+
+  override def setChannel(channel: String): Unit = sourceConnector.setChannel(channel)
 }

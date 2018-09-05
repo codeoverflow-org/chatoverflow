@@ -18,6 +18,7 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
   private val twitchChatListener = new TwitchChatListener
   private var bot: PircBotX = _
   private var running = false
+  private var currentChannel: String = _
 
   // TODO: Support the twitch api too!
 
@@ -42,6 +43,14 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
     }
   }
 
+  private def setCurrentChannel(channel: String): Unit = {
+    if (channel.startsWith("#")) {
+      currentChannel = channel
+    } else {
+      currentChannel = "#" + channel
+    }
+  }
+
   private def getConfig: Configuration = {
 
     val password = credentials.getValue(TwitchConnector.credentialsOauthKey)
@@ -49,6 +58,8 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
     if (password.isEmpty) {
       logger warn s"key '${TwitchConnector.credentialsOauthKey}' not found in credentials for '$sourceIdentifier'."
     }
+
+    setCurrentChannel(sourceIdentifier)
 
     new Configuration.Builder()
       .setAutoNickChange(false)
@@ -59,12 +70,7 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
       .addServer("irc.chat.twitch.tv")
       .setName(credentials.credentialsIdentifier)
       .setServerPassword(password.get)
-      .addAutoJoinChannel({
-        if (!sourceIdentifier.startsWith("#"))
-          "#" + sourceIdentifier
-        else
-          sourceIdentifier
-      })
+      .addAutoJoinChannel(currentChannel)
       .addListener(twitchChatListener)
       .buildConfiguration()
 
@@ -80,13 +86,20 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
 
   override def getUniqueTypeString: String = this.getClass.getName
 
+  def setChannel(channel: String): Unit = {
+    // Todo: Leave channel
+    setCurrentChannel(channel)
+    bot.send().joinChannel(currentChannel)
+    // TODO: TEST!
+  }
+
   override def shutdown(): Unit = {
     bot.sendIRC().quitServer()
     bot.close()
     logger info s"Stopped connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
   }
 
-  def sendChatMessage(channelName: String, chatMessage: String): Unit = bot.send().message(channelName, chatMessage)
+  def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
 }
 
 object TwitchConnector {

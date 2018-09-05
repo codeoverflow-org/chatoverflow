@@ -65,7 +65,10 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
       val loadedPlugin = pluginInstances(instanceName)
 
       if (!loadedPlugin.getRequirements.allNeededRequirementsSet()) {
-        logger error s"At least one requirement of '$instanceName' has not been set. Unable to start!"
+        logger error s"At least one non-optional requirement of '$instanceName' has not been set. Unable to start!"
+
+        logger error s"Not set: ${loadedPlugin.getRequirements.getMissingRequirementIds.toArray.mkString(", ")}."
+
       } else {
 
         try {
