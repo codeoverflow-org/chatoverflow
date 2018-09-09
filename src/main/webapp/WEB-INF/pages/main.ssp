@@ -1,171 +1,72 @@
+<%@ val %>
+
+<link href="lib/css/codeoverflow/sidebar.css" rel="stylesheet">
 <div class="container-fluid">
-    <div class="row">
+<div class="row">
+    <%-- sidebar starts here --%>
+    <div class="col-md-2">
         <nav class="col-md-2 d-none d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
-                <ul class="nav flex-column">
+                <ul class="nav flex-column nav-pills text-center" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Plugins
+                        <a class="nav-link active" id="v-pills-configured-plugins-tab" data-toggle="pill" href="#v-pills-configured-plugins" role="tab" aria-controls="v-pills-configured-plugins" aria-selected="true">
+                            Configured Plugins
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Instances
+                        <a class="nav-item nav-link" id="v-pills-add-plugin-tab" data-toggle="pill" href="#v-pills-add-plugin" role="tab" aria-controls="v-pills-add-plugin" aria-selected="false">
+                            Add Plugin Configuration
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-item nav-link" id="v-pills-credentials-tab" data-toggle="pill" href="#v-pills-credentials" role="tab" aria-controls="v-pills-credentials" aria-selected="false">
                             Credentials
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-item nav-link" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">
+                            Settings
                         </a>
                     </li>
                 </ul>
             </div>
         </nav>
-        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+    </div>
+    <div class="col-md-10">
+        <main role="main" class="pt-3 px-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group mr-2">
-                        <button class="btn btn-sm btn-outline-secondary">Share</button>
-                        <button class="btn btn-sm btn-outline-secondary">Export</button>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                        <span data-feather="calendar"></span>
-                        This week
-                    </button>
-                </div>
+                <h1 class="h2">ChatOverflow Dashboard</h1>
             </div>
 
-            <canvas class="my-4" id="myChart" width="900" height="380"></canvas>
+            <%--
+                MAIN CONTENT CONTAINER
 
-            <h2>Section title</h2>
-            <div class="table-responsive">
-                <table class="table table-striped table-sm">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Header</th>
-                            <th>Header</th>
-                            <th>Header</th>
-                            <th>Header</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1,001</td>
-                            <td>Lorem</td>
-                            <td>ipsum</td>
-                            <td>dolor</td>
-                            <td>sit</td>
-                        </tr>
-                        <tr>
-                            <td>1,002</td>
-                            <td>amet</td>
-                            <td>consectetur</td>
-                            <td>adipiscing</td>
-                            <td>elit</td>
-                        </tr>
-                        <tr>
-                            <td>1,003</td>
-                            <td>Integer</td>
-                            <td>nec</td>
-                            <td>odio</td>
-                            <td>Praesent</td>
-                        </tr>
-                        <tr>
-                            <td>1,003</td>
-                            <td>libero</td>
-                            <td>Sed</td>
-                            <td>cursus</td>
-                            <td>ante</td>
-                        </tr>
-                        <tr>
-                            <td>1,004</td>
-                            <td>dapibus</td>
-                            <td>diam</td>
-                            <td>Sed</td>
-                            <td>nisi</td>
-                        </tr>
-                        <tr>
-                            <td>1,005</td>
-                            <td>Nulla</td>
-                            <td>quis</td>
-                            <td>sem</td>
-                            <td>at</td>
-                        </tr>
-                        <tr>
-                            <td>1,006</td>
-                            <td>nibh</td>
-                            <td>elementum</td>
-                            <td>imperdiet</td>
-                            <td>Duis</td>
-                        </tr>
-                        <tr>
-                            <td>1,007</td>
-                            <td>sagittis</td>
-                            <td>ipsum</td>
-                            <td>Praesent</td>
-                            <td>mauris</td>
-                        </tr>
-                        <tr>
-                            <td>1,008</td>
-                            <td>Fusce</td>
-                            <td>nec</td>
-                            <td>tellus</td>
-                            <td>sed</td>
-                        </tr>
-                        <tr>
-                            <td>1,009</td>
-                            <td>augue</td>
-                            <td>semper</td>
-                            <td>porta</td>
-                            <td>Mauris</td>
-                        </tr>
-                        <tr>
-                            <td>1,010</td>
-                            <td>massa</td>
-                            <td>Vestibulum</td>
-                            <td>lacinia</td>
-                            <td>arcu</td>
-                        </tr>
-                        <tr>
-                            <td>1,011</td>
-                            <td>eget</td>
-                            <td>nulla</td>
-                            <td>Class</td>
-                            <td>aptent</td>
-                        </tr>
-                        <tr>
-                            <td>1,012</td>
-                            <td>taciti</td>
-                            <td>sociosqu</td>
-                            <td>ad</td>
-                            <td>litora</td>
-                        </tr>
-                        <tr>
-                            <td>1,013</td>
-                            <td>torquent</td>
-                            <td>per</td>
-                            <td>conubia</td>
-                            <td>nostra</td>
-                        </tr>
-                        <tr>
-                            <td>1,014</td>
-                            <td>per</td>
-                            <td>inceptos</td>
-                            <td>himenaeos</td>
-                            <td>Curabitur</td>
-                        </tr>
-                        <tr>
-                            <td>1,015</td>
-                            <td>sodales</td>
-                            <td>ligula</td>
-                            <td>in</td>
-                            <td>libero</td>
-                        </tr>
-                    </tbody>
-                </table>
+                This shows content depending on which sidebar item is selected
+            --%>
+            <div class="tab-content" id="v-pills-tabContent">
+                <%--
+                    Show all currently configured plugins
+                --%>
+                <div class="tab-pane fade show active" id="v-pills-configured-plugins" role="tabpanel" aria-labelledby="v-pills-configured-plugins-tab">
+                    Cillum ad ut irure tempor velit nostrud occaecat ullamco aliqua anim Lorem sint. Veniam sint duis incididunt do esse magna mollit excepteur laborum qui. Id id reprehenderit sit est eu aliqua occaecat quis et velit excepteur laborum mollit dolore eiusmod. Ipsum dolor in occaecat commodo et voluptate minim reprehenderit mollit pariatur. Deserunt non laborum enim et cillum eu deserunt excepteur ea incididunt minim occaecat.
+                </div>
+                <%--
+                    Add a new plugin
+                --%>
+                <div class="tab-pane fade" id="v-pills-add-plugin" role="tabpanel" aria-labelledby="v-pills-add-plugin-tab">
+                    Culpa dolor voluptate do laboris laboris irure reprehenderit id incididunt duis pariatur mollit aute magna pariatur consectetur. Eu veniam duis non ut dolor deserunt commodo et minim in quis laboris ipsum velit id veniam. Quis ut consectetur adipisicing officia excepteur non sit. Ut et elit aliquip labore Lorem enim eu. Ullamco mollit occaecat dolore ipsum id officia mollit qui esse anim eiusmod do sint minim consectetur qui.
+                </div>
+                <%--
+                    Show all currently configured credentials
+                --%>
+                <div class="tab-pane fade" id="v-pills-credentials" role="tabpanel" aria-labelledby="v-pills-credentials-tab">
+                    Fugiat id quis dolor culpa eiusmod anim velit excepteur proident dolor aute qui magna. Ad proident laboris ullamco esse anim Lorem Lorem veniam quis Lorem irure occaecat velit nostrud magna nulla. Velit et et proident Lorem do ea tempor officia dolor. Reprehenderit Lorem aliquip labore est magna commodo est ea veniam consectetur.
+                </div>
+                <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+                    Eu dolore ea ullamco dolore Lorem id cupidatat excepteur reprehenderit consectetur elit id dolor proident in cupidatat officia. Voluptate excepteur commodo labore nisi cillum duis aliqua do. Aliqua amet qui mollit consectetur nulla mollit velit aliqua veniam nisi id do Lorem deserunt amet. Culpa ullamco sit adipisicing labore officia magna elit nisi in aute tempor commodo eiusmod.
+                </div>
             </div>
         </main>
     </div>
+</div>
 </div>
