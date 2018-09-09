@@ -1,5 +1,8 @@
 package org.codeoverflow.chatoverflow.ui.web
 
+import java.awt.Desktop
+import java.net.URL
+
 import org.eclipse.jetty.servlet.DefaultServlet
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
@@ -13,8 +16,11 @@ class Server(val port: Int) {
 
   private val server = new org.eclipse.jetty.server.Server(port)
   private val context = new WebAppContext()
+
+  private val serverUrl = s"http://localhost:$port"
+
   context setContextPath "/"
-  context.setResourceBase("/")
+  context.setResourceBase("src/main/webapp")
   context.addEventListener(new ScalatraListener)
   context.addServlet(classOf[DefaultServlet], "/")
 
@@ -29,6 +35,7 @@ class Server(val port: Int) {
 
   private def startServer(): Unit = {
     server.start()
+    Desktop.getDesktop.browse(new URL(serverUrl).toURI)
     server.join()
   }
 

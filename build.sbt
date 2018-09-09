@@ -39,6 +39,8 @@ libraryDependencies ++= Seq(
   "org.scalatra" %% "scalatra-json" % "2.6.3",
 )
 
+libraryDependencies += "org.scalatra" %% "scalatra-scalate" % "2.6.+"
+
 // JSON Lib (Jackson)
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 

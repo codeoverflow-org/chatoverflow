@@ -1,0 +1,10 @@
+<link href="lib/css/codeoverflow/signin-css.css" rel="stylesheet">
+<div class="text-center">
+    <form class="form-signin" method="POST" action="/api/login">
+        <h1 class="h3 mb-3 font-weight-normal">Please enter password</h1>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Authenticate</button>
+    </form>
+</div>

@@ -26,7 +26,6 @@ object ChatOverflow {
     * Also, all plugin jars are loaded here.
     */
   def preInit(): Unit = {
-    println("Minzig!")
     logger info "Started Chat Overflow Framework. Hello everybody!"
     logger debug "INITIALIZATION STARTED!"
 
@@ -42,17 +41,18 @@ object ChatOverflow {
     logger info "[3/6] Phase 3: Loading plugin instances."
     loadPluginInstances()
 
-    // Load credentials for service login
-    logger info "[4/6] Phase 4: Loading credentials."
-    loadCredentials()
-
     logger debug "PRE INIT PHASE FINISHED."
   }
 
   private def loadCredentials(): Unit = {
-    logger info s"Loading credentials from '$credentialsFilePath'."
 
     val password = scala.io.StdIn.readLine("Please enter password > ")
+
+    loadCredentials(password)
+  }
+
+  def loadCredentials(password: String): Unit = {
+    logger info s"[4/6] Loading credentials from '$credentialsFilePath'."
 
     credentialsService = new CredentialsService(credentialsFilePath, password.toCharArray)
     credentialsService.load()

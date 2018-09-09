@@ -1,8 +1,10 @@
 package org.codeoverflow.chatoverflow
 
 import org.apache.log4j.Logger
+import org.codeoverflow.chatoverflow.ChatOverflow.logger
 import org.codeoverflow.chatoverflow.ui.CLI
 import org.codeoverflow.chatoverflow.ui.CLI.{Config, parse}
+import org.codeoverflow.chatoverflow.ui.web.Server
 
 /**
   * The launcher object is the entry point to the chat overflow framework.
@@ -11,6 +13,7 @@ import org.codeoverflow.chatoverflow.ui.CLI.{Config, parse}
 object Launcher {
 
   private val logger = Logger.getLogger(this.getClass)
+  private val port = 12345
 
   /**
     * Software entry point.
@@ -32,18 +35,19 @@ object Launcher {
       // pre init
       ChatOverflow.preInit()
 
-      // Handle custom commands
-      handleCommands(config)
+      logger info s"Starting Server on port $port"
+      val server = new Server(12345)
+      server.startAsync()
 
-      // post init
-      ChatOverflow.postInit()
 
-      // If specified, run plugins now!
-      if (config.mode == CLI.modeRunPlugins)
-        config.runPlugins.foreach(s => ChatOverflow.startPlugin(s))
 
-      // TODO: Start web server, web gui, etc.
-
+//      // Load credentials for service login
+//      logger info "[4/6] Phase 4: Loading credentials."
+//      // Handle custom commands
+//      handleCommands(config)
+//
+//      // post init
+//      ChatOverflow.postInit()
     }
   }
 
