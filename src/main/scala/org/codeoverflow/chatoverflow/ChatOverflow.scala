@@ -16,10 +16,10 @@ object ChatOverflow {
   var configFolderPath = "config/"
   var configFilePath = s"$configFolderPath/config.xml"
   var credentialsFilePath = s"$configFolderPath/credentials"
-  private var pluginFramework: PluginFramework = _
-  private var pluginRegistry: PluginInstanceRegistry = _
-  private var configurationService: ConfigurationService = _
-  private var credentialsService: CredentialsService = _
+  var pluginFramework: PluginFramework = _
+  var pluginRegistry: PluginInstanceRegistry = _
+  var configurationService: ConfigurationService = _
+  var credentialsService: CredentialsService = _
 
   /**
     * The init method initializes the complete framework. This includes configuration loading and dynamic type instantiation.

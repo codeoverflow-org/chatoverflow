@@ -19,7 +19,7 @@ class ApiServlet extends ScalatraServlet with ScalateSupport {
         ChatOverflow.loadCredentials(password)
 
         ChatOverflow.postInit()
-        redirect("/main")
+        redirect("/dashboard")
       }
     }
   }

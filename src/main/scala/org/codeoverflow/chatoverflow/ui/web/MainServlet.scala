@@ -1,12 +1,14 @@
 package org.codeoverflow.chatoverflow.ui.web
 
+import org.codeoverflow.chatoverflow.ChatOverflow
+import org.codeoverflow.chatoverflow.configuration.Credentials
 import org.scalatra._
 import org.scalatra.scalate.ScalateSupport
 
 /**
   * @author vetterd
   */
-class CodeOverflowServlet extends ScalatraServlet with ScalateSupport {
+class MainServlet extends ScalatraServlet with ScalateSupport {
 
   val defaultLayout = "/WEB-INF/layouts/default.ssp"
 
@@ -14,11 +16,12 @@ class CodeOverflowServlet extends ScalatraServlet with ScalateSupport {
     contentType = "text/html"
   }
 
-  get("/main") {
+  get("/dashboard") {
     ssp(
       "/WEB-INF/pages/main.ssp",
       "layout" -> defaultLayout,
-      "title" -> "CodeOverflow"
+      "title" -> "CodeOverflow",
+      "credentials" -> Seq(new Credentials("asd"))
     )
   }
 
