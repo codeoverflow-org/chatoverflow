@@ -59,7 +59,7 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
 
     // Always escape!
     if (!pluginInstances.contains(instanceName)) {
-      logger warn s"Plugin '$instanceName' was not loaded. Unable to start."
+      logger warn s"Instance '$instanceName' was not loaded. Unable to start."
     } else {
       logger info s"Starting plugin '$instanceName' in new thread!"
       val loadedPlugin = pluginInstances(instanceName)
@@ -75,7 +75,19 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
           // TODO: Manage all threads, passing arguments, maybe using actors rather than threads
           new Thread(() => {
             try {
-              loadedPlugin.start()
+
+              // Execute plugin setup
+              loadedPlugin.setup()
+
+              // Execute loop, if an interval is set
+              if (loadedPlugin.getLoopInterval > 0) {
+                while (true) {
+                  loadedPlugin.loop()
+                  Thread.sleep(loadedPlugin.getLoopInterval)
+                }
+              }
+
+              // FIXME: shutdown method should work
             } catch {
               case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
               case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)

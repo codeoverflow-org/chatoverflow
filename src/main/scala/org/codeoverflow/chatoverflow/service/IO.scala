@@ -21,11 +21,11 @@ object IO {
             val input = new TwitchChatInputImpl
             input.setSourceConnector(serialized)
             input.init()
-            requirement.setValue(input)
+            requirement.set(input)
             requirement
         }, {
           requirement: Requirement[_] =>
-            requirement.asInstanceOf[Requirement[TwitchChatInputImpl]].getValue.getSourceIdentifier
+            requirement.asInstanceOf[Requirement[TwitchChatInputImpl]].get.getSourceIdentifier
         })
     )
 
@@ -36,11 +36,12 @@ object IO {
             val requirement = requirements.output.twitchChat(id, null, false)
             val output = new TwitchChatOutputImpl
             output.setSourceConnector(serialized)
-            requirement.setValue(output)
+            output.init()
+            requirement.set(output)
             requirement
         }, {
           requirement: Requirement[_] =>
-            requirement.asInstanceOf[Requirement[TwitchChatOutputImpl]].getValue.getSourceIdentifier
+            requirement.asInstanceOf[Requirement[TwitchChatOutputImpl]].get.getSourceIdentifier
         })
     )
 
@@ -49,11 +50,11 @@ object IO {
         ("java.lang.String", {
           (requirements: Requirements, id: String, serialized: String) =>
             val requirement = requirements.parameter.string(id, null, false)
-            requirement.setValue(serialized)
+            requirement.set(serialized)
             requirement
         }, {
           requirement: Requirement[_] =>
-            requirement.asInstanceOf[Requirement[String]].getValue
+            requirement.asInstanceOf[Requirement[String]].get
         })
     )
   }
