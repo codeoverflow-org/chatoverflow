@@ -2,7 +2,7 @@ package org.codeoverflow.chatoverflow.service
 
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
 import org.codeoverflow.chatoverflow.registry.TypeRegistry.{InputTypes, OutputTypes, ParameterTypes, tripleToFrameworkType}
-import org.codeoverflow.chatoverflow.service.twitch.impl.{TwitchChatInputImpl, TwitchChatOutputImpl}
+import org.codeoverflow.chatoverflow.service.twitch.chat.impl.{TwitchChatInputImpl, TwitchChatOutputImpl}
 
 // TODO: The specific type argument is not in use by now - maybe it can be used later to define type options
 
@@ -15,7 +15,7 @@ object IO {
   def registerTypes(): Unit = {
     InputTypes(
       "org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput" ->
-        ("org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatInputImpl", {
+        ("org.codeoverflow.chatoverflow.service.twitch.chat.impl.TwitchChatInputImpl", {
           (requirements: Requirements, id: String, serialized: String) =>
             val requirement = requirements.input.twitchChat(id, null, false)
             val input = new TwitchChatInputImpl
@@ -31,7 +31,7 @@ object IO {
 
     OutputTypes(
       "org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput" ->
-        ("org.codeoverflow.chatoverflow.service.twitch.impl.TwitchChatOutputImpl", {
+        ("org.codeoverflow.chatoverflow.service.twitch.chat.impl.TwitchChatOutputImpl", {
           (requirements: Requirements, id: String, serialized: String) =>
             val requirement = requirements.output.twitchChat(id, null, false)
             val output = new TwitchChatOutputImpl

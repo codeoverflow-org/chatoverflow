@@ -1,11 +1,11 @@
-package org.codeoverflow.chatoverflow.service.twitch.impl
+package org.codeoverflow.chatoverflow.service.twitch.chat.impl
 
 import java.util.Calendar
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.service.Connection
-import org.codeoverflow.chatoverflow.service.twitch.TwitchConnector
+import org.codeoverflow.chatoverflow.service.twitch.chat.TwitchChatConnector
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
 import scala.collection.JavaConverters._
@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * This is the implementation of the twitch chat input, using the twitch connector.
   */
-class TwitchChatInputImpl extends Connection[TwitchConnector] with TwitchChatInput {
+class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchChatInput {
 
   private val messages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val privateMessages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
