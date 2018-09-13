@@ -3,15 +3,14 @@ package org.codeoverflow.chatoverflow.registry
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirements
 import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManager}
+import org.codeoverflow.chatoverflow.framework.PluginManagerImpl
 
 import scala.collection.mutable
 
 /**
   * The plugin instance registry holds all loaded plugin instances, ready to be executed (or already running).
-  *
-  * @param pluginManager the plugin manager to hand to the plugin instances
   */
-class PluginInstanceRegistry(pluginManager: PluginManager) {
+class PluginInstanceRegistry {
 
   private val logger = Logger.getLogger(this.getClass)
   private val pluginInstances = mutable.Map[String, Plugin]()
@@ -27,7 +26,7 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
     if (pluginInstances.contains(instanceName)) {
       false
     } else {
-      pluginInstances += instanceName -> pluggable.createNewPluginInstance(pluginManager)
+      pluginInstances += instanceName -> pluggable.createNewPluginInstance(new PluginManagerImpl(instanceName))
       true
     }
   }
@@ -47,6 +46,16 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
     */
   def getRequirements(instanceName: String): Requirements = {
     pluginInstances(instanceName).getRequirements
+  }
+
+  /**
+    * Returns the plugin manager created for this specific instance.
+    *
+    * @param instanceName the instance name of the loaded plugin instace
+    * @return a plugin manager object
+    */
+  def getPluginManager(instanceName: String): PluginManager = {
+    pluginInstances(instanceName).getManager
   }
 
   /**
