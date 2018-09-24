@@ -17,11 +17,12 @@ class MainServlet extends ScalatraServlet with ScalateSupport {
   }
 
   get("/dashboard") {
+    val typesAndIdentifiers = ChatOverflow.credentialsService.getAllCredentials().map(_._1)
     ssp(
       "/WEB-INF/pages/main/main.ssp",
       "layout" -> defaultLayout,
       "title" -> "CodeOverflow",
-      "credentials" -> Seq(new Credentials("asd"))
+      "credentials" -> typesAndIdentifiers
     )
   }
 

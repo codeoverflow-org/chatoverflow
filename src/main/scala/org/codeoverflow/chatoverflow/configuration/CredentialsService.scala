@@ -69,6 +69,9 @@ class CredentialsService(val credentialsFilePath: String, password: Array[Char])
 
   }
 
+  def getAllCredentials(): Seq[((String, String), Credentials)] =
+    credentials.toSeq
+
   def getCredentials(credentialsType: String, credentialsIdentifier: String): Option[Credentials] =
     credentials.get((credentialsType, credentialsIdentifier))
 
