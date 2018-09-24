@@ -18,7 +18,7 @@ class MainServlet extends ScalatraServlet with ScalateSupport {
 
   get("/dashboard") {
     ssp(
-      "/WEB-INF/pages/main.ssp",
+      "/WEB-INF/pages/main/main.ssp",
       "layout" -> defaultLayout,
       "title" -> "CodeOverflow",
       "credentials" -> Seq(new Credentials("asd"))
@@ -27,7 +27,7 @@ class MainServlet extends ScalatraServlet with ScalateSupport {
 
   get("/") {
     ssp(
-      "/WEB-INF/pages/login.ssp",
+      "/WEB-INF/pages/login/login.ssp",
       "layout" -> defaultLayout,
       "title" -> "CodeOverflow Login Page"
     )
