@@ -17,11 +17,11 @@ project/plugins/project/
 !.idea/runConfigurations
 
 # Sub projects
-api/
-plugins-public/
-plugins-private/
+/api/
+/plugins-public/
+/plugins-private/
 
 # Plugin Framework
-plugins/
-plugins.sbt
-config/
+/plugins/
+/plugins.sbt
+/config/

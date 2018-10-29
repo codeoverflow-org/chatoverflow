@@ -5,6 +5,8 @@ package org.codeoverflow.chatoverflow.ui
   */
 object CLI {
 
+  // TODO: Replace CLI with REPL
+
   val modeAddInstance = "addInstance"
   val modeAddConnector = "addConnector"
   val modeAddCredentials = "addCredentials"

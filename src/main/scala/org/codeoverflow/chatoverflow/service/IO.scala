@@ -5,6 +5,7 @@ import org.codeoverflow.chatoverflow.registry.TypeRegistry.{InputTypes, OutputTy
 import org.codeoverflow.chatoverflow.service.twitch.chat.impl.{TwitchChatInputImpl, TwitchChatOutputImpl}
 
 // TODO: The specific type argument is not in use by now - maybe it can be used later to define type options
+// TODO: Rework after initial GUI version to accept sub types (tree structure)
 
 /**
   * This object is used to register new input / output / parameter types. This process is needed because the requirement

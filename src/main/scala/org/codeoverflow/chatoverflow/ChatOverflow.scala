@@ -21,6 +21,8 @@ object ChatOverflow {
   private var configurationService: ConfigurationService = _
   private var credentialsService: CredentialsService = _
 
+  // TODO: Should be modeled and refactored again?
+
   /**
     * The init method initializes the complete framework. This includes configuration loading and dynamic type instantiation.
     * Also, all plugin jars are loaded here.
