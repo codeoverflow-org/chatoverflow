@@ -1,8 +1,8 @@
 package org.codeoverflow.chatoverflow
 
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.ui.CLI
-import org.codeoverflow.chatoverflow.ui.CLI.{Config, parse}
+import org.codeoverflow.chatoverflow.ui.CLI.{UI, parse}
+import org.codeoverflow.chatoverflow.ui.REPL
 
 /**
   * The launcher object is the entry point to the chat overflow framework.
@@ -29,45 +29,16 @@ object Launcher {
       if (config.configFilePath != "")
         ChatOverflow.configFilePath = config.configFilePath
 
-      // pre init
-      ChatOverflow.preInit()
+      // Init
+      ChatOverflow.init()
 
-      // Handle custom commands
-      handleCommands(config)
+      // Launch UI
+      config.ui match {
+        case UI.GUI => logger error "GUI is not available yet. Ask dennis."
+        case UI.REPL => REPL.run()
+      }
 
-      // post init
-      ChatOverflow.postInit()
 
-      // If specified, run plugins now!
-      if (config.mode == CLI.modeRunPlugins)
-        config.runPlugins.foreach(s => ChatOverflow.startPlugin(s))
-
-      // TODO: Start web server, web gui, etc.
-
-    }
-  }
-
-  private def handleCommands(config: Config): Unit = {
-    logger info s"Chat Overflow started with command: '${config.mode}'."
-
-    config.mode match {
-      case CLI.modeAddInstance =>
-        ChatOverflow.addPluginInstance(config.addInstance_PluginName,
-          config.addInstance_PluginAuthor, config.addInstance_instanceName)
-      case CLI.modeAddConnector =>
-        ChatOverflow.addConnector(config.addConnector_type, config.addConnector_sourceIdentifier)
-      case CLI.modeAddCredentials =>
-        ChatOverflow.addCredentials(config.addCredentials_type, config.addCredentials_sourceIdentifier)
-      case CLI.modeAddCredentialsEntry =>
-        ChatOverflow.addCredentialsEntry(config.addCredentialsEntry_type, config.addCredentialsEntry_sourceIdentifier,
-          config.addCredentialsEntry_Key, config.addCredentialsEntry_Value)
-      case CLI.modeAddRequirement =>
-        ChatOverflow.addRequirement(config.addRequirement_instanceName, config.addRequirement_uniqueId,
-          config.addRequirement_targetType, config.addRequirement_content)
-      case CLI.modeRunPlugins =>
-        logger info "Delaying running plugins until post init has finished."
-      case _ =>
-        logger info "Doing nothing. Much wow!"
     }
   }
 }

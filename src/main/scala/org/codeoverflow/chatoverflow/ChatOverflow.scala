@@ -27,7 +27,7 @@ object ChatOverflow {
     * The init method initializes the complete framework. This includes configuration loading and dynamic type instantiation.
     * Also, all plugin jars are loaded here.
     */
-  def preInit(): Unit = {
+  def init(): Unit = {
     println("Minzig!")
     logger info "Started Chat Overflow Framework. Hello everybody!"
     logger debug "INITIALIZATION STARTED!"
@@ -48,7 +48,15 @@ object ChatOverflow {
     logger info "[4/6] Phase 4: Loading credentials."
     loadCredentials()
 
-    logger debug "PRE INIT PHASE FINISHED."
+    // Load all connectors with the given credentials
+    logger info "[5/6] Phase 5: Loading platform connectors with given credentials."
+    loadConnectors()
+
+    // Load plugin instance configuration (e.g. specified target platforms)
+    logger info "[6/6] Load plugin instance configuration."
+    loadAndSetRequirements()
+
+    logger debug "INITIALIZATION FINISHED!"
   }
 
   private def loadCredentials(): Unit = {
@@ -115,23 +123,6 @@ object ChatOverflow {
     }
 
     logger info "Finished loading."
-  }
-
-  /**
-    * The second init phase includes dynamic configuration. To work properly, the CLI must be checked first.
-    */
-  def postInit(): Unit = {
-    logger debug "STARTED POST INITIALIZATION."
-
-    // Load all connectors with the given credentials
-    logger info "[5/6] Phase 5: Loading platform connectors with given credentials."
-    loadConnectors()
-
-    // Load plugin instance configuration (e.g. specified target platforms)
-    logger info "[6/6] Load plugin instance configuration."
-    loadAndSetRequirements()
-
-    logger debug "INITIALIZATION FINISHED!"
   }
 
   private def loadConfiguration(): Unit = {
