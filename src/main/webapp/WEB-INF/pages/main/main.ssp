@@ -8,12 +8,12 @@
                     <ul class="nav flex-column nav-pills text-center" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                         <li class="nav-item">
                             <a class="nav-link" id="v-pills-configured-plugins-tab" data-toggle="pill" href="#v-pills-configured-plugins" role="tab" aria-controls="v-pills-configured-plugins" aria-selected="true">
-                                Configured Plugins
+                                Plugin Instances
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active" id="v-pills-add-plugin-tab" data-toggle="pill" href="#v-pills-add-plugin" role="tab" aria-controls="v-pills-add-plugin" aria-selected="false">
-                                Add Plugin Configuration
+                                Add Plugin Instance
                             </a>
                         </li>
                         <li class="nav-item">
@@ -46,7 +46,7 @@
                         Show all currently configured plugins
                     --%>
                     <div class="tab-pane fade" id="v-pills-configured-plugins" role="tabpanel" aria-labelledby="v-pills-configured-plugins-tab">
-                        <%= include("content/configured-plugins/configured-plugins-tab.ssp") %>
+                        <%= include("content/plugin-instances/plugin-instances-tab.ssp") %>
                     </div>
                     <%--
                         Add a new plugin

@@ -5,7 +5,7 @@
     <div class="col-md-9">
     <form method="POST" action="/api/addPluginInstance">
         <div class="h4 text-dark">
-            Configure new plugin
+            Add new plugin
         </div>
         <div id="formcontent">
             <div class="form-group row">
@@ -14,7 +14,7 @@
                     <select class="form-control" name="pluginInfo">
                         <option>---</option>
                         #for (pluginInfo <- availablePluginTypes)
-                            <option value="{'name':'${pluginInfo.name}','author':'${pluginInfo.author}','description':''}">
+                            <option value='{"name":"${pluginInfo.name}","author":"${pluginInfo.author}","description":""}'>
                                 ${pluginInfo.name} by ${pluginInfo.author}
                             </option>
                         #end
@@ -22,31 +22,16 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="new-plugin-identifier-input" class="col-form-label col-md-4 text-right">Plugin Identifier</label>
-                <div class="col-md-8">
-                    <input type="text" id="new-plugin-identifier-input" name="newPlugin" placeholder="credential identifier" class="form-control"/>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="new-credentials-type-input" class="col-form-label col-md-3 text-right">Credential Type</label>
+                <label for="new-plugin-identifier-input" class="col-form-label col-md-3 text-right">Plugin Identifier</label>
                 <div class="col-md-9">
-                    <input type="text" id="new-credentials-type-input" name="newCredentialsType" placeholder="credential type" class="form-control"/>
+                    <input type="text" id="new-plugin-identifier-input" name="newPluginIdentifier" placeholder="plugin identifier" class="form-control"/>
                 </div>
             </div>
             <div class="form-group row">
-                <label for="new-credentials-key-input" class="col-form-label col-md-3 text-right">Key</label>
-                <div class="col-md-9">
-                    <input type="text" id="new-credentials-key-input" name="newCredentialsKey" placeholder="key" class="form-control"/>
+                <div class="col-md-4 pull-right">
+                    <button type="submit" class="btn btn-primary">Add plugin</button>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label for="new-credentials-value-input" class="col-form-label col-md-3 text-right">Value</label>
-                <div class="col-md-9">
-                    <input type="text" id="new-credentials-value-input" name="newCredentialsValue" placeholder="value" class="form-control"/>
-                </div>
-            </div>
-            <div class="form-group row">
-                <button type="submit" class="btn btn-primary">Add plugin configuration</button>
+                <div class="col-md-8"></div>
             </div>
         </div>
     </form>
