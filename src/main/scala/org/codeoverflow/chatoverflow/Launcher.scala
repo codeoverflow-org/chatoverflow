@@ -32,6 +32,8 @@ object Launcher {
       // Init
       ChatOverflow.init()
 
+      // TODO: Add GUI code later.
+
       // Launch UI
       config.ui match {
         case UI.GUI => logger error "GUI is not available yet. Ask dennis."
