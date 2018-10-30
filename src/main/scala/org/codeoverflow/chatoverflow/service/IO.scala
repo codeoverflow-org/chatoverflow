@@ -3,6 +3,7 @@ package org.codeoverflow.chatoverflow.service
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
 import org.codeoverflow.chatoverflow.registry.TypeRegistry.{InputTypes, OutputTypes, ParameterTypes, tripleToFrameworkType}
 import org.codeoverflow.chatoverflow.service.twitch.chat.impl.{TwitchChatInputImpl, TwitchChatOutputImpl}
+import org.codeoverflow.chatoverflow.service.twitch.stat.impl.TwitchStatInputImpl
 
 // TODO: The specific type argument is not in use by now - maybe it can be used later to define type options
 
@@ -26,6 +27,19 @@ object IO {
         }, {
           requirement: Requirement[_] =>
             requirement.asInstanceOf[Requirement[TwitchChatInputImpl]].get.getSourceIdentifier
+        }),
+      "org.codeoverflow.chatoverflow.api.io.input.stat.TwitchStatInput" ->
+        ("org.codeoverflow.chatoverflow.service.twitch.stat.impl.TwitchStatImpl", {
+          (requirements: Requirements, id: String, serialized: String) =>
+            val requirement = requirements.input.twitchStats(id, null, false)
+            val input = new TwitchStatInputImpl
+            input.setSourceConnector(serialized)
+            input.init()
+            requirement.set(input)
+            requirement
+        }, {
+          requirement: Requirement[_] =>
+            requirement.asInstanceOf[Requirement[TwitchStatInputImpl]].get.getSourceIdentifier
         })
     )
 

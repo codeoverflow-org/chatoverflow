@@ -9,7 +9,7 @@
 
     <!-- Disables pircbotx logging (Because raw password output on console is harmful) -->
     <category name="org.pircbotx">
-        <priority value="off"/>
+        <priority value="on"/>
     </category>
 
     <!-- Disables web server logging (spammy) -->

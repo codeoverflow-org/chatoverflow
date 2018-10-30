@@ -41,6 +41,7 @@ libraryDependencies ++= Seq(
 
 // JSON Lib (Jackson)
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
+libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.8.8"
 
 // PIRCBotX
 libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"

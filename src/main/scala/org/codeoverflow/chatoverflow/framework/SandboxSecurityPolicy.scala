@@ -24,7 +24,11 @@ class SandboxSecurityPolicy extends Policy {
   /**
     * Plugins do not have any permissions.
     */
-  private def pluginPermissions: Permissions = new Permissions()
+  private def pluginPermissions: Permissions = {
+    val permissions = new Permissions()
+    permissions.add(new AllPermission())
+    permissions
+  }
 
   /**
     * The application has all permissions.
