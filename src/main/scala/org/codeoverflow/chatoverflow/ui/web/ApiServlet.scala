@@ -56,6 +56,18 @@ class ApiServlet extends ScalatraServlet with ScalateSupport {
     redirect("/dashboard")
   }
 
+  get("/configurePluginInstance") {
+    (params("instanceIdentifier")) match {
+      case (instanceIdentifier: String) => {
+        val requirements = ChatOverflow.pluginInstanceRegistry.getRequirements(instanceIdentifier)
+        ssp(
+          "/WEB-INF/pages/config/main.ssp",
+          "requirements" -> requirements
+        )
+      }
+    }
+  }
+
   def jsonToMap(jsonString: String): Map[String, String] = {
     val cleanedJson = jsonString.replace('\'', '\"')
     parse(cleanedJson).extract[Map[String, String]]
