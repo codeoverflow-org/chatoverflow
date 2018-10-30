@@ -3,15 +3,14 @@ package org.codeoverflow.chatoverflow.registry
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirements
 import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManager}
+import org.codeoverflow.chatoverflow.framework.PluginManagerImpl
 
 import scala.collection.mutable
 
 /**
   * The plugin instance registry holds all loaded plugin instances, ready to be executed (or already running).
-  *
-  * @param pluginManager the plugin manager to hand to the plugin instances
   */
-class PluginInstanceRegistry(pluginManager: PluginManager) {
+class PluginInstanceRegistry {
 
   private val logger = Logger.getLogger(this.getClass)
   private val pluginInstances = mutable.Map[String, Plugin]()
@@ -27,7 +26,7 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
     if (pluginInstances.contains(instanceName)) {
       false
     } else {
-      pluginInstances += instanceName -> pluggable.createNewPluginInstance(pluginManager)
+      pluginInstances += instanceName -> pluggable.createNewPluginInstance(new PluginManagerImpl(instanceName))
       true
     }
   }
@@ -50,6 +49,16 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
   }
 
   /**
+    * Returns the plugin manager created for this specific instance.
+    *
+    * @param instanceName the instance name of the loaded plugin instace
+    * @return a plugin manager object
+    */
+  def getPluginManager(instanceName: String): PluginManager = {
+    pluginInstances(instanceName).getManager
+  }
+
+  /**
     * Creates a new thread and tries to start the plugin.
     * Make sure to set the requirements (configuration) first!
     *
@@ -59,7 +68,7 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
 
     // Always escape!
     if (!pluginInstances.contains(instanceName)) {
-      logger warn s"Plugin '$instanceName' was not loaded. Unable to start."
+      logger warn s"Instance '$instanceName' was not loaded. Unable to start."
     } else {
       logger info s"Starting plugin '$instanceName' in new thread!"
       val loadedPlugin = pluginInstances(instanceName)
@@ -75,7 +84,19 @@ class PluginInstanceRegistry(pluginManager: PluginManager) {
           // TODO: Manage all threads, passing arguments, maybe using actors rather than threads
           new Thread(() => {
             try {
-              loadedPlugin.start()
+
+              // Execute plugin setup
+              loadedPlugin.setup()
+
+              // Execute loop, if an interval is set
+              if (loadedPlugin.getLoopInterval > 0) {
+                while (true) {
+                  loadedPlugin.loop()
+                  Thread.sleep(loadedPlugin.getLoopInterval)
+                }
+              }
+
+              // FIXME: shutdown method should work
             } catch {
               case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
               case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)

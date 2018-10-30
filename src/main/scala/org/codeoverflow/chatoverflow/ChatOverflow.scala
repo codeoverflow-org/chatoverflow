@@ -16,10 +16,12 @@ object ChatOverflow {
   var configFolderPath = "config/"
   var configFilePath = s"$configFolderPath/config.xml"
   var credentialsFilePath = s"$configFolderPath/credentials"
-  var pluginFramework: PluginFramework = _
-  var pluginRegistry: PluginInstanceRegistry = _
-  var configurationService: ConfigurationService = _
-  var credentialsService: CredentialsService = _
+  private var pluginFramework: PluginFramework = _
+  private var pluginInstanceRegistry: PluginInstanceRegistry = _
+  private var configurationService: ConfigurationService = _
+  private var credentialsService: CredentialsService = _
+
+  // TODO: Should be modeled and refactored again?
 
   /**
     * The init method initializes the complete framework. This includes configuration loading and dynamic type instantiation.
@@ -64,7 +66,7 @@ object ChatOverflow {
     for (pluginInstance <- configurationService.pluginInstances) {
       logger info s"Loading requirements for instance '${pluginInstance.instanceName}'."
 
-      val requirements = pluginRegistry.getRequirements(pluginInstance.instanceName)
+      val requirements = pluginInstanceRegistry.getRequirements(pluginInstance.instanceName)
 
       for (requirementConfig <- pluginInstance.requirements) {
         logger info s"Setting requirement '${requirementConfig.uniqueRequirementId}' of type '${requirementConfig.targetType}'."
@@ -87,10 +89,9 @@ object ChatOverflow {
     System.setSecurityManager(new SecurityManager)
 
     // Create plugin framework, registry and manager instance
-    val pluginManager = new PluginManagerImpl
-    pluginRegistry = new PluginInstanceRegistry(pluginManager)
+    pluginInstanceRegistry = new PluginInstanceRegistry
     pluginFramework = PluginFramework(pluginFolderPath)
-    pluginFramework.init(pluginManager)
+    pluginFramework.init(new PluginManagerImpl("INIT"))
 
     // Register types
     IO.registerTypes()
@@ -108,7 +109,7 @@ object ChatOverflow {
       pluggable match {
         case Some(p) =>
           logger info s"Loaded plugin config $pluginInstance."
-          pluginRegistry.addPluginInstance(pluginInstance.instanceName, p)
+          pluginInstanceRegistry.addPluginInstance(pluginInstance.instanceName, p)
         case None => logger debug s"Unable to load plugin config $pluginInstance. Plugin not found."
       }
     }
@@ -223,6 +224,6 @@ object ChatOverflow {
   }
 
   def startPlugin(instanceName: String): Unit = {
-    pluginRegistry.asyncStartPlugin(instanceName)
+    pluginInstanceRegistry.asyncStartPlugin(instanceName)
   }
 }

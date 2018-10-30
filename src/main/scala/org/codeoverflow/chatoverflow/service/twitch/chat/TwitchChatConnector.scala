@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.service.twitch
+package org.codeoverflow.chatoverflow.service.twitch.chat
 
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.configuration.Credentials
@@ -13,14 +13,12 @@ import org.pircbotx.{Configuration, PircBotX}
   * @param sourceIdentifier the name to the twitch account
   * @param credentials      the credentials to log into the irc chat
   */
-class TwitchConnector(override val sourceIdentifier: String, credentials: Credentials) extends Connector(sourceIdentifier, credentials) {
+class TwitchChatConnector(override val sourceIdentifier: String, credentials: Credentials) extends Connector(sourceIdentifier, credentials) {
   private val logger = Logger.getLogger(this.getClass)
   private val twitchChatListener = new TwitchChatListener
   private var bot: PircBotX = _
   private var running = false
   private var currentChannel: String = _
-
-  // TODO: Support the twitch api too!
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     twitchChatListener.addMessageEventListener(listener)
@@ -37,26 +35,18 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
       logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
 
       bot = new PircBotX(getConfig)
-      startBotAsync()
+      startBot()
       running = true
       logger info "Started connector."
     }
   }
 
-  private def setCurrentChannel(channel: String): Unit = {
-    if (channel.startsWith("#")) {
-      currentChannel = channel
-    } else {
-      currentChannel = "#" + channel
-    }
-  }
-
   private def getConfig: Configuration = {
 
-    val password = credentials.getValue(TwitchConnector.credentialsOauthKey)
+    val password = credentials.getValue(TwitchChatConnector.credentialsOauthKey)
 
     if (password.isEmpty) {
-      logger warn s"key '${TwitchConnector.credentialsOauthKey}' not found in credentials for '$sourceIdentifier'."
+      logger warn s"key '${TwitchChatConnector.credentialsOauthKey}' not found in credentials for '$sourceIdentifier'."
     }
 
     setCurrentChannel(sourceIdentifier)
@@ -76,11 +66,24 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
 
   }
 
-  private def startBotAsync(): Unit = {
+  private def setCurrentChannel(channel: String): Unit = {
+    if (channel.startsWith("#")) {
+      currentChannel = channel.toLowerCase
+    } else {
+      currentChannel = "#" + channel.toLowerCase
+    }
+  }
+
+  private def startBot(): Unit = {
 
     new Thread(() => {
       bot.startBot()
     }).start()
+
+    while (bot.getState != PircBotX.State.CONNECTED) {
+      logger info "Waiting while the bot is connecting..."
+      Thread.sleep(100)
+    }
 
   }
 
@@ -102,6 +105,6 @@ class TwitchConnector(override val sourceIdentifier: String, credentials: Creden
   def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
 }
 
-object TwitchConnector {
+object TwitchChatConnector {
   val credentialsOauthKey = "oauth"
 }
