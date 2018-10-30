@@ -17,12 +17,16 @@ class MainServlet extends ScalatraServlet with ScalateSupport {
   }
 
   get("/dashboard") {
-    val typesAndIdentifiers = ChatOverflow.credentialsService.getAllCredentials().map(_._1)
+    val credentialTypesAndIdentifiers = ChatOverflow.credentialsService.getAllCredentials().map(_._1)
+    val pluginInstances = ChatOverflow.pluginInstanceRegistry.getPluginInstances
+    val availablePluginTypes = ChatOverflow.pluginFramework.getLoadedPlugins.sortBy(_.name)
     ssp(
       "/WEB-INF/pages/main/main.ssp",
       "layout" -> defaultLayout,
       "title" -> "CodeOverflow",
-      "credentials" -> typesAndIdentifiers
+      "availablePluginTypes" -> availablePluginTypes,
+      "configuredPlugins" -> pluginInstances,
+      "credentials" -> credentialTypesAndIdentifiers
     )
   }
 

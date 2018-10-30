@@ -16,10 +16,10 @@ object ChatOverflow {
   var configFolderPath = "config/"
   var configFilePath = s"$configFolderPath/config.xml"
   var credentialsFilePath = s"$configFolderPath/credentials"
-  private var pluginFramework: PluginFramework = _
-  private var pluginInstanceRegistry: PluginInstanceRegistry = _
-  private var configurationService: ConfigurationService = _
-  private var credentialsService: CredentialsService = _
+  var pluginFramework: PluginFramework = _
+  var pluginInstanceRegistry: PluginInstanceRegistry = _
+  var configurationService: ConfigurationService = _
+  var credentialsService: CredentialsService = _
 
   // TODO: Should be modeled and refactored again?
 

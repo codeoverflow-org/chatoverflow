@@ -1,0 +1,15 @@
+#import(scala.collection.immutable.Seq)
+<%@ val configuredPlugins: Seq[String] %>
+
+<div class="row">
+    <div class="col-md-8">
+        #if (configuredPlugins.size == 0)
+            <p>No plugins configured</p>
+        #end
+        <ul>
+            #for (plugin <- configuredPlugins)
+                <li>${plugin}</li>
+            #end
+        </ul>
+    </div>
+</div>
