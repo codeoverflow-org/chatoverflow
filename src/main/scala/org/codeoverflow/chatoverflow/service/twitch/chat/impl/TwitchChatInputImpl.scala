@@ -3,6 +3,7 @@ package org.codeoverflow.chatoverflow.service.twitch.chat.impl
 import java.util.Calendar
 import java.util.function.Consumer
 
+import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.service.Connection
 import org.codeoverflow.chatoverflow.service.twitch.chat.TwitchChatConnector
@@ -16,6 +17,8 @@ import scala.collection.mutable.ListBuffer
   */
 class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchChatInput {
 
+  private val logger = Logger.getLogger(this.getClass)
+
   private val messages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val privateMessages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val whisperRegex = """^:([^!]+?)!.*?:(.*)$""".r
@@ -28,9 +31,13 @@ class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchCha
   override def init(): Unit = {
 
     // Add the own message handler to the twitch connector
-    sourceConnector.addMessageEventListener(onMessage)
-    sourceConnector.addUnknownEventListener(onUnknown)
-    sourceConnector.init()
+    if (sourceConnector.isDefined) {
+      sourceConnector.get.addMessageEventListener(onMessage)
+      sourceConnector.get.addUnknownEventListener(onUnknown)
+      sourceConnector.get.init()
+    } else {
+      logger warn "Source connector not set."
+    }
   }
 
   private def onMessage(event: MessageEvent): Unit = {
@@ -90,5 +97,5 @@ class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchCha
 
   override def registerPrivateMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = privateMessageHandler += handler
 
-  override def setChannel(channel: String): Unit = sourceConnector.setChannel(channel)
+  override def setChannel(channel: String): Unit = sourceConnector.get.setChannel(channel)
 }

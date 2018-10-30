@@ -59,7 +59,7 @@ class TwitchChatConnector(override val sourceIdentifier: String, credentials: Cr
       .addCapHandler(new EnableCapHandler("twitch.tv/tags"))
       .addServer("irc.chat.twitch.tv")
       .setName(credentials.credentialsIdentifier)
-      .setServerPassword(password.get)
+      .setServerPassword(password.getOrElse(""))
       .addAutoJoinChannel(currentChannel)
       .addListener(twitchChatListener)
       .buildConfiguration()

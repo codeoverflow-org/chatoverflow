@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.service
 
+import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.registry.ConnectorRegistry
 
 import scala.reflect.ClassTag
@@ -13,10 +14,11 @@ import scala.reflect.ClassTag
   */
 abstract class Connection[T <: Connector](implicit ct: ClassTag[T]) {
   private val connectorType: String = ct.runtimeClass.getName
+  private val logger = Logger.getLogger(this.getClass)
   /**
     * This connector variable can be used to work with the platform specific connection
     */
-  protected var sourceConnector: T = _
+  protected var sourceConnector: Option[T] = None
   private var sourceIdentifier: String = _
 
   /**
@@ -27,8 +29,8 @@ abstract class Connection[T <: Connector](implicit ct: ClassTag[T]) {
   def setSourceConnector(sourceIdentifier: String): Unit = {
     this.sourceIdentifier = sourceIdentifier
     ConnectorRegistry.getConnector(connectorType, sourceIdentifier) match {
-      case Some(connector: Connector) => sourceConnector = connector.asInstanceOf[T]
-      case _ => throw new IllegalArgumentException("Connector not found.")
+      case Some(connector: Connector) => sourceConnector = Some(connector.asInstanceOf[T])
+      case _ => logger warn "Connector not found."
     }
   }
 
