@@ -12,6 +12,8 @@ class Credentials(val credentialsIdentifier: String) {
 
   def addValue(key: String, value: String): Unit = values += key -> value
 
+  def removeValue(key: String): Unit = values -= key
+
   def getValue(key: String): Option[String] = values.get(key)
 
   def exists(key: String): Boolean = values.get(key).isDefined

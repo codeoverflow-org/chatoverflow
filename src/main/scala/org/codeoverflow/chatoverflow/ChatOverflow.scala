@@ -196,11 +196,12 @@ object ChatOverflow {
       logger warn s"Credentials of type '$credentialsType' for '$credentialsIdentifier' do not exist."
     } else {
       if (c.get.exists(key)) {
-        logger warn "In '$credentialsIdentifier', a value named '$key' is already defined."
-      } else {
+        logger warn "In '$credentialsIdentifier', a value named '$key' is already defined. Removing value."
+        c.get.removeValue(key)
+      }
         c.get.addValue(key, value)
         logger info s"Added credentials entry '$key' to '$credentialsIdentifier'."
-      }
+
     }
     credentialsService.save()
   }
