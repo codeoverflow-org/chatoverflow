@@ -22,4 +22,8 @@ class TwitchChatOutputImpl extends Connection[TwitchChatConnector] with TwitchCh
       logger warn "Source Connector not set."
     }
   }
+
+  override def serialize(): String = ???
+
+  override def deserialize(value: String): Unit = ???
 }

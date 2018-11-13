@@ -12,7 +12,21 @@ import org.codeoverflow.chatoverflow.service.twitch.chat.impl.{TwitchChatInputIm
   * instantiation is statically typed, but the serialization is dynamic. By using a mapping from dynamic type to static
   * instance creation, the framework is highly configurable but the plugin implementation is easy and type safe.
   */
+@Deprecated
 object IO {
+
+  // register(TwitchChatInputImpl.class, TwitchChatInput.class) "Ich bin ne Implementierung von dem Interface" - Dennis 13.11.2018, KA
+  // TODO: Annotations? Supertyp
+
+  // register (TwitchChatInput, TwitchChatInputImpl)
+  // register (DiscordChatInput, DiscordChatInputImpl)
+  // register (ChatInput, TwitchChatInput)
+  // register (ChatInput, DiscordChatInput)
+
+  // Example 1: requirement (API type) -> TwitchChatInput -> TwitchChatInputImpl -> Reflection -> create & deserialize
+  // Example 2: requirement (API type) -> ChatInput -> TwitchChatInput | DiscordChatInput
+  //          -> XML-READ: Saved API type -> TwitchChatInput -> Example 1 (recursive)
+
   def registerTypes(): Unit = {
     InputTypes(
       "org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput" ->
@@ -51,7 +65,8 @@ object IO {
         ("java.lang.String", {
           (requirements: Requirements, id: String, serialized: String) =>
             val requirement = requirements.parameter.string(id, null, false)
-            requirement.set(serialized)
+            // new StringParameterImpl ...
+            //requirement.set()
             requirement
         }, {
           requirement: Requirement[_] =>
