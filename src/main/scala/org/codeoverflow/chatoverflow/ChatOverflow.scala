@@ -83,7 +83,7 @@ object ChatOverflow {
           requirementConfig.uniqueRequirementId, requirementConfig.serializedContent)
       }
 
-      if (!requirements.allNeededRequirementsSet()) {
+      if (!requirements.isComplete) {
         logger warn s"Not all required Requirements for $pluginInstance had been set!"
       }
     }
