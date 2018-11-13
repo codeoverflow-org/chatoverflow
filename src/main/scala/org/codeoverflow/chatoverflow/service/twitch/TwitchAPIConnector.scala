@@ -1,14 +1,19 @@
 package org.codeoverflow.chatoverflow.service.twitch
 
-import com.fasterxml.jackson.databind.`type`.TypeFactory
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.util.Timeout
+import akka.pattern.ask
+import org.apache.http.HttpEntity
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIBuilder
-import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.framework.HttpClientActor
 import org.codeoverflow.chatoverflow.service.Connector
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /**
   * The twitch api connector
@@ -18,11 +23,13 @@ import org.codeoverflow.chatoverflow.service.Connector
   */
 class TwitchAPIConnector(override val sourceIdentifier: String, credentials: Credentials) extends Connector(sourceIdentifier, credentials) {
   private val logger = Logger.getLogger(this.getClass)
-  var clientID = ""
-  var oauth = ""
-  val API_FORMAT: String = "application/vnd.twitchtv.v5+json"
-  val BASE_URL: String = "https://api.twitch.tv/helix/"
-  val BASE_URL_v5: String = "https://api.twitch.tv/kraken/"
+  private var clientID = ""
+  private var oauth = ""
+  private val API_FORMAT: String = "application/vnd.twitchtv.v5+json"
+  private val BASE_URL: String = "https://api.twitch.tv/helix/"
+  private val BASE_URL_v5: String = "https://api.twitch.tv/kraken/"
+  private val actorSystem = ActorSystem("TwitchAPIActorSystem")
+  private val actor: ActorRef = actorSystem.actorOf(Props[HttpClientActor])
 
   override def getUniqueTypeString: String = this.getClass.getName
 
@@ -63,12 +70,12 @@ class TwitchAPIConnector(override val sourceIdentifier: String, credentials: Cre
   }
 
   def get(uri: String, auth: Boolean, oldAPI: Boolean, queryParams: Seq[(String, String)]) = {
-    val client = HttpClientBuilder.create.build
     val httpGet = if (auth) getUrlAuth(uri, oldAPI) else getURL(uri, oldAPI)
     val urlBuilder = new URIBuilder(httpGet.getURI)
     queryParams.foreach(param => urlBuilder.addParameter(param._1,param._2))
     httpGet.setURI(urlBuilder.build())
-    val entity = client.execute(httpGet).getEntity
+    implicit val timeout: Timeout = Timeout(5 seconds)
+    val entity = Await.result(actor ? httpGet, timeout.duration).asInstanceOf[HttpEntity]
     if (entity != null) {
       EntityUtils.toString(entity, "UTF-8");
     }

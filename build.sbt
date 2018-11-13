@@ -46,6 +46,12 @@ libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" 
 // PIRCBotX
 libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
 
+// Akka Actors
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.5.18",
+  //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
+)
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
