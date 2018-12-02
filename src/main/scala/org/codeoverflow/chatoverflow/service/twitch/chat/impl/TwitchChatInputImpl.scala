@@ -47,7 +47,8 @@ class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchCha
     val moderator = event.getV3Tags.get("mod") == "1"
     val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
     val premium = event.getV3Tags.get("badges").contains("premium/1")
-    val author = new TwitchChatMessageAuthor(event.getUser.getNick, broadcaster, moderator, subscriber, premium)
+    val vip = event.getV3Tags.get("badges").contains("vip/1")
+    val author = new TwitchChatMessageAuthor(event.getUser.getNick, broadcaster, moderator, subscriber, premium, vip)
     val channel = new Channel(event.getChannelSource)
     val emoticons = new java.util.ArrayList[ChatEmoticon]()
     wholeEmoticonRegex.findAllMatchIn(event.getV3Tags.get("emotes")).foreach(matchedElement => {
