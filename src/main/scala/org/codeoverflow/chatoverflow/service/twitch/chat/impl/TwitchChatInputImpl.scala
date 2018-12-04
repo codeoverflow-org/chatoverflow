@@ -5,8 +5,8 @@ import java.util.function.Consumer
 
 import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.io.input.chat._
-import org.codeoverflow.chatoverflow.service.Connection
 import org.codeoverflow.chatoverflow.service.twitch.chat.TwitchChatConnector
+import org.codeoverflow.chatoverflow.service.{Connection, Parent}
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
 import scala.collection.JavaConverters._
@@ -15,6 +15,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * This is the implementation of the twitch chat input, using the twitch connector.
   */
+@Parent(classOf[ChatInput[_]])
 class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchChatInput {
 
   private val logger = Logger.getLogger(this.getClass)

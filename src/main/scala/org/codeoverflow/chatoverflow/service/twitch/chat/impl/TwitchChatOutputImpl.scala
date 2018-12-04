@@ -2,13 +2,14 @@ package org.codeoverflow.chatoverflow.service.twitch.chat.impl
 
 
 import org.apache.log4j.Logger
-import org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput
-import org.codeoverflow.chatoverflow.service.Connection
+import org.codeoverflow.chatoverflow.api.io.output.chat.{ChatOutput, TwitchChatOutput}
 import org.codeoverflow.chatoverflow.service.twitch.chat.TwitchChatConnector
+import org.codeoverflow.chatoverflow.service.{Connection, Parent}
 
 /**
   * This is the implementation of the twitch chat output, using the twitch connector.
   */
+@Parent(classOf[ChatOutput])
 class TwitchChatOutputImpl extends Connection[TwitchChatConnector] with TwitchChatOutput {
 
   private val logger = Logger.getLogger(this.getClass)
