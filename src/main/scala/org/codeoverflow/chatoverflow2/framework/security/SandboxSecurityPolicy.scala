@@ -2,6 +2,8 @@ package org.codeoverflow.chatoverflow2.framework.security
 
 import java.security._
 
+import org.codeoverflow.chatoverflow2.framework.helper.PluginClassLoader
+
 /**
   * The Sandbox Policy provides different permission sets for plugins and application code.
   */

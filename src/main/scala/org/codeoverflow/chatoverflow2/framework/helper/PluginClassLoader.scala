@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow2.framework.security
+package org.codeoverflow.chatoverflow2.framework.helper
 
 import java.net.{URL, URLClassLoader}
 
