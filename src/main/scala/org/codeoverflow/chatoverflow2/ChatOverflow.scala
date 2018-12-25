@@ -5,6 +5,7 @@ import java.security.Policy
 import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow2.framework.PluginFramework
 import org.codeoverflow.chatoverflow2.framework.security.SandboxSecurityPolicy
+import org.codeoverflow.chatoverflow2.instance.PluginInstanceRegistry
 
 /**
   * The chat overflow class is the heart of the project.
@@ -14,6 +15,7 @@ import org.codeoverflow.chatoverflow2.framework.security.SandboxSecurityPolicy
   */
 class ChatOverflow(val pluginFolderPath: String = "plugins/") extends WithLogger {
   val pluginFramework = new PluginFramework(pluginFolderPath)
+  val pluginInstanceRegistry = new PluginInstanceRegistry
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -32,6 +34,10 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/") extends WithLogger
     logger debug "Starting plugin framework."
     pluginFramework.loadNewPlugins()
     logger debug "Finished plugin framework initialization."
+
+    logger debug "Scanning service requirement type definitions."
+    // TODO: Implement RequirementTypeRegistry using reflection and annotations
+
   }
 
   private def enableFrameworkSecurity(): Unit = {
