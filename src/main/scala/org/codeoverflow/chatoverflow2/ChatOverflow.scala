@@ -6,6 +6,7 @@ import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow2.framework.PluginFramework
 import org.codeoverflow.chatoverflow2.framework.security.SandboxSecurityPolicy
 import org.codeoverflow.chatoverflow2.instance.PluginInstanceRegistry
+import org.codeoverflow.chatoverflow2.requirement.RequirementTypeRegistry
 
 /**
   * The chat overflow class is the heart of the project.
@@ -13,9 +14,13 @@ import org.codeoverflow.chatoverflow2.instance.PluginInstanceRegistry
   *
   * @param pluginFolderPath the relative path ot the plugin folder ("plugins/" by default)
   */
-class ChatOverflow(val pluginFolderPath: String = "plugins/") extends WithLogger {
+class ChatOverflow(val pluginFolderPath: String = "plugins/",
+                   val servicePackage: String = "org.codeoverflow.chatoverflow2.requirement.service")
+  extends WithLogger {
+
   val pluginFramework = new PluginFramework(pluginFolderPath)
   val pluginInstanceRegistry = new PluginInstanceRegistry
+  val requirementTypeRegistry = new RequirementTypeRegistry(servicePackage)
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -36,6 +41,7 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/") extends WithLogger
     logger debug "Finished plugin framework initialization."
 
     logger debug "Scanning service requirement type definitions."
+    requirementTypeRegistry.updateTypeRegistry()
     // TODO: Implement RequirementTypeRegistry using reflection and annotations
 
   }

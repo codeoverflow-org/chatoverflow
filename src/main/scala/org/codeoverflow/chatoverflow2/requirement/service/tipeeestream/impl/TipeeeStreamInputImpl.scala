@@ -1,8 +1,8 @@
-package org.codeoverflow.chatoverflow2.service.tipeeestream.impl
+package org.codeoverflow.chatoverflow2.requirement.service.tipeeestream.impl
 
 import org.codeoverflow.chatoverflow.api.io.input.event.SubscriptionEventInput
 import org.codeoverflow.chatoverflow2.requirement.Connection
-import org.codeoverflow.chatoverflow2.service.tipeeestream.TipeeeStreamConnector
+import org.codeoverflow.chatoverflow2.requirement.service.tipeeestream.TipeeeStreamConnector
 
 // TODO: This class should have probably a counterpart in the API. Not now, for testing only
 class TipeeeStreamInputImpl extends Connection[TipeeeStreamConnector] with SubscriptionEventInput {

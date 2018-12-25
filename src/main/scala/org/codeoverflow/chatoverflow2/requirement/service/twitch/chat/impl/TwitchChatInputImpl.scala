@@ -1,12 +1,12 @@
-package org.codeoverflow.chatoverflow2.service.twitch.chat.impl
+package org.codeoverflow.chatoverflow2.requirement.service.twitch.chat.impl
 
 import java.util.Calendar
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow2.WithLogger
+import org.codeoverflow.chatoverflow2.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow2.requirement.{Connection, Impl}
-import org.codeoverflow.chatoverflow2.service.twitch.chat
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
 import scala.collection.JavaConverters._
@@ -97,7 +97,10 @@ class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with Twit
 
   override def setChannel(channel: String): Unit = sourceConnector.get.setChannel(channel)
 
-  override def serialize(): String = ???
+  override def serialize(): String = getSourceIdentifier
 
-  override def deserialize(value: String): Unit = ???
+  override def deserialize(value: String): Unit = {
+    setSourceConnector(value)
+    init()
+  }
 }

@@ -45,6 +45,9 @@ libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 // PIRCBotX
 libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
 
+// Reflections API for annotation indexing
+libraryDependencies += "org.reflections" % "reflections" % "0.9.11"
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS

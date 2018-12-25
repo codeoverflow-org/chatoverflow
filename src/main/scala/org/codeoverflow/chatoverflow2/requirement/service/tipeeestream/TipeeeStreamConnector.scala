@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow2.service.tipeeestream
+package org.codeoverflow.chatoverflow2.requirement.service.tipeeestream
 
 import org.codeoverflow.chatoverflow.configuration.Credentials
 import org.codeoverflow.chatoverflow2.requirement.Connector

@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow2.service.twitch.chat
+package org.codeoverflow.chatoverflow2.requirement.service.twitch.chat
 
 import org.codeoverflow.chatoverflow.configuration.Credentials
 import org.codeoverflow.chatoverflow2.WithLogger
