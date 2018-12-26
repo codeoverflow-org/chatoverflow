@@ -2,8 +2,8 @@ package org.codeoverflow.chatoverflow2.framework.manager
 
 import java.util
 
-import org.apache.log4j.Logger
 import org.codeoverflow.chatoverflow.api.plugin.PluginManager
+import org.codeoverflow.chatoverflow2.WithLogger
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -13,9 +13,8 @@ import scala.collection.mutable.ListBuffer
   *
   * @param pluginInstanceName the name of the plugin instance
   */
-class PluginManagerImpl(pluginInstanceName: String) extends PluginManager {
+class PluginManagerImpl(pluginInstanceName: String) extends PluginManager with WithLogger {
 
-  private val logger = Logger.getLogger(this.getClass)
   private val logMessages = new ListBuffer[String]
 
   /**

@@ -42,11 +42,16 @@ class PluginType(pluggable: Pluggable) extends WithLogger {
 
     if (getState == PluginCompatibilityState.MajorCompatible || getState == PluginCompatibilityState.FullyCompatible) {
       try {
-        Some(pluggable.createNewPluginInstance(manager))
+        val plugin = pluggable.createNewPluginInstance(manager)
+        logger info s"Successful created a instance of plugin $getName ($getAuthor)"
+        Some(plugin)
       } catch {
-        case _: Exception => None
+        case _: Exception =>
+          logger error s"Exception thrown while creating instance of plugin $getName ($getAuthor)"
+          None
       }
     } else {
+      logger debug s"Unable to create instance of plugin type $getName ($getAuthor) due to different API Versions."
       None
     }
   }

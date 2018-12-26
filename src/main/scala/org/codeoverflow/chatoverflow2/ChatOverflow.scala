@@ -44,9 +44,8 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
     requirementTypeRegistry.updateTypeRegistry()
     logger debug "Finished updating service requirements."
 
-    logger debug "Initializing connector and plugin instance registry."
-    // TODO: Plugin Registry
-    // TODO: Connector Registry
+    logger debug "Initializing connector instance registry."
+    // TODO: Connector Registry (should they also be derived by annotation?)
 
 
     // TODO: Credentials / Config / Requirements
