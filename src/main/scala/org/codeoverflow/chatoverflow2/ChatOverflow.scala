@@ -15,12 +15,12 @@ import org.codeoverflow.chatoverflow2.requirement.RequirementTypeRegistry
   * @param pluginFolderPath the relative path ot the plugin folder ("plugins/" by default)
   */
 class ChatOverflow(val pluginFolderPath: String = "plugins/",
-                   val servicePackage: String = "org.codeoverflow.chatoverflow2.requirement.service")
+                   val requirementPackage: String = "org.codeoverflow.chatoverflow2.requirement")
   extends WithLogger {
 
   val pluginFramework = new PluginFramework(pluginFolderPath)
   val pluginInstanceRegistry = new PluginInstanceRegistry
-  val requirementTypeRegistry = new RequirementTypeRegistry(servicePackage)
+  val requirementTypeRegistry = new RequirementTypeRegistry(requirementPackage)
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -42,8 +42,14 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
 
     logger debug "Scanning service requirement type definitions."
     requirementTypeRegistry.updateTypeRegistry()
-    // TODO: Implement RequirementTypeRegistry using reflection and annotations
+    logger debug "Finished updating service requirements."
 
+    logger debug "Initializing connector and plugin instance registry."
+    // TODO: Plugin Registry
+    // TODO: Connector Registry
+
+
+    // TODO: Credentials / Config / Requirements
   }
 
   private def enableFrameworkSecurity(): Unit = {
