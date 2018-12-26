@@ -1,6 +1,7 @@
-package org.codeoverflow.chatoverflow2.requirement
+package org.codeoverflow.chatoverflow2.registry
 
 import org.codeoverflow.chatoverflow2.WithLogger
+import org.codeoverflow.chatoverflow2.connector.Connector
 import org.reflections.Reflections
 import org.reflections.scanners.{SubTypesScanner, TypeAnnotationsScanner}
 import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
@@ -13,19 +14,22 @@ import scala.collection.mutable.ListBuffer
   *
   * @param requirementPackage The fully qualified name of the package, where all requirement types are defined
   */
-class RequirementTypeRegistry(requirementPackage: String) extends WithLogger {
-  private var requirementTypes = mutable.Map[String, Class[_]]()
+class TypeRegistry(requirementPackage: String) extends WithLogger {
+  private val requirementTypes = mutable.Map[String, Class[_]]()
+  private val connectorTypes = mutable.Map[String, Class[_ <: Connector]]()
 
   /**
     * Clears the type registry, then scans the classpath for classes with the Impl-Annotation.
+    * Requirements are added to the requirement-map, found connectors the connector-map
     */
   def updateTypeRegistry(): Unit = {
 
-    // Start by clearing all known requirements
+    // Start by clearing all known requirements and connectors
     requirementTypes.clear()
+    connectorTypes.clear()
 
     // Use reflection magic to get all impl-annotated classes
-    // FIXME: Does also find requirement definitions not in the exact package - no problem right now
+    // FIXME: Does also find definitions not in the exact package - no problem right now
     val reflections: Reflections = new Reflections(new ConfigurationBuilder()
       .setUrls(ClasspathHelper.forPackage(requirementPackage))
       .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()))
@@ -38,15 +42,22 @@ class RequirementTypeRegistry(requirementPackage: String) extends WithLogger {
 
       if (annotations.length != 1) {
         // This should never happen
-        logger warn s"Requirement type ${clazz.getName} has no annotation of type 'Impl'."
+        logger warn s"Should-have-Annotation-Type ${clazz.getName} has no annotation of type 'Impl'. What?"
       } else {
 
         // Add the mapping entry from interface type to implementation class
-        requirementTypes += annotations(0).value().getName -> clazz
+        requirementTypes += annotations(0).impl().getName -> clazz
+
+        // Add the connector from the impl annotation
+        // Note: Object is default value for parameter requirements which need no connector
+        if (annotations(0).connector() != classOf[Connector]) {
+          connectorTypes += annotations(0).connector().getName -> annotations(0).connector()
+        }
       }
     })
 
-    logger info s"Updated Requirement Type Registry. Added ${requirementTypes.size} types."
+    logger info s"Updated Type Registry. Added ${requirementTypes.size} requirement types."
+    logger info s"Updated Type Registry. Added ${connectorTypes.size} connector types."
   }
 
   /**
@@ -57,8 +68,12 @@ class RequirementTypeRegistry(requirementPackage: String) extends WithLogger {
     * @return the class, implementing this interface or none,
     *         if there is no such (previously registered) class
     */
-  def getImplementation(APIInterfaceTypeQualifiedName: String): Option[Class[_]] = {
+  def getRequirementImplementation(APIInterfaceTypeQualifiedName: String): Option[Class[_]] = {
     requirementTypes.get(APIInterfaceTypeQualifiedName)
+  }
+
+  def getConnectorType(qualifiedConnectorName: String): Option[Class[_ <: Connector]] = {
+    connectorTypes.get(qualifiedConnectorName)
   }
 
   /**
@@ -69,7 +84,7 @@ class RequirementTypeRegistry(requirementPackage: String) extends WithLogger {
     * @param interfaceQualifiedName a fully qualified (java) interface name
     * @return a list of previously registered classes that match
     */
-  def getAllClassesImplementingInterface(interfaceQualifiedName: String): List[Class[_]] = {
+  def getAllClassesImplementingRequirement(interfaceQualifiedName: String): List[Class[_]] = {
     val possibleClasses = ListBuffer[Class[_]]()
 
     for (clazz <- requirementTypes.values) {

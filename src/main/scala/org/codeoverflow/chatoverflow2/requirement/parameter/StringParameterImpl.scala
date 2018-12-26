@@ -1,9 +1,9 @@
 package org.codeoverflow.chatoverflow2.requirement.parameter
 
 import org.codeoverflow.chatoverflow.api.io.parameter.StringParameter
-import org.codeoverflow.chatoverflow2.requirement.Impl
+import org.codeoverflow.chatoverflow2.registry.Impl
 
-@Impl(classOf[StringParameter])
+@Impl(impl = classOf[StringParameter])
 class StringParameterImpl extends StringParameter {
   private var value = ""
 

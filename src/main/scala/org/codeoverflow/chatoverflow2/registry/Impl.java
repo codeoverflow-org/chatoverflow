@@ -1,4 +1,6 @@
-package org.codeoverflow.chatoverflow2.requirement;
+package org.codeoverflow.chatoverflow2.registry;
+
+import org.codeoverflow.chatoverflow2.connector.Connector;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,5 +19,10 @@ public @interface Impl {
     /**
      * The input or output that is implemented here. For TwitchChatInputImpl that would be TwitchChatInput.
      */
-    Class<?> value();
+    Class<?> impl();
+
+    /**
+     * The connector type of the requirement. This is optional and only needed for input & outputs.
+     */
+    Class<? extends Connector> connector() default Connector.class;
 }

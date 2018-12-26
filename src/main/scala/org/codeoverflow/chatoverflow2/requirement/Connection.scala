@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow2.requirement
 
-import org.codeoverflow.chatoverflow.registry.ConnectorRegistry
 import org.codeoverflow.chatoverflow2.WithLogger
+import org.codeoverflow.chatoverflow2.connector.{Connector, ConnectorRegistry}
 
 import scala.reflect.ClassTag
 
@@ -27,7 +27,7 @@ abstract class Connection[T <: Connector](implicit ct: ClassTag[T]) extends With
     */
   def setSourceConnector(sourceIdentifier: String): Unit = {
     this.sourceIdentifier = sourceIdentifier
-    ConnectorRegistry.getConnector(connectorType, sourceIdentifier) match {
+    ConnectorRegistry.getConnector(sourceIdentifier, connectorType) match {
       case Some(connector: Connector) => sourceConnector = Some(connector.asInstanceOf[T])
       case _ => logger warn "Connector not found."
     }

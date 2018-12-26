@@ -1,8 +1,7 @@
 package org.codeoverflow.chatoverflow2.requirement.service.twitch.chat
 
-import org.codeoverflow.chatoverflow.configuration.Credentials
 import org.codeoverflow.chatoverflow2.WithLogger
-import org.codeoverflow.chatoverflow2.requirement.Connector
+import org.codeoverflow.chatoverflow2.connector.Connector
 import org.pircbotx.cap.EnableCapHandler
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 import org.pircbotx.{Configuration, PircBotX}
@@ -14,10 +13,11 @@ import org.pircbotx.{Configuration, PircBotX}
   */
 class TwitchChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   private val twitchChatListener = new TwitchChatListener
-  private var credentials: Option[Credentials] = None
   private var bot: PircBotX = _
   private var running = false
   private var currentChannel: String = _
+  private val oauthKey = "oauth"
+  requiredCredentialKeys = List(oauthKey)
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     twitchChatListener.addMessageEventListener(listener)
@@ -29,25 +29,36 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   override def isRunning: Boolean = running
 
-  override def init(): Unit = {
+  override def init(): Boolean = {
     if (!running) {
       logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
 
-      bot = new PircBotX(getConfig)
-      startBot()
-      running = true
-      logger info "Started connector."
+      if (!areCredentialsSet) {
+        logger warn "No credentials set."
+        false
+      } else {
+        bot = new PircBotX(getConfig)
+        startBot()
+        running = true
+        logger info "Started connector."
+        true
+      }
     }
+    else {
+      logger warn "Connector already running."
+      false
+    }
+
   }
 
   private def getConfig: Configuration = {
 
     if (credentials.isDefined) {
 
-      val password = credentials.get.getValue(TwitchChatConnector.credentialsOauthKey)
+      val password = credentials.get.getValue(oauthKey)
 
       if (password.isEmpty) {
-        logger warn s"key '${TwitchChatConnector.credentialsOauthKey}' not found in credentials for '$sourceIdentifier'."
+        logger warn s"key '$oauthKey' not found in credentials for '$sourceIdentifier'."
       }
 
       setCurrentChannel(sourceIdentifier)
@@ -71,6 +82,14 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   }
 
+  private def setCurrentChannel(channel: String): Unit = {
+    if (channel.startsWith("#")) {
+      currentChannel = channel.toLowerCase
+    } else {
+      currentChannel = "#" + channel.toLowerCase
+    }
+  }
+
   private def startBot(): Unit = {
 
     new Thread(() => {
@@ -91,14 +110,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     // TODO: TEST!
   }
 
-  private def setCurrentChannel(channel: String): Unit = {
-    if (channel.startsWith("#")) {
-      currentChannel = channel.toLowerCase
-    } else {
-      currentChannel = "#" + channel.toLowerCase
-    }
-  }
-
   override def shutdown(): Unit = {
     bot.sendIRC().quitServer()
     bot.close()
@@ -108,17 +119,4 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   override def getUniqueTypeString: String = this.getClass.getName
 
   def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
-
-  /**
-    * Sets the credentials needed for login or authentication of the connector to its platform
-    *
-    * @param credentials the credentials object to login to the platform
-    */
-  override def setCredentials(credentials: Credentials): Unit = this.credentials = Some(credentials)
 }
-
-object TwitchChatConnector {
-  val credentialsOauthKey = "oauth"
-}
-
-// TODO: Custom credentials for every type with custom methods (which are a very abstract KV-access)

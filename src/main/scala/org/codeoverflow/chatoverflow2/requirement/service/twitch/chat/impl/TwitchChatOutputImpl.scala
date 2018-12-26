@@ -2,13 +2,14 @@ package org.codeoverflow.chatoverflow2.requirement.service.twitch.chat.impl
 
 import org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput
 import org.codeoverflow.chatoverflow2.WithLogger
+import org.codeoverflow.chatoverflow2.registry.Impl
+import org.codeoverflow.chatoverflow2.requirement.Connection
 import org.codeoverflow.chatoverflow2.requirement.service.twitch.chat
-import org.codeoverflow.chatoverflow2.requirement.{Connection, Impl}
 
 /**
   * This is the implementation of the twitch chat output, using the twitch connector.
   */
-@Impl(classOf[TwitchChatOutput])
+@Impl(impl = classOf[TwitchChatOutput], connector = classOf[chat.TwitchChatConnector])
 class TwitchChatOutputImpl extends Connection[chat.TwitchChatConnector] with TwitchChatOutput with WithLogger {
 
   override def sendChatMessage(message: String): Unit = sourceConnector.get.sendChatMessage(message)

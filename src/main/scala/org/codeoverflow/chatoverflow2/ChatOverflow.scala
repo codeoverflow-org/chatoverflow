@@ -3,10 +3,11 @@ package org.codeoverflow.chatoverflow2
 import java.security.Policy
 
 import org.codeoverflow.chatoverflow.api.APIVersion
+import org.codeoverflow.chatoverflow2.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow2.framework.PluginFramework
 import org.codeoverflow.chatoverflow2.framework.security.SandboxSecurityPolicy
 import org.codeoverflow.chatoverflow2.instance.PluginInstanceRegistry
-import org.codeoverflow.chatoverflow2.requirement.RequirementTypeRegistry
+import org.codeoverflow.chatoverflow2.registry.TypeRegistry
 
 /**
   * The chat overflow class is the heart of the project.
@@ -20,7 +21,7 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
 
   val pluginFramework = new PluginFramework(pluginFolderPath)
   val pluginInstanceRegistry = new PluginInstanceRegistry
-  val requirementTypeRegistry = new RequirementTypeRegistry(requirementPackage)
+  val typeRegistry = new TypeRegistry(requirementPackage)
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -40,14 +41,12 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
     pluginFramework.loadNewPlugins()
     logger debug "Finished plugin framework initialization."
 
-    logger debug "Scanning service requirement type definitions."
-    requirementTypeRegistry.updateTypeRegistry()
-    logger debug "Finished updating service requirements."
+    logger debug "Scanning service requirement and connector type definitions."
+    typeRegistry.updateTypeRegistry()
+    ConnectorRegistry.setTypeRegistry(typeRegistry)
+    logger debug "Finished updating type registry."
 
-    logger debug "Initializing connector instance registry."
-    // TODO: Connector Registry (should they also be derived by annotation?)
-
-
+    logger debug "Loading configs and credentials."
     // TODO: Credentials / Config / Requirements
   }
 
