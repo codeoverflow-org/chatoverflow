@@ -204,5 +204,4 @@ class PluginInstance(instanceName: String, pluginType: PluginType) extends WithL
       true
     }
   }
-
 }

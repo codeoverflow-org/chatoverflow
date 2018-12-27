@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow.service
 
 import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
-import org.codeoverflow.chatoverflow.registry.TypeRegistry.{InputTypes, OutputTypes, ParameterTypes, tripleToFrameworkType}
+import org.codeoverflow.chatoverflow.registry.TypeRegistry.{InputTypes, OutputTypes, tripleToFrameworkType}
 import org.codeoverflow.chatoverflow.service.twitch.chat.impl.{TwitchChatInputImpl, TwitchChatOutputImpl}
 
 // TODO: The specific type argument is not in use by now - maybe it can be used later to define type options
@@ -60,18 +60,19 @@ object IO {
         })
     )
 
-    ParameterTypes(
-      "java.lang.String" ->
-        ("java.lang.String", {
-          (requirements: Requirements, id: String, serialized: String) =>
-            val requirement = requirements.parameter.string(id, null, false)
-            // new StringParameterImpl ...
-            //requirement.set()
-            requirement
-        }, {
-          requirement: Requirement[_] =>
-            requirement.asInstanceOf[Requirement[String]].get
-        })
-    )
+    /**
+      * ParameterTypes(
+      * "java.lang.String" ->
+      * ("java.lang.String", {
+      * (requirements: Requirements, id: String, serialized: String) =>
+      * val requirement = requirements.parameter.string(id, null, false)
+      * // new StringParameterImpl ...
+      * //requirement.set()
+      * requirement
+      * }, {
+      * requirement: Requirement[_] =>
+      *requirement.asInstanceOf[Requirement[StringParameter]].get
+      * })
+      * )**/
   }
 }

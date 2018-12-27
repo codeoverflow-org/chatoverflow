@@ -2,10 +2,13 @@ package org.codeoverflow.chatoverflow2.configuration
 
 import java.io.File
 
+import org.codeoverflow.chatoverflow.api.io
+import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirement
 import org.codeoverflow.chatoverflow2.WithLogger
 import org.codeoverflow.chatoverflow2.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow2.framework.PluginFramework
 import org.codeoverflow.chatoverflow2.instance.PluginInstanceRegistry
+import org.codeoverflow.chatoverflow2.registry.TypeRegistry
 
 import scala.xml.Node
 
@@ -22,7 +25,8 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     </config>
 
   def loadPluginInstances(pluginInstanceRegistry: PluginInstanceRegistry,
-                          pluginFramework: PluginFramework): Boolean = {
+                          pluginFramework: PluginFramework,
+                          typeRegistry: TypeRegistry): Boolean = {
     try {
       val xmlContent = loadXML()
 
@@ -57,19 +61,39 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
               val requirements = instance.get.getRequirements
               val requirement = requirements.getRequirementById(requirementId)
 
-              // TODO: And now?
-              // 1. Use the type registry and the target type to instantiate an element for the requirement
-              // 2. Check if the types match with the requirement using instance of
-              // 3. Find a way to set and deserialize the value. If there is no set-way, override it with the type information
-              // 4. Refactor this to be in the plugin instance (probably)
+              if (!requirement.isPresent) {
+                logger error s"Unable to find requirement with the given id '$requirementId'."
+              } else {
 
+                // Get the type of the requirement first
+                val loadedRequirementType = typeRegistry.getRequirementImplementation(targetType)
+
+                // Check if this type is an instance of the abstract requirement type
+                if (loadedRequirementType.isEmpty) {
+                  logger error s"The loaded requirement type '$targetType' is not found."
+                } else {
+                  val requirementType = requirement.get.getTargetType
+
+                  if (!loadedRequirementType.get.getInterfaces.exists(reqType => reqType.getName.equals(requirementType.getName))) {
+                    logger error s"The loaded requirement type '${loadedRequirementType.get.getName}' is not compatible to '${requirementType.getName}'."
+                  } else {
+                    logger info "Trying to instantiate the requirement content with the loaded value."
+
+                    try {
+                      val reqContent = loadedRequirementType.get.newInstance().asInstanceOf[io.Serializable]
+                      requirement.get.asInstanceOf[Requirement[io.Serializable]].set(reqContent)
+                      reqContent.deserialize(content)
+
+                      logger info s"Created requirement content for '$requirementId' and deserialized its content."
+                    } catch {
+                      case e: Exception => logger error s"Unable to instantiate requirement content. Exception: ${e.getMessage}"
+                    }
+                  }
+                }
+              }
             }
           }
         }
-
-
-
-        // TODO: Add requirement support (use deserialize)
       }
 
       true
@@ -78,23 +102,6 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
         logger error s"Unable to load plugin instances. An error occurred: ${e.getMessage}"
         false
     }
-  }
-
-  private def loadXML(): Node = {
-    // TODO: Add some XML caching here
-    if (!new File(configFilePath).exists()) {
-      logger debug s"Config file '$configFilePath' not found. Initialising with default values."
-      saveXML(defaultContent)
-    }
-
-    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFilePath))
-    logger info "Loaded config file."
-    xmlContent
-  }
-
-  private def saveXML(xmlContent: Node): Unit = {
-    xml.XML.save(configFilePath, xmlContent)
-    logger info "Saved config file."
   }
 
   def loadConnectors(credentialsService: CredentialsService): Boolean = {
@@ -130,24 +137,21 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
-  /**
-    * Tries to load the specified config file and fill all information in the public data objects.
-    */
-  def load(): Unit = {
+  private def loadXML(): Node = {
+    // TODO: Add some XML caching here
+    if (!new File(configFilePath).exists()) {
+      logger debug s"Config file '$configFilePath' not found. Initialising with default values."
+      saveXML(defaultContent)
+    }
 
-    // Create file if non existent
+    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFilePath))
+    logger info "Loaded config file."
+    xmlContent
+  }
 
-
-    //val xmlContent =
-    /*
-        pluginInstances = for (node <- xmlContent \ "pluginInstances" \ "_") yield
-          new PluginInstance(node)
-
-        connectorInstances = for (node <- xmlContent \ "connectorInstances" \ "_") yield
-          new ConnectorInstance(node)
-    */
-    // Insert new config options here
-
+  private def saveXML(xmlContent: Node): Unit = {
+    xml.XML.save(configFilePath, xmlContent)
+    logger info "Saved config file."
   }
 
   /**

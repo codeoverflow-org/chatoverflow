@@ -66,7 +66,10 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
     // LOAD:
     // credentialsService.load()                                    DONE
     // configService.loadConnectors()                               DONE
-    // configService.loadPluginInstances(pluginInstanceRegistry)    WORKING...
+    // configService.loadPluginInstances(pluginInstanceRegistry)    DONE
+    // TODO: Log the time a loading / saving step did take (in the ChatOverflow main class)
+    // TODO: Finish scala doc
+    // TODO: Update github documentation
     // TODO: Update REPL to be able to do do... more.
   }
 
@@ -86,7 +89,7 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
 
     // Load connector instances and plugin instances
     configService.loadConnectors(credentialsService)
-    configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework)
+    configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
   }
 
   def save(): Unit = {

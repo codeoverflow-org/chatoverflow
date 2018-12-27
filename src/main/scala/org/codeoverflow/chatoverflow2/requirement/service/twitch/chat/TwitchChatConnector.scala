@@ -92,13 +92,20 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   private def startBot(): Unit = {
 
+    var errorCount = 0
+
     new Thread(() => {
       bot.startBot()
     }).start()
 
-    while (bot.getState != PircBotX.State.CONNECTED) {
+    while (bot.getState != PircBotX.State.CONNECTED && errorCount < 30) {
       logger info "Waiting while the bot is connecting..."
       Thread.sleep(100)
+      errorCount += 1
+    }
+
+    if (errorCount >= 30) {
+      logger error "Fatal. Unable to start bot."
     }
 
   }

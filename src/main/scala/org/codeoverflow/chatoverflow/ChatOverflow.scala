@@ -54,7 +54,7 @@ object ChatOverflow {
 
     // Load plugin instance configuration (e.g. specified target platforms)
     logger info "[6/6] Load plugin instance configuration."
-    loadAndSetRequirements()
+    //loadAndSetRequirements()
 
     logger debug "INITIALIZATION FINISHED!"
   }

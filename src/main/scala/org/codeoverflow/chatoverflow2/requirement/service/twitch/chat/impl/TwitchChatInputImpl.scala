@@ -102,6 +102,5 @@ class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with Twit
 
   override def deserialize(value: String): Unit = {
     setSourceConnector(value)
-    init()
   }
 }
