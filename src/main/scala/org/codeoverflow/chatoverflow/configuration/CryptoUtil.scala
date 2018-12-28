@@ -58,6 +58,13 @@ object CryptoUtil {
     salt
   }
 
+  private def generateKeyFromString(password: Array[Char], salt: Array[Byte]) = {
+    val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+    val spec = new PBEKeySpec(password, salt, 10000, 128)
+    val tmp = factory.generateSecret(spec)
+    new SecretKeySpec(tmp.getEncoded, "AES")
+  }
+
   /**
     * Decrypts the provided ciphertext using AES.
     *
@@ -92,13 +99,6 @@ object CryptoUtil {
     } catch {
       case _: Exception => None
     }
-  }
-
-  private def generateKeyFromString(password: Array[Char], salt: Array[Byte]) = {
-    val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-    val spec = new PBEKeySpec(password, salt, 10000, 128)
-    val tmp = factory.generateSecret(spec)
-    new SecretKeySpec(tmp.getEncoded, "AES")
   }
 
 }

@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.ui
 
+import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow.ui.CLI.UI.UI
 
 /**
@@ -15,7 +16,7 @@ object CLI {
     * Creating a big parser with all inputs and commands using the SCOPT framework.
     */
   private val argsParser = new scopt.OptionParser[Config]("Chat Overflow") {
-    head("Chat Overflow")
+    head(s"Chat Overflow ${APIVersion.MAJOR_VERSION}.${APIVersion.MINOR_VERSION}")
 
     opt[UI]('u', "userInterface").action((x, c) =>
       c.copy(ui = x)).text(s"select the ui to launch after initialization. Possible values are: ${UI.values.mkString(", ")}.")
@@ -23,11 +24,11 @@ object CLI {
     opt[String]('p', "pluginFolder").action((x, c) =>
       c.copy(pluginFolderPath = x)).text("path to a folder with packaged plugin jar files")
 
-    opt[String]('c', "configFile").action((x, c) =>
-      c.copy(configFilePath = x)).text("path to a custom config xml file")
+    opt[String]('c', "configFolder").action((x, c) =>
+      c.copy(configFolderPath = x)).text("path to the folder to save configs and credentials")
 
-    opt[String]('d', "credentialsFile").action((x, c) =>
-      c.copy(credentialsFilePath = x)).text("path to a custom credentials xml file")
+    opt[String]('r', "requirementPackage").action((x, c) =>
+      c.copy(requirementPackage = x)).text("path to the package where all requirements are defined")
 
     help("help").hidden().text("prints this usage text")
 
@@ -46,14 +47,15 @@ object CLI {
       case None => // argument fail
       case Some(config) => code(config)
     }
-
   }
 
   /**
     * This case class holds all information that can be set when starting the framework from command line.
     */
-  case class Config(pluginFolderPath: String = "", configFilePath: String = "",
-                    credentialsFilePath: String = "", ui: UI = UI.REPL)
+  case class Config(pluginFolderPath: String = "plugins/",
+                    configFolderPath: String = "config/",
+                    requirementPackage: String = "org.codeoverflow.chatoverflow.requirement",
+                    ui: UI = UI.REPL)
 
   object UI extends Enumeration {
     type UI = Value
