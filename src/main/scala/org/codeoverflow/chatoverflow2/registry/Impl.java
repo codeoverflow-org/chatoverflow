@@ -8,8 +8,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation is used to clearly specify a input or output implementation.
- * The complete tree is generated at init time.
+ * This annotation is used to clearly specify a input / output / requirement implementation.
+ * The complete structure is generated at init time.
  * Note: You have to use this annotation explicitly to make sure,
  * that you want your input in the tree to be instantiated at runtime.
  */

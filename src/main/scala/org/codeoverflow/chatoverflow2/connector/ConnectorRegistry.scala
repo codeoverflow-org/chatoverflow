@@ -8,12 +8,27 @@ import org.codeoverflow.chatoverflow2.registry.TypeRegistry
 
 import scala.collection.mutable
 
+/**
+  * The connector registry is used to manage connector instances.
+  */
 object ConnectorRegistry extends WithLogger {
   private val connectors = mutable.Map[ConnectorKey, Connector]()
   private var typeRegistry: Option[TypeRegistry] = None
 
+  /**
+    * Sets the type registry which is used while adding a new connector instance.
+    *
+    * @param typeRegistry the type registry object used in the chat overflow module
+    */
   def setTypeRegistry(typeRegistry: TypeRegistry): Unit = this.typeRegistry = Some(typeRegistry)
 
+  /**
+    * Adds a new connector to the registry. Before instantiating the state is checked to be correct.
+    *
+    * @param sourceIdentifier       the identifier for the source platform
+    * @param qualifiedConnectorName a fully qualified connector type string
+    * @return false, if a major error happened
+    */
   def addConnector(sourceIdentifier: String, qualifiedConnectorName: String): Boolean = {
     logger info s"Trying to add connector '$sourceIdentifier' of type '$qualifiedConnectorName'."
     val connectorKey = ConnectorKey(sourceIdentifier, qualifiedConnectorName)
@@ -63,6 +78,14 @@ object ConnectorRegistry extends WithLogger {
     }
   }
 
+  /**
+    * Sets the credentials for a specified connector.
+    *
+    * @param sourceIdentifier       the identifier of the connector to retrieve it from the registry
+    * @param qualifiedConnectorName the full qualified connector type string
+    * @param credentials            the credentials object to set for the specified connector
+    * @return false, if a major error happened
+    */
   def setConnectorCredentials(sourceIdentifier: String, qualifiedConnectorName: String, credentials: Credentials): Boolean = {
     logger info s"Trying to add credentials for connector '$sourceIdentifier' of type '$qualifiedConnectorName'."
     val connector = getConnector(sourceIdentifier, qualifiedConnectorName)
@@ -87,6 +110,13 @@ object ConnectorRegistry extends WithLogger {
     }
   }
 
+  /**
+    * Returns the connector specified by identifier and type
+    *
+    * @param sourceIdentifier       the identifier for the connector source
+    * @param qualifiedConnectorName the full qualified connector type string
+    * @return an optional holding the connector or none
+    */
   def getConnector(sourceIdentifier: String, qualifiedConnectorName: String): Option[Connector] = {
     val connectorKey = ConnectorKey(sourceIdentifier, qualifiedConnectorName)
     connectors.get(connectorKey)

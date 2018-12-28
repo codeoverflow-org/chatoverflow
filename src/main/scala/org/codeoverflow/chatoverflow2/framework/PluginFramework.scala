@@ -8,6 +8,11 @@ import org.codeoverflow.chatoverflow2.framework.manager.PluginManagerStub
 
 import scala.collection.mutable.ListBuffer
 
+/**
+  * The plugin framework holds all plugin types important from the jar files in the plugin folder.
+  *
+  * @param pluginDirectoryPath the path to the plugin folder
+  */
 class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
   private val pluginTypes: ListBuffer[PluginType] = ListBuffer[PluginType]()
   private val loadedJarPaths: ListBuffer[String] = ListBuffer[String]()

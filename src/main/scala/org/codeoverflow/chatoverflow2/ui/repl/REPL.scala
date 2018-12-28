@@ -4,6 +4,11 @@ import org.codeoverflow.chatoverflow2.ChatOverflow
 import org.codeoverflow.chatoverflow2.configuration.{ConfigurationService, Credentials}
 import org.codeoverflow.chatoverflow2.connector.ConnectorRegistry
 
+/**
+  * The REPL is used to control the chat overflow environment from the console.
+  *
+  * @param chatOverflow the chat overflow object to operate on
+  */
 class REPL(chatOverflow: ChatOverflow) {
 
   private val commands = Map(
@@ -21,6 +26,9 @@ class REPL(chatOverflow: ChatOverflow) {
     "quit" -> REPLCommand(_ => exit(), "Quits the chat overflow framework, too!")
   )
 
+  /**
+    * Start the REPL, receiving input until exit/quit is entered.
+    */
   def run(): Unit = {
     println("Welcome to the Chat Overflow REPL!\n" +
       s"Type 'help' to get information about available commands.")
@@ -127,7 +135,8 @@ class REPL(chatOverflow: ChatOverflow) {
   }
 
   // TODO: Enable shutting down everything correctly by function call
-  // TODO: Propper repl ask function... i mean... why?
+  // TODO: Proper repl ask function... i mean... why?
+  // TODO: Add more functionality
 
   private def help(): Unit = {
     println("Available commands:\n")

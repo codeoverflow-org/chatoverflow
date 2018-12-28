@@ -24,6 +24,14 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
       <connectorInstances></connectorInstances>
     </config>
 
+  /**
+    * Reads the config xml file and creates plugin instances, saved in the instance registry.
+    *
+    * @param pluginInstanceRegistry the plugin registry to save the instances
+    * @param pluginFramework        the plugin framework to retrieve plugin types
+    * @param typeRegistry           the type registry to retrieve additional type information
+    * @return false, if a general failure happened while loading, true if there were no or only minor errors
+    */
   def loadPluginInstances(pluginInstanceRegistry: PluginInstanceRegistry,
                           pluginFramework: PluginFramework,
                           typeRegistry: TypeRegistry): Boolean = {
@@ -65,6 +73,11 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
+  /**
+    * Load all connector instances from the config xml and save them to the connector registry.
+    *
+    * @return false if a general failure happened, true if there were only minor or no errors
+    */
   def loadConnectors(): Boolean = {
 
     try {
@@ -90,6 +103,9 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
+  /**
+    * Loads the config xml file and return its content.
+    */
   private def loadXML(): Node = {
     // TODO: Add some XML caching here
     if (!new File(configFilePath).exists()) {
@@ -102,6 +118,12 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     xmlContent
   }
 
+  /**
+    * Saves all connector and plugin instances.
+    *
+    * @param pluginInstanceRegistry the plugin instance registry to retrieve the instances from
+    * @return false, if a major failure happened
+    */
   def save(pluginInstanceRegistry: PluginInstanceRegistry): Boolean = {
     logger info "Started saving current configuration."
     try {
@@ -127,11 +149,17 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
+  /**
+    * Saves the xml content to the config xml.
+    */
   private def saveXML(xmlContent: Node): Unit = {
     xml.XML.save(configFilePath, xmlContent)
     logger info "Saved config file."
   }
 
+  /**
+    * Creates the xml for all plugin instances.
+    */
   private def createPluginInstanceXML(pluginInstanceRegistry: PluginInstanceRegistry): List[Elem] = {
     val pluginInstances = pluginInstanceRegistry.getAllPluginInstances
 
@@ -153,6 +181,9 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
+  /**
+    * Creates the xml for all requirements of a plugin.
+    */
   private def createRequirementXML(requirements: Requirements): Array[Elem] = {
     val requirementMap = requirements.getRequirementMap
     val keys = requirementMap.keySet().toArray
@@ -172,6 +203,9 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
+  /**
+    * Creates the xml for a connector instance.
+    */
   private def createConnectorInstanceXML(): List[Elem] = {
     for (connectorKey <- ConnectorRegistry.getConnectorKeys) yield {
       <connectorInstance>

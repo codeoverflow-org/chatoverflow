@@ -57,9 +57,8 @@ class ChatOverflow(val pluginFolderPath: String,
     load()
     logger debug "Finished loading configs and credentials."
 
-    // TODO: Finish scala doc
+    // TODO: Move package and merge
     // TODO: Update github documentation
-    // TODO: Update REPL to be able to do do... more.
   }
 
   private def askForPassword(): Unit = {
@@ -72,6 +71,9 @@ class ChatOverflow(val pluginFolderPath: String,
     System.setSecurityManager(new SecurityManager)
   }
 
+  /**
+    * Loads all config settings and credentials from the config folder.
+    */
   def load(): Unit = {
     val currentTime = System.currentTimeMillis()
 
@@ -87,6 +89,9 @@ class ChatOverflow(val pluginFolderPath: String,
     logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
   }
 
+  /**
+    * Saves all settings and credentials to the corresponding files in the config folder.
+    */
   def save(): Unit = {
     val currentTime = System.currentTimeMillis()
 
