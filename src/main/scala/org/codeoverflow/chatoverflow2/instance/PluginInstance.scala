@@ -1,6 +1,8 @@
 package org.codeoverflow.chatoverflow2.instance
 
-import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirements
+import org.codeoverflow.chatoverflow.api.io.input.Input
+import org.codeoverflow.chatoverflow.api.io.output.Output
+import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
 import org.codeoverflow.chatoverflow.api.plugin.{Plugin, PluginManager}
 import org.codeoverflow.chatoverflow2.WithLogger
 import org.codeoverflow.chatoverflow2.framework.PluginCompatibilityState.PluginCompatibilityState
@@ -14,7 +16,7 @@ import org.codeoverflow.chatoverflow2.framework.{PluginCompatibilityState, Plugi
   * @param instanceName the unique name of the plugin instance
   * @param pluginType   the type of the plugin that should be created
   */
-class PluginInstance(instanceName: String, pluginType: PluginType) extends WithLogger {
+class PluginInstance(val instanceName: String, pluginType: PluginType) extends WithLogger {
   private var plugin: Option[Plugin] = None
   private var instanceThread: Thread = _
   private var threadStopAfterNextIteration = false
@@ -102,6 +104,32 @@ class PluginInstance(instanceName: String, pluginType: PluginType) extends WithL
           false
 
         } else {
+
+          // Initialize all inputs & outputs
+          val inputRequirements = getRequirements.getInputRequirements.toArray
+          for (requirement <- inputRequirements) {
+            try {
+              val input = requirement.asInstanceOf[Requirement[Input]]
+              if (input.isSet) {
+                input.get().init()
+              }
+            } catch {
+              case e: Exception =>
+                logger warn s"Unable to initialize input '$requirement'. Exception: ${e.getMessage}"
+            }
+          }
+          val outputRequirements = getRequirements.getOutputRequirements.toArray
+          for (requirement <- outputRequirements) {
+            try {
+              val output = requirement.asInstanceOf[Requirement[Output]]
+              if (output.isSet) {
+                output.get().init()
+              }
+            } catch {
+              case e: Exception =>
+                logger warn s"Unable to initialize output '$requirement'. Exception: ${e.getMessage}"
+            }
+          }
 
           // Now, start the plugin!
           logger info s"Starting plugin '$instanceName' in new thread!"

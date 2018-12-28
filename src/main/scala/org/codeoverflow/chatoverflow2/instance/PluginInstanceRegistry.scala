@@ -52,4 +52,11 @@ class PluginInstanceRegistry extends WithLogger {
     pluginInstances.get(instanceName)
   }
 
+  /**
+    * Returns a list of all plugin instances. Can be used to serialize the instance content.
+    *
+    * @return a list of plugin instance objects of the runtime environment
+    */
+  def getAllPluginInstances: List[PluginInstance] = pluginInstances.values.toList
+
 }

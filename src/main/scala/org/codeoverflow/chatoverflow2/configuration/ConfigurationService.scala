@@ -3,14 +3,14 @@ package org.codeoverflow.chatoverflow2.configuration
 import java.io.File
 
 import org.codeoverflow.chatoverflow.api.io
-import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirement
+import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
 import org.codeoverflow.chatoverflow2.WithLogger
 import org.codeoverflow.chatoverflow2.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow2.framework.PluginFramework
 import org.codeoverflow.chatoverflow2.instance.PluginInstanceRegistry
 import org.codeoverflow.chatoverflow2.registry.TypeRegistry
 
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 
 /**
   * The configuration service provides methods to work with serialized state information.
@@ -154,26 +154,82 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     logger info "Saved config file."
   }
 
-  /**
-    * Takes all config information from the public data object sequences and saves them to the specified config file.
-    */
-  def save(): Unit = {
+  def save(pluginInstanceRegistry: PluginInstanceRegistry): Boolean = {
+    logger info "Started saving current configuration."
+    try {
+      val pluginXML = createPluginInstanceXML(pluginInstanceRegistry)
+      val connectorXML = createConnectorInstanceXML()
 
-    //val xmlContent = _
-    /*=
-      <config>
-        <pluginInstances>
-          {for (pluginInstance <- pluginInstances) yield pluginInstance.toXml}
-        </pluginInstances>
-        <connectorInstances>
-          {for (connectorInstance <- connectorInstances) yield connectorInstance.toXml}
-        </connectorInstances>
-      </config>
-*/
-    // Insert new config options here
+      val xmlContent =
+        <config>
+          <pluginInstances>
+            {pluginXML}
+          </pluginInstances>
+          <connectorInstances>
+            {connectorXML}
+          </connectorInstances>
+        </config>
 
-    //xml.XML.save(configFilePath, xmlContent)
+      saveXML(xmlContent)
+      true
+    } catch {
+      case e: Exception =>
+        logger error s"Unable to save configuration. Exception thronw: ${e.getMessage}"
+        false
+    }
+  }
 
+  private def createPluginInstanceXML(pluginInstanceRegistry: PluginInstanceRegistry): List[Elem] = {
+    val pluginInstances = pluginInstanceRegistry.getAllPluginInstances
+
+    for (instance <- pluginInstances) yield {
+      <pluginInstance>
+        <pluginName>
+          {instance.getPluginTypeName}
+        </pluginName>
+        <pluginAuthor>
+          {instance.getPluginTypeAuthor}
+        </pluginAuthor>
+        <instanceName>
+          {instance.instanceName}
+        </instanceName>
+        <requirements>
+          {createRequirementXML(instance.getRequirements)}
+        </requirements>
+      </pluginInstance>
+    }
+  }
+
+  private def createRequirementXML(requirements: Requirements): Array[Elem] = {
+    val requirementMap = requirements.getRequirementMap
+    val keys = requirementMap.keySet().toArray
+
+    for (key <- keys) yield {
+      <requirement>
+        <uniqueRequirementId>
+          {key}
+        </uniqueRequirementId>
+        <targetType>
+          {requirementMap.get(key).getTargetType.getName}
+        </targetType>
+        <content>
+          {requirementMap.get(key).get().serialize()}
+        </content>
+      </requirement>
+    }
+  }
+
+  private def createConnectorInstanceXML(): List[Elem] = {
+    for (connectorKey <- ConnectorRegistry.getConnectorKeys) yield {
+      <connectorInstance>
+        <connectorType>
+          {connectorKey.qualifiedConnectorName}
+        </connectorType>
+        <sourceIdentifier>
+          {connectorKey.sourceIdentifier}
+        </sourceIdentifier>
+      </connectorInstance>
+    }
   }
 
 }

@@ -57,20 +57,11 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
     load()
     logger debug "Finished loading configs and credentials."
     // TODO: Go trough the paper and check if all requirements for chat overflow are met already
-    // TODO: Credentials / Config / Requirements
-    // To safe: connector registry, credentials (from credentials provider), plugin instance registry with requirements
-    // SAVE:
-    // credentialsService.save()
-    // configService.saveConnectors()
-    // configService.savePluginInstances(pluginInstanceRegistry)
-    // LOAD:
-    // credentialsService.load()                                    DONE
-    // configService.loadConnectors()                               DONE
-    // configService.loadPluginInstances(pluginInstanceRegistry)    DONE
-    // TODO: Log the time a loading / saving step did take (in the ChatOverflow main class)
+    // TODO: Update Launcher and REPL to work with the new version. Test execution.
     // TODO: Finish scala doc
     // TODO: Update github documentation
     // TODO: Update REPL to be able to do do... more.
+    save()
   }
 
   private def askForPassword(): Unit = {
@@ -84,16 +75,28 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
   }
 
   def load(): Unit = {
+    val currentTime = System.currentTimeMillis()
+
     // Start by loading credentials
     credentialsService.load()
 
     // Load connector instances and plugin instances
     configService.loadConnectors(credentialsService)
     configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
+
+    logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
   }
 
   def save(): Unit = {
+    val currentTime = System.currentTimeMillis()
 
+    // Start by saving credentials
+    credentialsService.save()
+
+    // Save connectors and plugin instances (Note: Less work then loading)
+    configService.save(pluginInstanceRegistry)
+
+    logger info s"Saving took ${System.currentTimeMillis() - currentTime} ms."
   }
 
 }

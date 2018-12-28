@@ -87,9 +87,15 @@ object ConnectorRegistry extends WithLogger {
     }
   }
 
-
   def getConnector(sourceIdentifier: String, qualifiedConnectorName: String): Option[Connector] = {
     val connectorKey = ConnectorKey(sourceIdentifier, qualifiedConnectorName)
     connectors.get(connectorKey)
   }
+
+  /**
+    * Returns a list of connector keys for all registered connector instances.
+    *
+    * @return a list of connector key object containing connector type strings and identifiers
+    */
+  def getConnectorKeys: List[ConnectorKey] = connectors.keys.toList
 }

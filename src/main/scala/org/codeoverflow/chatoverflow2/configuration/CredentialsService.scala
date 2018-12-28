@@ -108,6 +108,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
         val bw = new BufferedWriter(new FileWriter(file))
         bw.write(encrypted)
         bw.close()
+        logger info "Successfully saved credentials."
         true
       } catch {
         case e: Exception =>
