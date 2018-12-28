@@ -57,8 +57,7 @@ class ChatOverflow(val pluginFolderPath: String,
     load()
     logger debug "Finished loading configs and credentials."
 
-    // TODO: Move package and merge
-    // TODO: Update github documentation
+    logger debug "Finished initialization."
   }
 
   private def askForPassword(): Unit = {
