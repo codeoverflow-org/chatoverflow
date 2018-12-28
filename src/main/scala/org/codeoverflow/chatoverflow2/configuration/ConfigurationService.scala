@@ -51,47 +51,8 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
             val targetType = (req \ "targetType").text
             val content = (req \ "content").text
 
-            logger info s"Loading requirement '$requirementId' of type '$targetType'."
-            val instance = pluginInstanceRegistry.getPluginInstance(instanceName)
-
-            if (instance.isEmpty) {
-              // This should never happen
-              logger error s"Unable to retrieve the just added plugin instance '$instanceName'."
-            } else {
-              val requirements = instance.get.getRequirements
-              val requirement = requirements.getRequirementById(requirementId)
-
-              if (!requirement.isPresent) {
-                logger error s"Unable to find requirement with the given id '$requirementId'."
-              } else {
-
-                // Get the type of the requirement first
-                val loadedRequirementType = typeRegistry.getRequirementImplementation(targetType)
-
-                // Check if this type is an instance of the abstract requirement type
-                if (loadedRequirementType.isEmpty) {
-                  logger error s"The loaded requirement type '$targetType' is not found."
-                } else {
-                  val requirementType = requirement.get.getTargetType
-
-                  if (!loadedRequirementType.get.getInterfaces.exists(reqType => reqType.getName.equals(requirementType.getName))) {
-                    logger error s"The loaded requirement type '${loadedRequirementType.get.getName}' is not compatible to '${requirementType.getName}'."
-                  } else {
-                    logger info "Trying to instantiate the requirement content with the loaded value."
-
-                    try {
-                      val reqContent = loadedRequirementType.get.newInstance().asInstanceOf[io.Serializable]
-                      requirement.get.asInstanceOf[Requirement[io.Serializable]].set(reqContent)
-                      reqContent.deserialize(content)
-
-                      logger info s"Created requirement content for '$requirementId' and deserialized its content."
-                    } catch {
-                      case e: Exception => logger error s"Unable to instantiate requirement content. Exception: ${e.getMessage}"
-                    }
-                  }
-                }
-              }
-            }
+            ConfigurationService.fulfillRequirementByDeserializing(instanceName, requirementId, targetType,
+              content, pluginInstanceRegistry, typeRegistry)
           }
         }
       }
@@ -104,7 +65,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     }
   }
 
-  def loadConnectors(credentialsService: CredentialsService): Boolean = {
+  def loadConnectors(): Boolean = {
 
     try {
       val xmlContent = loadXML()
@@ -117,15 +78,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
 
         // Add connector to the registry
         if (ConnectorRegistry.addConnector(sourceIdentifier, connectorType)) {
-
-          // Set credentials
-          val credentials = credentialsService.get(connectorType, sourceIdentifier)
-          if (credentials.isEmpty) {
-            logger warn "No credentials found for this connector."
-          } else {
-            ConnectorRegistry.setConnectorCredentials(sourceIdentifier, connectorType, credentials.get)
-            logger info "Successfully set credentials for this connector."
-          }
+          logger info "Successfully added connector."
         }
       }
 
@@ -149,11 +102,6 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     xmlContent
   }
 
-  private def saveXML(xmlContent: Node): Unit = {
-    xml.XML.save(configFilePath, xmlContent)
-    logger info "Saved config file."
-  }
-
   def save(pluginInstanceRegistry: PluginInstanceRegistry): Boolean = {
     logger info "Started saving current configuration."
     try {
@@ -174,9 +122,14 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
       true
     } catch {
       case e: Exception =>
-        logger error s"Unable to save configuration. Exception thronw: ${e.getMessage}"
+        logger error s"Unable to save configuration. Exception thrown: ${e.getMessage}"
         false
     }
+  }
+
+  private def saveXML(xmlContent: Node): Unit = {
+    xml.XML.save(configFilePath, xmlContent)
+    logger info "Saved config file."
   }
 
   private def createPluginInstanceXML(pluginInstanceRegistry: PluginInstanceRegistry): List[Elem] = {
@@ -213,7 +166,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
           {requirementMap.get(key).getTargetType.getName}
         </targetType>
         <content>
-          {requirementMap.get(key).get().serialize()}
+          {if (requirementMap.get(key).isSet) requirementMap.get(key).get().serialize()}
         </content>
       </requirement>
     }
@@ -229,6 +182,78 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
           {connectorKey.sourceIdentifier}
         </sourceIdentifier>
       </connectorInstance>
+    }
+  }
+
+}
+
+object ConfigurationService extends WithLogger {
+
+  /**
+    * This function contains the more complex loading code needed to fulfill a requirement with
+    * dynamically created content. A lot of information and access to different registries is needed.
+    *
+    * @param instanceName           the name of the plugin instance, should be loaded in the plugin instance registry
+    * @param requirementId          the unique id of the requirement to fulfill
+    * @param targetType             the target type of the fulfilling object, should be registered in the type registry
+    * @param content                the serialized content that should be deserialized to the requirement
+    * @param pluginInstanceRegistry the instantiated plugin instance registry in use
+    * @param typeRegistry           the instantiated type registry in use
+    * @return true, if this complex process worked fine. false in any other case
+    */
+  def fulfillRequirementByDeserializing(instanceName: String, requirementId: String,
+                                        targetType: String, content: String,
+                                        pluginInstanceRegistry: PluginInstanceRegistry,
+                                        typeRegistry: TypeRegistry): Boolean = {
+    // FIXME: Better handling of empty content (not set in the first place, then read from XML)
+
+    logger info s"Loading requirement '$requirementId' of type '$targetType'."
+    val instance = pluginInstanceRegistry.getPluginInstance(instanceName)
+
+    if (instance.isEmpty) {
+      // This should never happen
+      logger error s"Unable to retrieve the just added plugin instance '$instanceName'."
+      false
+    } else {
+      val requirements = instance.get.getRequirements
+      val requirement = requirements.getRequirementById(requirementId)
+
+      if (!requirement.isPresent) {
+        logger error s"Unable to find requirement with the given id '$requirementId'."
+        false
+      } else {
+
+        // Get the type of the requirement first
+        val loadedRequirementType = typeRegistry.getRequirementImplementation(targetType)
+
+        // Check if this type is an instance of the abstract requirement type
+        if (loadedRequirementType.isEmpty) {
+          logger error s"The loaded requirement type '$targetType' is not found."
+          false
+        } else {
+          val requirementType = requirement.get.getTargetType
+
+          if (!loadedRequirementType.get.getInterfaces.exists(reqType => reqType.getName.equals(requirementType.getName))) {
+            logger error s"The loaded requirement type '${loadedRequirementType.get.getName}' is not compatible to '${requirementType.getName}'."
+            false
+          } else {
+            logger info "Trying to instantiate the requirement content with the loaded value."
+
+            try {
+              val reqContent = loadedRequirementType.get.newInstance().asInstanceOf[io.Serializable]
+              requirement.get.asInstanceOf[Requirement[io.Serializable]].set(reqContent)
+              reqContent.deserialize(content)
+
+              logger info s"Created requirement content for '$requirementId' and deserialized its content."
+              true
+            } catch {
+              case e: Exception =>
+                logger error s"Unable to instantiate requirement content. Exception: ${e.getMessage}"
+                false
+            }
+          }
+        }
+      }
     }
   }
 

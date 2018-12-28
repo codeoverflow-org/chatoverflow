@@ -3,6 +3,7 @@ package org.codeoverflow.chatoverflow2.configuration
 import java.io.{BufferedWriter, File, FileWriter}
 
 import org.codeoverflow.chatoverflow2.WithLogger
+import org.codeoverflow.chatoverflow2.connector.ConnectorRegistry
 
 import scala.collection.mutable
 
@@ -12,7 +13,6 @@ import scala.collection.mutable
   * @param credentialsFilePath the file path of the credentials file
   */
 class CredentialsService(val credentialsFilePath: String) extends WithLogger {
-  private val credentials = mutable.Map[(String, String), Credentials]()
   private var password = Array[Char]()
 
   /**
@@ -51,8 +51,6 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
 
           val xmlContent = xml.Utility.trim(xml.XML.loadString(decrypted.get))
 
-          credentials.clear()
-
           for (node <- xmlContent \ "entry") {
             val credentialsType = (node \ "type").text
             val credentialsIdentifier = (node \ "identifier").text
@@ -60,7 +58,10 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
             val entry = new Credentials(credentialsIdentifier)
             entry.fromXML(node \ "values")
 
-            credentials += (credentialsType, credentialsIdentifier) -> entry
+            // Set credentials directly to the connector
+            ConnectorRegistry.setConnectorCredentials(credentialsIdentifier, credentialsType, entry)
+            logger info "Successfully set credentials for this connector."
+
           }
 
           logger info "Finished loading credentials."
@@ -85,6 +86,29 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
       logger error "Password was not specified. Unable to save credentials."
       false
     } else {
+
+      // Because credentials are not saved here, they have to be retrieved from every connector
+      // (connectorType, connectorIdentifier) -> Credentials
+      val credentials = mutable.Map[(String, String), Credentials]()
+
+      for (key <- ConnectorRegistry.getConnectorKeys) {
+        val connector = ConnectorRegistry.getConnector(key.sourceIdentifier, key.qualifiedConnectorName)
+
+        if (connector.isEmpty) {
+          // This should never happen
+          logger warn s"Connector '${key.sourceIdentifier}' was not found, but created."
+        } else {
+          val retrievedCredentials = connector.get.getCredentials
+
+          if (retrievedCredentials.isEmpty) {
+            logger warn s"Credentials object for connector '${key.sourceIdentifier}' was empty."
+          } else {
+            credentials += (key.qualifiedConnectorName, key.sourceIdentifier) -> retrievedCredentials.get
+          }
+        }
+      }
+
+      logger info s"Found ${credentials.size} credential objects to save."
 
       val xmlContent =
         <credentials>
@@ -117,17 +141,4 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
       }
     }
   }
-
-  def get(qualifiedConnectorName: String, credentialsIdentifier: String): Option[Credentials] =
-    credentials.get((qualifiedConnectorName, credentialsIdentifier))
-
-  def add(qualifiedConnectorName: String, credentials: Credentials): Unit =
-    this.credentials += (qualifiedConnectorName, credentials.credentialsIdentifier) -> credentials
-
-  def remove(qualifiedConnectorName: String, credentialsIdentifier: String): Unit =
-    credentials -= ((qualifiedConnectorName, credentialsIdentifier))
-
-  def exist(qualifiedConnectorName: String, credentialsIdentifier: String): Boolean =
-    credentials.get((qualifiedConnectorName, credentialsIdentifier)).isDefined
-
 }

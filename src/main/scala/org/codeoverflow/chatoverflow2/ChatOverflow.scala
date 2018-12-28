@@ -18,9 +18,9 @@ import org.codeoverflow.chatoverflow2.registry.TypeRegistry
   * @param configFolderPath   the relative path of the config folder ("config/" by default)
   * @param requirementPackage the fully qualified name of the requirement package
   */
-class ChatOverflow(val pluginFolderPath: String = "plugins/",
-                   val configFolderPath: String = "config/",
-                   val requirementPackage: String = "org.codeoverflow.chatoverflow2.requirement")
+class ChatOverflow(val pluginFolderPath: String,
+                   val configFolderPath: String,
+                   val requirementPackage: String)
   extends WithLogger {
 
   val pluginFramework = new PluginFramework(pluginFolderPath)
@@ -56,12 +56,10 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
     askForPassword()
     load()
     logger debug "Finished loading configs and credentials."
-    // TODO: Go trough the paper and check if all requirements for chat overflow are met already
-    // TODO: Update Launcher and REPL to work with the new version. Test execution.
+
     // TODO: Finish scala doc
     // TODO: Update github documentation
     // TODO: Update REPL to be able to do do... more.
-    save()
   }
 
   private def askForPassword(): Unit = {
@@ -77,11 +75,13 @@ class ChatOverflow(val pluginFolderPath: String = "plugins/",
   def load(): Unit = {
     val currentTime = System.currentTimeMillis()
 
-    // Start by loading credentials
+    // Start by loading connectors
+    configService.loadConnectors()
+
+    // Then load credentials that can be put into the connectors
     credentialsService.load()
 
-    // Load connector instances and plugin instances
-    configService.loadConnectors(credentialsService)
+    // Finish by loading plugin instances
     configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
 
     logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."

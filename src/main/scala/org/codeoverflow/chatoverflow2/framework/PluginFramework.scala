@@ -13,6 +13,22 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
   private val loadedJarPaths: ListBuffer[String] = ListBuffer[String]()
 
   /**
+    * Returns the plugin type specified by name and author.
+    *
+    * @param pluginName   the name of the plugin set in the plugin jar file
+    * @param pluginAuthor the author of the plugin
+    * @return a plugin type retrieved from the plugin framework registry
+    */
+  def getPlugin(pluginName: String, pluginAuthor: String): Option[PluginType] = {
+    val candidates = getPlugins.filter(p => p.getName.equals(pluginName) && p.getAuthor.equals(pluginAuthor))
+    if (candidates.length != 1) {
+      None
+    } else {
+      Some(candidates.head)
+    }
+  }
+
+  /**
     * Returns a list of all currently loaded plugin types who might be API version compatible
     *
     * @return a list of PluginType definitions

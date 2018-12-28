@@ -11,6 +11,18 @@ abstract class Connector(val sourceIdentifier: String) {
   protected var credentials: Option[Credentials] = None
   protected var requiredCredentialKeys: List[String] = List[String]()
 
+  def getCredentials: Option[Credentials] = this.credentials
+
+  def setCredentialsValue(key: String, value: String): Boolean = {
+    if (credentials.isEmpty) false else {
+      if (credentials.get.exists(key)) {
+        credentials.get.removeValue(key)
+      }
+      credentials.get.addValue(key, value)
+      true
+    }
+  }
+
   /**
     * Returns the keys that should be set in the credentials object
     *

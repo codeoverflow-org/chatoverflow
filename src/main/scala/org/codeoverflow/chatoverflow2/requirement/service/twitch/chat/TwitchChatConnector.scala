@@ -13,10 +13,10 @@ import org.pircbotx.{Configuration, PircBotX}
   */
 class TwitchChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   private val twitchChatListener = new TwitchChatListener
+  private val oauthKey = "oauth"
   private var bot: PircBotX = _
   private var running = false
   private var currentChannel: String = _
-  private val oauthKey = "oauth"
   requiredCredentialKeys = List(oauthKey)
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
@@ -82,14 +82,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   }
 
-  private def setCurrentChannel(channel: String): Unit = {
-    if (channel.startsWith("#")) {
-      currentChannel = channel.toLowerCase
-    } else {
-      currentChannel = "#" + channel.toLowerCase
-    }
-  }
-
   private def startBot(): Unit = {
 
     var errorCount = 0
@@ -104,6 +96,8 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
       errorCount += 1
     }
 
+    // TODO: Enable detection for wrong credentials / bot disconnect
+
     if (errorCount >= 30) {
       logger error "Fatal. Unable to start bot."
     }
@@ -115,6 +109,14 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     setCurrentChannel(channel)
     bot.send().joinChannel(currentChannel)
     // TODO: TEST!
+  }
+
+  private def setCurrentChannel(channel: String): Unit = {
+    if (channel.startsWith("#")) {
+      currentChannel = channel.toLowerCase
+    } else {
+      currentChannel = "#" + channel.toLowerCase
+    }
   }
 
   override def shutdown(): Unit = {
