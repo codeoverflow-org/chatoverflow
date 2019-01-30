@@ -11,7 +11,7 @@ val scalaMajorVersion = "2.12"
 val scalaMinorVersion = ".5"
 inThisBuild(List(
   scalaVersion := s"$scalaMajorVersion$scalaMinorVersion",
-  retrieveManaged := true)
+  retrieveManaged := false)
 )
 
 
