@@ -7,7 +7,7 @@ import org.scalatra.json.JacksonJsonSupport
 /**
   * A Json Servlet enables implicit json conversion for servlet output.
   */
-abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport {
+abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport with WithChatOverflow {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   before() {

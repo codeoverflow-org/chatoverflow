@@ -1,5 +1,5 @@
-#import(scala.collection.immutable.Seq)
-<%@ val configuredPlugins: Seq[String] %>
+#import(org.codeoverflow.chatoverflow.instance.PluginInstance)
+<%@ val configuredPlugins: Seq[PluginInstance] %>
 
 <div class="row">
     <div class="col-md-8">
@@ -15,13 +15,13 @@
             <p>No plugins configured</p>
         #end
 
-        #for (pluginId <- configuredPlugins)
+        #for (plugin <- configuredPlugins)
             <div class="row">
                 <div class="col-md-4">
-                    <p class="text-right h5">${pluginId}</p>
+                    <p class="text-right h5">${plugin.instanceName}</p>
                 </div>
                 <div class="col-md-8">
-                    <a class="btn btn-info" href="/api/configurePluginInstance?instanceId=${pluginId}">Configure plugin</a>
+                    <a class="btn btn-info" href="/api/configurePluginInstance?instanceName=${plugin.instanceName}">Configure plugin</a>
                 </div>
             </div>
             <hr>

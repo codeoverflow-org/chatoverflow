@@ -52,11 +52,6 @@ class ChatOverflow(val pluginFolderPath: String,
     ConnectorRegistry.setTypeRegistry(typeRegistry)
     logger debug "Finished updating type registry."
 
-    logger debug "Loading configs and credentials."
-    askForPassword()
-    load()
-    logger debug "Finished loading configs and credentials."
-
     logger debug "Finished initialization."
   }
 

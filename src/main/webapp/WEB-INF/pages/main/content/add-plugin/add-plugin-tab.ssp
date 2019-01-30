@@ -1,5 +1,5 @@
-#import(org.codeoverflow.chatoverflow.framework.PluginInfo)
-<%@ val availablePluginTypes: Seq[PluginInfo] %>
+#import(org.codeoverflow.chatoverflow.framework.PluginType)
+<%@ val pluginTypesWithIndex: Seq[(PluginType, Int)] %>
 
 <div class="row">
     <div class="col-md-9">
@@ -11,11 +11,11 @@
             <div class="form-group row">
                 <label for="new-credentials-type-input" class="col-form-label col-md-3 text-right">Plugin Type</label>
                 <div class="col-md-9">
-                    <select class="form-control" name="pluginInfo">
+                    <select class="form-control" name="pluginIndex">
                         <option>---</option>
-                        #for (pluginInfo <- availablePluginTypes)
-                            <option value='{"name":"${pluginInfo.name}","author":"${pluginInfo.author}","description":""}'>
-                                ${pluginInfo.name} by ${pluginInfo.author}
+                        #for ((pluginType, index) <- pluginTypesWithIndex)
+                            <option value="${index}">
+                                ${pluginType.getName} by ${pluginType.getAuthor}
                             </option>
                         #end
                     </select>
@@ -46,16 +46,16 @@
             </div>
         </div>
         #{var i = 0}#
-        #for (pluginInfo <- availablePluginTypes)
+        #for ((pluginType, index) <- pluginTypesWithIndex)
             #{i = i+1}#
             <div class="row">
                 <div class="col-md-12">
                     <div class="h5" role="button" data-toggle="collapse" data-target="#plugin-description${i}" aria-expanded="false" aria-controls="plugin-description${i}">
-                        ${pluginInfo.name}
-                        <small class="text-muted">by <i>${pluginInfo.author}</i></small>
+                        ${pluginType.getName}
+                        <small class="text-muted">by <i>${pluginType.getAuthor}</i></small>
                     </div>
                     <div id="plugin-description${i}" class="collapse">
-                        <p>${pluginInfo.description}</p>
+                        <p>${pluginType.getDescription}</p>
                     </div>
                 </div>
                 <hr class="style1">

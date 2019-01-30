@@ -2,13 +2,14 @@ package org.codeoverflow.chatoverflow.ui.web
 
 import org.codeoverflow.chatoverflow.ChatOverflow
 import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.scalatra._
 import org.scalatra.scalate.ScalateSupport
 
 /**
   * @author vetterd
   */
-class MainServlet extends ScalatraServlet with ScalateSupport {
+class MainServlet extends ScalatraServlet with ScalateSupport with WithChatOverflow {
 
   val defaultLayout = "/WEB-INF/layouts/default.ssp"
 
@@ -17,16 +18,17 @@ class MainServlet extends ScalatraServlet with ScalateSupport {
   }
 
   get("/dashboard") {
-    val credentialTypesAndIdentifiers = ChatOverflow.credentialsService.getAllCredentials().map(_._1)
-    val pluginInstances = ChatOverflow.pluginInstanceRegistry.getPluginInstances
-    val availablePluginTypes = ChatOverflow.pluginFramework.getLoadedPlugins.sortBy(_.name)
+    val availableConnectors = ConnectorRegistry.getConnectorKeys.map(key => (key.qualifiedConnectorName, key.sourceIdentifier))
+    val pluginInstances = chatOverflow.pluginInstanceRegistry.getAllPluginInstances
+    val sortedPluginTypes = chatOverflow.pluginFramework.getPlugins.sortBy(pt => pt.getName+pt.getAuthor)
+    val pluginTypesWithIndex = sortedPluginTypes.zipWithIndex
     ssp(
       "/WEB-INF/pages/main/main.ssp",
       "layout" -> defaultLayout,
       "title" -> "CodeOverflow",
-      "availablePluginTypes" -> availablePluginTypes,
+      "pluginTypesWithIndex" -> pluginTypesWithIndex,
       "configuredPlugins" -> pluginInstances,
-      "credentials" -> credentialTypesAndIdentifiers
+      "availableConnectors" -> availableConnectors
     )
   }
 

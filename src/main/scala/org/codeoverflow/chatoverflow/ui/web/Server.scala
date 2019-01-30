@@ -19,7 +19,7 @@ class Server(val port: Int) {
 
   private val serverUrl = s"http://localhost:$port"
 
-  context setContextPath "/"
+  context.setContextPath("/")
   context.setResourceBase("src/main/webapp")
   context.addEventListener(new ScalatraListener)
   context.addServlet(classOf[DefaultServlet], "/")

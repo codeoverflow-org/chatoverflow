@@ -3,8 +3,8 @@ package org.codeoverflow.chatoverflow.ui.web
 import org.json4s.DefaultFormats
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.codeoverflow.chatoverflow.ChatOverflow
 import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.scalatra.ScalatraServlet
 import org.scalatra.scalate.ScalateSupport
 
@@ -12,9 +12,10 @@ import org.scalatra.scalate.ScalateSupport
 /**
   * @author vetterd
   */
-class ApiServlet extends ScalatraServlet with ScalateSupport {
+class ApiServlet extends ScalatraServlet with ScalateSupport with WithChatOverflow {
 
   implicit val formats = DefaultFormats
+  val defaultLayout = "/WEB-INF/layouts/default.ssp"
 
   before() {
     contentType = "text/html"
@@ -23,9 +24,8 @@ class ApiServlet extends ScalatraServlet with ScalateSupport {
   post("/login") {
     params("password") match {
       case (password: String) => {
-        ChatOverflow.loadCredentials(password)
-
-        ChatOverflow.postInit()
+        chatOverflow.credentialsService.setPassword(password.toCharArray)
+        chatOverflow.load()
         redirect("/dashboard")
       }
     }
@@ -36,32 +36,31 @@ class ApiServlet extends ScalatraServlet with ScalateSupport {
       case (identifier: String, credType: String, key: String, value: String) => {
         val credentials = new Credentials(identifier)
         credentials.addValue(key, value)
-        ChatOverflow.credentialsService.addCredentials(credType, credentials)
-        ChatOverflow.credentialsService.save()
+        ConnectorRegistry.setConnectorCredentials(identifier, credType, credentials)
         redirect("/dashboard")
       }
     }
   }
 
   post("/addPluginInstance") {
-    (params("pluginInfo"), params("newPluginIdentifier")) match {
-      case (pluginInfo: String, newPluginIdentifier: String) => {
-        val pluginInfoJSON = jsonToMap(pluginInfo)
-        val pluginName = pluginInfoJSON("name")
-        val pluginAuthor = pluginInfoJSON("author")
-        val pluginType = ChatOverflow.pluginFramework.getPluggable(pluginName, pluginAuthor).get
-        ChatOverflow.pluginInstanceRegistry.addPluginInstance(newPluginIdentifier, pluginType)
+    (params("pluginIndex"), params("newPluginIdentifier")) match {
+      case (pluginIndex: String, newPluginIdentifier: String) => {
+        val sortedPluginTypes = chatOverflow.pluginFramework.getPlugins.sortBy(pt => pt.getName + pt.getAuthor)
+        val pluginType = sortedPluginTypes(pluginIndex.toInt)
+        chatOverflow.pluginInstanceRegistry.addPluginInstance(newPluginIdentifier, pluginType)
       }
     }
     redirect("/dashboard")
   }
 
   get("/configurePluginInstance") {
-    (params("instanceIdentifier")) match {
-      case (instanceIdentifier: String) => {
-        val requirements = ChatOverflow.pluginInstanceRegistry.getRequirements(instanceIdentifier)
+    (params("instanceName")) match {
+      case (instanceName: String) => {
+        val requirements = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName).get.getRequirements
         ssp(
-          "/WEB-INF/pages/config/main.ssp",
+          //TODO: Plugin config page (config needs to be filled before start)
+          "/WEB-INF/pages/config/configurePlugin.ssp",
+          "layout" -> defaultLayout,
           "requirements" -> requirements
         )
       }

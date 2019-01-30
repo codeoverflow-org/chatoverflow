@@ -2,12 +2,15 @@ package org.codeoverflow.chatoverflow
 
 import org.codeoverflow.chatoverflow.ui.CLI.{UI, parse}
 import org.codeoverflow.chatoverflow.ui.repl.REPL
+import org.codeoverflow.chatoverflow.ui.web.Server
 
 /**
   * The launcher object is the entry point to the chat overflow framework.
   * All UI and framework related tasks are started here.
   */
 object Launcher extends WithLogger {
+
+  var chatOverflow: Option[ChatOverflow] = None
 
   /**
     * Software entry point.
@@ -16,16 +19,13 @@ object Launcher extends WithLogger {
     parse(args) { config =>
 
       // The complete project visible trough one single instance
-      val chatOverflow = new ChatOverflow(config.pluginFolderPath,
-        config.configFolderPath, config.requirementPackage)
+      chatOverflow = Some(new ChatOverflow(config.pluginFolderPath,
+        config.configFolderPath, config.requirementPackage))
 
-      chatOverflow.init()
+      chatOverflow.get.init()
 
-      // Launch UI
-      config.ui match {
-        case UI.GUI => logger error "GUI is not available yet. Ask dennis."
-        case UI.REPL => new REPL(chatOverflow).run()
-      }
+      new Server(12345).startAsync()
+      new REPL().run()
     }
   }
 }

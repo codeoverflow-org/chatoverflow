@@ -1,16 +1,16 @@
 package org.codeoverflow.chatoverflow.ui.repl
 
-import org.codeoverflow.chatoverflow.ChatOverflow
+import org.codeoverflow.chatoverflow.{ChatOverflow, Launcher}
 import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, Credentials}
 import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 
 /**
   * The REPL is used to control the chat overflow environment from the console.
   *
-  * @param chatOverflow the chat overflow object to operate on
   */
-class REPL(chatOverflow: ChatOverflow) {
+class REPL() {
 
+  private val chatOverflow = Launcher.chatOverflow.get
   private val commands = Map(
     "help" -> REPLCommand(_ => help(), "Prints all available commands."),
     "instance" -> REPLCommand(_ => addInstance(), "Adds a new plugin instance."),
