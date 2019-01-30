@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.service.twitch.chat
+package org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 
 import org.pircbotx.hooks.ListenerAdapter
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}

@@ -1,0 +1,10 @@
+package org.codeoverflow.chatoverflow.framework
+
+/**
+  * The plugin compatibility state does describe if the API version (Major.Minor) of a plugin is
+  * compatible with the framework API Version.
+  */
+object PluginCompatibilityState extends Enumeration {
+  type PluginCompatibilityState = Value
+  val Untested, FullyCompatible, MajorCompatible, NotCompatible = Value
+}

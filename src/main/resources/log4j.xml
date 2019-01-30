@@ -20,6 +20,11 @@
         <priority value="off"/>
     </category>
 
+    <!-- Disables reflection debug (spammy) -->
+    <category name="org.reflections">
+        <priority value="off"/>
+    </category>
+
     <root>
         <level value="debug"/>
         <appender-ref ref="CA"/>

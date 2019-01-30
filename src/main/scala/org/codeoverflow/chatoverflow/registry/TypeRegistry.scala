@@ -1,79 +1,112 @@
 package org.codeoverflow.chatoverflow.registry
 
-import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
+import org.codeoverflow.chatoverflow.WithLogger
+import org.codeoverflow.chatoverflow.connector.Connector
+import org.reflections.Reflections
+import org.reflections.scanners.{SubTypesScanner, TypeAnnotationsScanner}
+import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /**
-  * The type registry holds all source / parameter types, that plugins are supposed to work with.
-  * These are statically set at compile time.
+  * The requirement type registry keeps track of all input/output/parameter types defined in the framework.
+  *
+  * @param requirementPackage The fully qualified name of the package, where all requirement types are defined
   */
-object TypeRegistry {
-
-  private val registeredTypes = new mutable.HashMap[String, FrameworkType]()
+class TypeRegistry(requirementPackage: String) extends WithLogger {
+  private val requirementTypes = mutable.Map[String, Class[_]]()
+  private val connectorTypes = mutable.Map[String, Class[_ <: Connector]]()
 
   /**
-    * Adds the list of all input types. Only supposed to be used in the IO-file.
+    * Clears the type registry, then scans the classpath for classes with the Impl-Annotation.
+    * Requirements are added to the requirement-map, found connectors the connector-map
     */
-  def InputTypes(typeDefs: (String, FrameworkType)*): Unit = registerTypes(typeDefs)
+  def updateTypeRegistry(): Unit = {
 
-  private def registerTypes(typeDefs: Seq[(String, FrameworkType)]): Unit = {
-    typeDefs.foreach(typeDef => registeredTypes += typeDef)
+    // Start by clearing all known requirements and connectors
+    requirementTypes.clear()
+    connectorTypes.clear()
+
+    // Use reflection magic to get all impl-annotated classes
+    // FIXME: Does also find definitions not in the exact package - no problem right now
+    val reflections: Reflections = new Reflections(new ConfigurationBuilder()
+      .setUrls(ClasspathHelper.forPackage(requirementPackage))
+      .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()))
+    val classes = reflections.getTypesAnnotatedWith(classOf[Impl])
+
+    // Add classes to the list
+    classes.forEach(clazz => {
+      // Get annotated interface type
+      val annotations = clazz.getAnnotationsByType[Impl](classOf[Impl])
+
+      if (annotations.length != 1) {
+        // This should never happen
+        logger warn s"Should-have-Annotation-Type ${clazz.getName} has no annotation of type 'Impl'. What?"
+      } else {
+
+        // Add the mapping entry from interface type to implementation class
+        requirementTypes += annotations(0).impl().getName -> clazz
+
+        // Add the connector from the impl annotation
+        // Note: Object is default value for parameter requirements which need no connector
+        if (annotations(0).connector() != classOf[Connector]) {
+          connectorTypes += annotations(0).connector().getName -> annotations(0).connector()
+        }
+      }
+    })
+
+    logger info s"Updated Type Registry. Added ${requirementTypes.size} requirement types."
+    logger info s"Updated Type Registry. Added ${connectorTypes.size} connector types."
   }
 
   /**
-    * Adds the list of all output types. Only supposed to be used in the IO-file.
-    */
-  def OutputTypes(typeDefs: (String, FrameworkType)*): Unit = registerTypes(typeDefs)
-
-  /**
-    * Adds the list of all paramater types. Only supposed to be used in the IO-file.
-    */
-  def ParameterTypes(typeDefs: (String, FrameworkType)*): Unit = registerTypes(typeDefs)
-
-  /**
-    * Fancy scala logic to create a simple type from a triple of objects in the IO-file.
+    * Returns an optional implementation of a specific fully qualified interface type
     *
-    * @param triple the input triple of information
-    * @return a filled framework type object with the information of the triple
+    * @param APIInterfaceTypeQualifiedName a fully qualified interface type string,
+    *                                      e.g. "org.codeoverflow.[...].chat.TwitchChatInput"
+    * @return the class, implementing this interface or none,
+    *         if there is no such (previously registered) class
     */
-  implicit def tripleToFrameworkType(triple: (String, (Requirements, String, String) => Requirement[_], Requirement[_] => String)): FrameworkType = {
-    FrameworkType(triple._1, triple._2, triple._3)
+  def getRequirementImplementation(APIInterfaceTypeQualifiedName: String): Option[Class[_]] = {
+    requirementTypes.get(APIInterfaceTypeQualifiedName)
+  }
+
+  def getConnectorType(qualifiedConnectorName: String): Option[Class[_ <: Connector]] = {
+    connectorTypes.get(qualifiedConnectorName)
   }
 
   /**
-    * Creates a typed requirement from serialized data. This is done resolving the dynamic typeString and
-    * looking into the predefined types of the IO file, previously registered in the TypeRegistry.
+    * Returns a list of all classes that have an implementation of the specified interface in their hierarchy.
+    * e.g. TwitchChatInput would be found, if use search for classes implementing Input, because
+    * Input -> ChatInput -> TwitchChatInput.
     *
-    * @param requirements        the requirements object, where the deserialized requirement should be added to
-    * @param typeString          the dynamic type. must be registered in the IO-file first.
-    * @param uniqueRequirementId the plugin unique requirement id from the configs
-    * @param serializedValue     the serialized content, that is used to instantiate the requirements functionality
-    * @return
+    * @param interfaceQualifiedName a fully qualified (java) interface name
+    * @return a list of previously registered classes that match
     */
-  def createRequirement(requirements: Requirements, typeString: String, uniqueRequirementId: String,
-                        serializedValue: String): Requirement[_] = {
-    registeredTypes(typeString).createRequirement(requirements, uniqueRequirementId, serializedValue)
+  def getAllClassesImplementingRequirement(interfaceQualifiedName: String): List[Class[_]] = {
+    val possibleClasses = ListBuffer[Class[_]]()
+
+    for (clazz <- requirementTypes.values) {
+
+      // Get all higher interfaces recursively
+      val allInterfaces = ListBuffer[Class[_]]()
+      addAllInterfacesToListBuffer(clazz, allInterfaces)
+
+      // Match fully qualified interface type names
+      if (allInterfaces.exists(interface => interface.getName.equals(interfaceQualifiedName))) {
+        possibleClasses += clazz
+      }
+    }
+
+    possibleClasses.toList
   }
 
   /**
-    * This method is used to load the serialized value out of an already instantiated requirement object.
-    *
-    * @param requirement the requirement with deserialized data in it
-    * @return the serialized content, ready to be saved
+    * This helper method helps to add all higher interfaces in a recursive manner
     */
-  def serializeRequirementContent(requirement: Requirement[_]): String = {
-    registeredTypes(requirement.getTargetType.getName).serialize(requirement)
+  private def addAllInterfacesToListBuffer(clazz: Class[_], listBuffer: ListBuffer[Class[_]]): Unit = {
+    listBuffer ++= clazz.getInterfaces
+    clazz.getInterfaces.foreach(newClazz => addAllInterfacesToListBuffer(newClazz, listBuffer))
   }
 }
-
-/**
-  * A framework type holds all information needed to create or serialize typed requirements.
-  *
-  * @param specificType      this is the specific framework type of the generic type, saved in configs and the registry
-  * @param createRequirement this method takes a requirements container, an source id and the serialized content of the
-  *                          requirement and uses it to create a typed requirement of the needed type
-  * @param serialize         the serialize method takes the requirement and reads the content to serialize from it
-  */
-case class FrameworkType(specificType: String, createRequirement: (Requirements, String, String) => Requirement[_],
-                         serialize: Requirement[_] => String)

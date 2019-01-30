@@ -1,11 +1,13 @@
-package org.codeoverflow.chatoverflow.service.twitch.chat.impl
+package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 
 import java.util.Calendar
 import java.util.function.Consumer
 
+import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.input.chat._
-import org.codeoverflow.chatoverflow.service.Connection
-import org.codeoverflow.chatoverflow.service.twitch.chat.TwitchChatConnector
+import org.codeoverflow.chatoverflow.registry.Impl
+import org.codeoverflow.chatoverflow.requirement.Connection
+import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
 import scala.collection.JavaConverters._
@@ -14,7 +16,8 @@ import scala.collection.mutable.ListBuffer
 /**
   * This is the implementation of the twitch chat input, using the twitch connector.
   */
-class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchChatInput {
+@Impl(impl = classOf[TwitchChatInput], connector = classOf[chat.TwitchChatConnector])
+class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with TwitchChatInput with WithLogger {
 
   private val messages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val privateMessages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
@@ -28,9 +31,13 @@ class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchCha
   override def init(): Unit = {
 
     // Add the own message handler to the twitch connector
-    sourceConnector.addMessageEventListener(onMessage)
-    sourceConnector.addUnknownEventListener(onUnknown)
-    sourceConnector.init()
+    if (sourceConnector.isDefined) {
+      sourceConnector.get.addMessageEventListener(onMessage)
+      sourceConnector.get.addUnknownEventListener(onUnknown)
+      sourceConnector.get.init()
+    } else {
+      logger warn "Source connector not set."
+    }
   }
 
   private def onMessage(event: MessageEvent): Unit = {
@@ -72,8 +79,7 @@ class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchCha
     }
   }
 
-  override def
-  getLastMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
+  override def getLastMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
     val currentTime = Calendar.getInstance.getTimeInMillis
 
     messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
@@ -90,5 +96,11 @@ class TwitchChatInputImpl extends Connection[TwitchChatConnector] with TwitchCha
 
   override def registerPrivateMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = privateMessageHandler += handler
 
-  override def setChannel(channel: String): Unit = sourceConnector.setChannel(channel)
+  override def setChannel(channel: String): Unit = sourceConnector.get.setChannel(channel)
+
+  override def serialize(): String = getSourceIdentifier
+
+  override def deserialize(value: String): Unit = {
+    setSourceConnector(value)
+  }
 }

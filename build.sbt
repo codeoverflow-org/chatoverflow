@@ -3,8 +3,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 name := "ChatOverflow"
-version := "0.1"
-mainClass := Some("org.codeoverflow.chatoverflow.ChatOverflow")
+version := "0.2"
+mainClass := Some("org.codeoverflow.chatoverflow.Launcher")
 
 // One version for all sub projects. Use "retrieveManaged := true" to download and show all library dependencies.
 val scalaMajorVersion = "2.12"
@@ -46,6 +46,9 @@ libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 
 // PIRCBotX
 libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
+
+// Reflections API for annotation indexing
+libraryDependencies += "org.reflections" % "reflections" % "0.9.11"
 
 
 // ---------------------------------------------------------------------------------------------------------------------

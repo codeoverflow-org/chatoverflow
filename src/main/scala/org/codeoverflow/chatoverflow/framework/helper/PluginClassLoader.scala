@@ -1,4 +1,4 @@
-package org.codeoverflow.chatoverflow.framework
+package org.codeoverflow.chatoverflow.framework.helper
 
 import java.net.{URL, URLClassLoader}
 

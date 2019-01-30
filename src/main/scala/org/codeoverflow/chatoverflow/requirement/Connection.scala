@@ -1,6 +1,7 @@
-package org.codeoverflow.chatoverflow.service
+package org.codeoverflow.chatoverflow.requirement
 
-import org.codeoverflow.chatoverflow.registry.ConnectorRegistry
+import org.codeoverflow.chatoverflow.WithLogger
+import org.codeoverflow.chatoverflow.connector.{Connector, ConnectorRegistry}
 
 import scala.reflect.ClassTag
 
@@ -11,12 +12,12 @@ import scala.reflect.ClassTag
   * @param ct this is just scala magic, used to prevent generic type erasure at compile time
   * @tparam T the type of the connector, needed by the input / output service
   */
-abstract class Connection[T <: Connector](implicit ct: ClassTag[T]) {
+abstract class Connection[T <: Connector](implicit ct: ClassTag[T]) extends WithLogger {
   private val connectorType: String = ct.runtimeClass.getName
   /**
     * This connector variable can be used to work with the platform specific connection
     */
-  protected var sourceConnector: T = _
+  protected var sourceConnector: Option[T] = None
   private var sourceIdentifier: String = _
 
   /**
@@ -26,9 +27,9 @@ abstract class Connection[T <: Connector](implicit ct: ClassTag[T]) {
     */
   def setSourceConnector(sourceIdentifier: String): Unit = {
     this.sourceIdentifier = sourceIdentifier
-    ConnectorRegistry.getConnector(connectorType, sourceIdentifier) match {
-      case Some(connector: Connector) => sourceConnector = connector.asInstanceOf[T]
-      case _ => throw new IllegalArgumentException("Connector not found.")
+    ConnectorRegistry.getConnector(sourceIdentifier, connectorType) match {
+      case Some(connector: Connector) => sourceConnector = Some(connector.asInstanceOf[T])
+      case _ => logger warn "Connector not found."
     }
   }
 
