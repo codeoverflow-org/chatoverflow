@@ -14,8 +14,8 @@ inThisBuild(List(
   retrieveManaged := false)
 )
 
-
-
+// Link the bootstrap launcher
+lazy val bootstrap = project in file("bootstrap")
 
 // ---------------------------------------------------------------------------------------------------------------------
 // LIBRARY DEPENDENCIES
