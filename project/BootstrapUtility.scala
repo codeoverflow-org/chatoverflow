@@ -1,3 +1,5 @@
+import java.net.{HttpURLConnection, URL}
+
 import sbt.internal.util.ManagedLogger
 
 class Dependency(dependencyString: String, logger: ManagedLogger) {
@@ -7,9 +9,12 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
   var available = false
   create()
 
+  override def toString: String = {
+    s"$nameWithoutScalaVersion ($version) - $available - $url"
+  }
+
   private def create(): Unit = {
     val DependencyRegex = "([^:]+):([^:_]+)(_[^:]+)?:([^:]+)".r
-    // TODO: HTTPS?
     val mavenCentralFormat = "http://central.maven.org/maven2/%s/%s/%s/%s.jar"
 
     dependencyString match {
@@ -23,8 +28,14 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
         url = mavenCentralFormat.format(depAuthor.replaceAll("\\.", "/"), s"$combinedName",
           depVersion, s"$combinedName-$depVersion")
 
-        logger info url
-      // TODO: Test availability of URL without full download (?), save into available
+        // Test if the url exists
+        val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
+        connection.setRequestMethod("HEAD")
+        connection.setConnectTimeout(5000)
+        connection.setReadTimeout(5000)
+        val status = connection.getResponseCode
+        connection.disconnect()
+        available = status == 200
       case _ =>
         logger warn s"Invalid dependency format: '$dependencyString'."
     }
@@ -47,15 +58,8 @@ object BootstrapUtility {
     val lines = input.replaceFirst("\\[info\\] ", "").split(" \\[info\\] ")
     val dependencies = for (line <- lines) yield new Dependency(line, logger)
 
-    //val testString = "[info] log4j:log4j:1.2.17"
-    //logger info testString
-    //logger info removeInfo(testString)
-    //new Dependency(removeInfo(testString), logger)
+    // Modify dependencies: Remove ChatOverflow, add scala library
   }
 
-  private def removeInfo(dependencyString: String): String = {
-    val InfoRegex = "^\\[info\\] ".r
-    InfoRegex.replaceFirstIn(dependencyString, "")
-  }
 
 }
