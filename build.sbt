@@ -62,7 +62,7 @@ lazy val apiProjectPath = settingKey[String]("The path to the api sub project. R
 lazy val create = TaskKey[Unit]("create", "Creates a new plugin. Interactive command using the console.")
 lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin directories, builds the plugin build file.")
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
-lazy val bootstrap = TaskKey[Unit]("bootstrap", "Creates a dependency list for the bootstrap project.")
+lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
 
 pluginBuildFileName := "plugins.sbt"
 pluginFolderNames := List("plugins-public")
@@ -73,4 +73,4 @@ create := BuildUtility(streams.value.log).createPluginTask(pluginFolderNames.val
 fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
-bootstrap := BootstrapUtility.bootstrapDependencyGenTask(streams.value.log)
+bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion")

@@ -1,22 +1,3 @@
-object Bootstrap {
-
-  def main(args: Array[String]): Unit = {
-    println("Hello! I'm the bootstrap launcher.")
-  }
-
-  /*
-  TODO:
-  1. Write SBT-Logic to extract all libs from "sbt dependencyList"
-  2. Write SBT-logic to transform and save this information as URL List
-  2a. Make the logik copy the built jars into an bin folder inside the resources of the bootstrap
-  3. Make the boostrap launcher download everything, create folder structures
-     and launch chat overflow with custom classpath
-  4. Make fat jar with only the scala lib inside (and the chat overflow files?)
-   */
-
-  /*
-  Test content:
-  http://central.maven.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar
 [info] chatoverflow:chatoverflow_2.12:0.2
 [info] chatoverflow-api:chatoverflow-api_2.12:1.0
 [info] com.fasterxml.jackson.core:jackson-annotations:2.8.0
@@ -60,12 +41,12 @@ object Bootstrap {
 [info] org.scala-lang.modules:scala-parser-combinators_2.12:1.0.6
 [info] org.scala-lang.modules:scala-xml_2.12:1.0.6
 [info] org.scala-sbt:test-interface:1.0
-[info] org.scalatra:scalatra-common_2.12:2.6.4
+[info] org.scalatra:scalatra-common_2.12:2.6.5
 [info] org.scalatra:scalatra-json_2.12:2.6.3
-[info] org.scalatra:scalatra-scalate_2.12:2.6.4
-[info] org.scalatra:scalatra-specs2_2.12:2.6.4
-[info] org.scalatra:scalatra-test_2.12:2.6.4
-[info] org.scalatra:scalatra_2.12:2.6.4
+[info] org.scalatra:scalatra-scalate_2.12:2.6.5
+[info] org.scalatra:scalatra-specs2_2.12:2.6.5
+[info] org.scalatra:scalatra-test_2.12:2.6.5
+[info] org.scalatra:scalatra_2.12:2.6.5
 [info] org.scalatra.scalate:scalate-core_2.12:1.8.0
 [info] org.scalatra.scalate:scalate-util_2.12:1.8.0
 [info] org.slf4j:slf4j-api:1.7.25
@@ -78,6 +59,3 @@ object Bootstrap {
 [info] org.specs2:specs2-matcher-extra_2.12:4.0.1
 [info] org.specs2:specs2-matcher_2.12:4.0.1
 [info] org.specs2:specs2-mock_2.12:4.0.1
-   */
-
-}
