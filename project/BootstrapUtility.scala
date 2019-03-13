@@ -3,6 +3,8 @@ import java.net.{HttpURLConnection, URL}
 
 import sbt.internal.util.ManagedLogger
 
+import scala.xml.{Node, XML}
+
 class Dependency(dependencyString: String, logger: ManagedLogger) {
   var nameWithoutScalaVersion = ""
   var version = ""
@@ -12,6 +14,20 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
 
   override def toString: String = {
     s"$nameWithoutScalaVersion ($version) - $available - $url"
+  }
+
+  def toXML: Node = {
+    <dependency>
+      <name>
+        {nameWithoutScalaVersion}
+      </name>
+      <version>
+        {version}
+      </version>
+      <url>
+        {url}
+      </url>
+    </dependency>
   }
 
   private def create(): Unit = {
@@ -83,6 +99,14 @@ object BootstrapUtility {
 
     logger info "Started saving dependency XML."
 
+    val xml =
+      <dependencies>
+        {for (dependency <- dependencyList) yield dependency.toXML}
+      </dependencies>
+
+    logger info "Saving dependency XML now."
+    XML.save(dependencyXMLFileName, xml)
+    logger info "Finished saving XML file."
   }
 
   private def copyJars(logger: ManagedLogger): Unit = {
