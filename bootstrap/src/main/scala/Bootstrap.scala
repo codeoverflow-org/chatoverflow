@@ -1,16 +1,14 @@
 object Bootstrap {
 
   def main(args: Array[String]): Unit = {
-    println("Hello! I'm the bootstrap launcher.")
+    println("Hello! I'm the bootstrap launcher...")
   }
 
   /*
-  TODO:
-  1. Write SBT-Logic to extract all libs from "sbt dependencyList" DONE
-  2. Write SBT-logic to transform and save this information as URL List DONE
-  3. Make the boostrap launcher download everything, create folder structures
-     and launch chat overflow with custom classpath
-  4. Make fat jar with only the scala lib inside
+  TODO: Code bootstrap launcher
+  1. Bootstrap launcher checks integrity (bin folder existing)
+  2. Bootstrap launcher checks libraries (no lib folder or flag -> Download everything)
+  3. Bootstrap launcher checks java path launched with and starts java -cp "..." chat overflow main class
    */
 
 }
