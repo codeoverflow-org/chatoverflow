@@ -29,16 +29,36 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
         url = mavenCentralFormat.format(depAuthor.replaceAll("\\.", "/"), s"$combinedName",
           depVersion, s"$combinedName-$depVersion")
 
-        // Test if the url exists
-        val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
-        connection.setRequestMethod("HEAD")
-        connection.setConnectTimeout(100)
-        connection.setReadTimeout(100)
-        val status = connection.getResponseCode
-        connection.disconnect()
-        available = status == 200
+        available = testURL(0, 3)
+
       case _ =>
         logger warn s"Invalid dependency format: '$dependencyString'."
+    }
+  }
+
+  private def testURL(recursionCount: Int, recursionLimit: Int): Boolean = {
+
+    var status = -1
+
+    try {
+
+      // Test if the url exists
+      val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
+      connection.setRequestMethod("HEAD")
+      connection.setConnectTimeout(200)
+      connection.setReadTimeout(200)
+      status = connection.getResponseCode
+      connection.disconnect()
+
+    } catch {
+      case e: Exception => logger warn s"Error while testing dependency (attempt $recursionCount of $recursionLimit)" +
+        s" availability of ${this}: ${e.getMessage}"
+    }
+
+    if (status != 200 && recursionCount + 1 <= recursionLimit) {
+      testURL(recursionCount + 1, recursionLimit)
+    } else {
+      status == 200
     }
   }
 
@@ -61,12 +81,16 @@ object BootstrapUtility {
 
   private def saveDependencyXML(dependencyList: List[Dependency], logger: ManagedLogger): Unit = {
 
+    logger info "Started saving dependency XML."
+
   }
 
   private def copyJars(logger: ManagedLogger): Unit = {
   }
 
   private def retrieveDependencies(logger: ManagedLogger, scalaLibraryVersion: String): List[Dependency] = {
+
+    logger info "Starting dependency retrieval."
 
     val dependencyFile = new File(dependencyListFileName)
 
@@ -75,10 +99,17 @@ object BootstrapUtility {
       List[Dependency]()
     } else {
 
+      logger info "Found dependency file."
+
       // Load file, remove the info tag and create dependency objects
       val input = scala.io.Source.fromFile(dependencyFile).getLines().toList
       val lines = input.map(line => line.replaceFirst("\\[info\\] ", ""))
+
+      logger info "Read dependencies successfully. Creating dependency list."
+
       val dependencies = for (line <- lines) yield new Dependency(line, logger)
+
+      logger info "Updating and modifying dependencies..."
 
       // Modify dependencies: Remove ChatOverflow, add scala library
       val depsWithoutChatOverflow = dependencies.filter(d =>
