@@ -25,3 +25,6 @@ project/plugins/project/
 /plugins/
 /plugins.sbt
 /config/
+
+# resources of the bootstrap project (everything is generated with sbt bs)
+/bootstrap/src/main/resources/
