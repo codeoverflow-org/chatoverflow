@@ -8,14 +8,47 @@ object Bootstrap {
 
   val currentFolderPath: String = Paths.get("").toAbsolutePath.toString
   val javaHomePath: String = System.getProperty("java.home")
+  val chatOverflowMainClass = "org.codeoverflow.chatoverflow.Launcher"
 
   def main(args: Array[String]): Unit = {
 
     if (testValidity()) {
       if (checkLibraries(args)) {
-        // TODO: Create java path and classpath, just print for now (testing purposes)
+        val javaPath = createJavaPath()
+        if (javaPath.isDefined) {
+
+          // Start chat overflow!
+          val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", "bin/*:lib/*", chatOverflowMainClass)
+            .inheritIO().start()
+
+          val exitCode = process.waitFor()
+          println(s"ChatOverflow stopped with code: $exitCode")
+        }
       }
     }
+  }
+
+  def createJavaPath(): Option[String] = {
+
+    // Check validity of java.home path first
+    if (!new File(javaHomePath).exists()) {
+      None
+    } else {
+
+      // Check for windows and unix java versions
+      // TODO: How to handle JDK versions? Only JRE supported?
+      val javaExePath = s"$javaHomePath/bin/java.exe"
+      val javaPath = s"$javaHomePath/bin/java"
+
+      if (new File(javaExePath).exists()) {
+        Some(javaExePath)
+      } else if (new File(javaPath).exists()) {
+        Some(javaPath)
+      } else {
+        None
+      }
+    }
+
   }
 
   def checkLibraries(args: Array[String]): Boolean = {
@@ -34,6 +67,7 @@ object Bootstrap {
       }
 
       // Download all libraries
+      // TODO: Check validity if everything is downloaded
       downloadLibraries()
 
     } else {
