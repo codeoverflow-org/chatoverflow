@@ -63,6 +63,7 @@ lazy val create = TaskKey[Unit]("create", "Creates a new plugin. Interactive com
 lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin directories, builds the plugin build file.")
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
+lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
 
 pluginBuildFileName := "plugins.sbt"
 pluginFolderNames := List("plugins-public")
@@ -74,3 +75,4 @@ fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.valu
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion")
+deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)

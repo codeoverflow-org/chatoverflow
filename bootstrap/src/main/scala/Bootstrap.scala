@@ -1,5 +1,5 @@
 import java.io.File
-import java.net.{HttpURLConnection, URL}
+import java.net.{HttpURLConnection, URL, UnknownHostException}
 import java.nio.file.Paths
 
 import scala.sys.process._
@@ -12,7 +12,10 @@ object Bootstrap {
   // Working directory of the bootstrap launcher
   val currentFolderPath: String = Paths.get("").toAbsolutePath.toString
 
+  // Java home path (jre installation folder)
   val javaHomePath: String = System.getProperty("java.home")
+
+  // Chat Overflow Launcher / Main class (should not change anymore)
   val chatOverflowMainClass = "org.codeoverflow.chatoverflow.Launcher"
 
   /**
@@ -30,6 +33,12 @@ object Bootstrap {
         val javaPath = createJavaPath()
         if (javaPath.isDefined) {
           println("Found java installation. Starting ChatOverflow...")
+
+          // Create config folder, if not existent
+          if (!new File("config/").exists()) {
+            new File("config/").mkdir()
+          }
+          // TODO: Fix chat overflow config service to handle non existent config folder. I mean... what?
 
           // Start chat overflow!
           val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", "bin/*:lib/*", chatOverflowMainClass)
@@ -148,28 +157,34 @@ object Bootstrap {
   private def downloadLibrary(libraryName: String, libraryURL: String): Boolean = {
     val url = new URL(libraryURL)
 
-    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setConnectTimeout(1000)
-    connection.setReadTimeout(1000)
-    connection.connect()
+    try {
+      val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+      connection.setConnectTimeout(1000)
+      connection.setReadTimeout(1000)
+      connection.connect()
 
-    if (connection.getResponseCode >= 400) {
-      println("Error: Unable to download library.")
-      false
-    }
-    else {
-      // Save file in the lib folder (keeping the name and type)
-      try {
-        url #> new File(s"$currentFolderPath/lib/${libraryURL.substring(libraryURL.lastIndexOf("/"))}") !!
-
-        true
-      } catch {
-        case e: Exception =>
-          println(s"Error: Unable to save library. Message: ${e.getMessage}")
-          false
-      } finally {
-        connection.disconnect()
+      if (connection.getResponseCode >= 400) {
+        println("Error: Unable to download library.")
+        false
       }
+      else {
+        // Save file in the lib folder (keeping the name and type)
+        try {
+          url #> new File(s"$currentFolderPath/lib/${libraryURL.substring(libraryURL.lastIndexOf("/"))}") !!
+
+          true
+        } catch {
+          case e: Exception =>
+            println(s"Error: Unable to save library. Message: ${e.getMessage}")
+            false
+        } finally {
+          connection.disconnect()
+        }
+      }
+    } catch {
+      case e: UnknownHostException =>
+        println(s"Error. Unable to connect to the url '$url'. Message: ${e.getMessage}")
+        false
     }
   }
 
