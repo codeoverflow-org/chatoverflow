@@ -5,6 +5,12 @@ import sbt.internal.util.ManagedLogger
 
 import scala.xml.{Node, XML}
 
+/**
+  * A dependency holds all information of a library like name, version and maven url.
+  *
+  * @param dependencyString the input string from the 'dependencyList' sbt command
+  * @param logger           the sbt logger
+  */
 class Dependency(dependencyString: String, logger: ManagedLogger) {
   var nameWithoutScalaVersion = ""
   var version = ""
@@ -16,6 +22,11 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
     s"$nameWithoutScalaVersion ($version) - $available - $url"
   }
 
+  /**
+    * Converts the dependency to its xml representation, ready to be saved.
+    *
+    * @return a xml node called 'dependency'
+    */
   def toXML: Node = {
     <dependency>
       <name>
@@ -30,6 +41,10 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
     </dependency>
   }
 
+  /**
+    * This constructor-alike function reads the console output of the 'dependencyList' sbt command
+    * and fills all required information into the dependency object
+    */
   private def create(): Unit = {
     val DependencyRegex = "([^:]+):([^:_]+)(_[^:]+)?:([^:]+)".r
     val mavenCentralFormat = "http://central.maven.org/maven2/%s/%s/%s/%s.jar"
@@ -52,6 +67,9 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
     }
   }
 
+  /**
+    * Tests, if the dependency url is available. Uses recursion to handle connection faults.
+    */
   private def testURL(recursionCount: Int, recursionLimit: Int): Boolean = {
 
     var status = -1
@@ -80,12 +98,22 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
 
 }
 
+/**
+  * Holds the functionality to read all dependencies and feed the bootstrap launcher with this information.
+  * Should be used once for every new public version of chat overflow.
+  */
 object BootstrapUtility {
   val dependencyListFileName = "dependencyList.txt"
   val dependencyProjectBasePath = "bootstrap/src/main"
   val dependencyXMLFileName = s"$dependencyProjectBasePath/resources/dependencies.xml"
   val dependencyBinFolder = s"$dependencyProjectBasePath/resources/bin/"
 
+  /**
+    * This task retrieves all dependencies and creates a xml file for the bootstrap launcher.
+    *
+    * @param logger              the sbt logger
+    * @param scalaLibraryVersion the current scala library version
+    */
   def bootstrapGenTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
     println("Welcome to the bootstrap generation utility. It's time to build!")
 
@@ -96,6 +124,9 @@ object BootstrapUtility {
     println("Finished bootstrap generation utility. Have a nice day!")
   }
 
+  /**
+    * Saves all dependencies as XML in the bootstrap launcher dependency xml file.
+    */
   private def saveDependencyXML(dependencyList: List[Dependency], logger: ManagedLogger): Unit = {
 
     logger info "Started saving dependency XML."
@@ -110,6 +141,10 @@ object BootstrapUtility {
     logger info "Finished saving XML file."
   }
 
+  /**
+    * Uses a file called 'dependencyList.txt' with the output of the
+    * sbt command 'dependencyList' to retrieve all dependencies.
+    */
   private def retrieveDependencies(logger: ManagedLogger, scalaLibraryVersion: String): List[Dependency] = {
 
     logger info "Starting dependency retrieval."

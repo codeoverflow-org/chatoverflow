@@ -4,14 +4,23 @@ import java.nio.file.Paths
 
 import scala.sys.process._
 
+/**
+  * The bootstrap launcher downloads all required libraries and starts chat overflow with the correct parameters.
+  */
 object Bootstrap {
 
+  // Working directory of the bootstrap launcher
   val currentFolderPath: String = Paths.get("").toAbsolutePath.toString
+
   val javaHomePath: String = System.getProperty("java.home")
   val chatOverflowMainClass = "org.codeoverflow.chatoverflow.Launcher"
 
+  /**
+    * Software entry point
+    *
+    * @param args arguments for the launcher
+    */
   def main(args: Array[String]): Unit = {
-
     println("ChatOverflow Bootstrap Launcher.")
 
     if (testValidity()) {
@@ -32,7 +41,6 @@ object Bootstrap {
           println("Unable to find java installation. Unable to start.")
         }
       } else {
-        // TODO: Proper management of download problems
         println("Error: Problem with libraries. Unable to start.")
       }
     } else {
@@ -40,6 +48,11 @@ object Bootstrap {
     }
   }
 
+  /**
+    * Takes the java home path of the launcher and tries to find the java(.exe)
+    *
+    * @return the path to the java runtime or none, if the file was not found
+    */
   def createJavaPath(): Option[String] = {
 
     // Check validity of java.home path first
@@ -63,7 +76,15 @@ object Bootstrap {
 
   }
 
+  /**
+    * Checks if the library folder exists or the reload-flag is set. Triggers the download-process.
+    *
+    * @param args the args, the launcher has been called with
+    * @return false, if there is a serious problem
+    */
   def checkLibraries(args: Array[String]): Boolean = {
+
+    // TODO: Someday in the future, we need incremental library checking to manage updates without full download
 
     val libFolder = new File(s"$currentFolderPath/lib")
     // Args contains --reload or lib folder is non existent?
@@ -97,6 +118,11 @@ object Bootstrap {
     }
   }
 
+  /**
+    * Reads the dependency xml file and tries to download every library.
+    *
+    * @return false, if there is a serious problem
+    */
   def downloadLibraries(): Boolean = {
 
     // Get dependency xml and read dependencies with their download URL
@@ -116,6 +142,9 @@ object Bootstrap {
     true
   }
 
+  /**
+    * Downloads a specified library
+    */
   private def downloadLibrary(libraryName: String, libraryURL: String): Boolean = {
     val url = new URL(libraryURL)
 
@@ -144,6 +173,9 @@ object Bootstrap {
     }
   }
 
+  /**
+    * Checks, if the installation is valid
+    */
   private def testValidity(): Boolean = {
     // The only validity check for now is the existence of a bin folder
     new File(currentFolderPath + "/bin").exists()
