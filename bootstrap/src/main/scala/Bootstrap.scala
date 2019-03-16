@@ -12,19 +12,31 @@ object Bootstrap {
 
   def main(args: Array[String]): Unit = {
 
+    println("ChatOverflow Bootstrap Launcher.")
+
     if (testValidity()) {
+      println("Valid ChatOverflow installation. Checking libraries...")
+
       if (checkLibraries(args)) {
         val javaPath = createJavaPath()
         if (javaPath.isDefined) {
+          println("Found java installation. Starting ChatOverflow...")
 
           // Start chat overflow!
           val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", "bin/*:lib/*", chatOverflowMainClass)
             .inheritIO().start()
 
           val exitCode = process.waitFor()
-          println(s"ChatOverflow stopped with code: $exitCode")
+          println(s"ChatOverflow stopped with exit code: $exitCode")
+        } else {
+          println("Unable to find java installation. Unable to start.")
         }
+      } else {
+        // TODO: Proper management of download problems
+        println("Error: Problem with libraries. Unable to start.")
       }
+    } else {
+      println("Error: Invalid ChatOverflow installation. Please extract all provided files properly. Unable to start.")
     }
   }
 
@@ -60,17 +72,27 @@ object Bootstrap {
       // Create or clean directory
       if (libFolder.exists()) {
         for (libFile <- libFolder.listFiles()) {
-          libFile.delete()
+          try {
+            libFile.delete()
+          } catch {
+            case e: Exception => println(s"Unable to delete file '${libFile.getName}'. Message: ${e.getMessage}")
+          }
         }
       } else {
-        libFolder.mkdir()
+        try {
+          libFolder.mkdir()
+        } catch {
+          case e: Exception => println(s"Unable to create library directory. Message: ${e.getMessage}")
+        }
       }
 
       // Download all libraries
       // TODO: Check validity if everything is downloaded
+      println("Downloading libraries...")
       downloadLibraries()
 
     } else {
+      println("Found libraries folder. Assuming all dependencies are available properly.")
       true
     }
   }
@@ -83,30 +105,42 @@ object Bootstrap {
     val dependencies = for (dependency <- dependencyXML \\ "dependency")
       yield ((dependency \ "name").text.trim, (dependency \ "url").text.trim)
 
-    for ((name, url) <- dependencies) {
-      downloadLibrary(name, url)
+    for (i <- dependencies.indices) {
+      val dependency = dependencies(i)
+      println(s"[${i + 1}/${dependencies.length}] ${dependency._1} (${dependency._2})")
+      if (!downloadLibrary(dependency._1, dependency._2)) {
+        // Second try, just in case
+        downloadLibrary(dependency._1, dependency._2)
+      }
     }
-
     true
   }
 
-  private def downloadLibrary(libraryName: String, libraryURL: String): Unit = {
+  private def downloadLibrary(libraryName: String, libraryURL: String): Boolean = {
     val url = new URL(libraryURL)
 
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setConnectTimeout(5000)
-    connection.setReadTimeout(5000)
+    connection.setConnectTimeout(1000)
+    connection.setReadTimeout(1000)
     connection.connect()
 
     if (connection.getResponseCode >= 400) {
-
+      println("Error: Unable to download library.")
+      false
     }
-    // TODO: Retry 3 times
-    // TODO: Feedback on download progress
     else {
+      // Save file in the lib folder (keeping the name and type)
+      try {
+        url #> new File(s"$currentFolderPath/lib/${libraryURL.substring(libraryURL.lastIndexOf("/"))}") !!
 
-      // TODO: try
-      url #> new File(s"$currentFolderPath/lib/${libraryURL.substring(libraryURL.lastIndexOf("/"))}") !!
+        true
+      } catch {
+        case e: Exception =>
+          println(s"Error: Unable to save library. Message: ${e.getMessage}")
+          false
+      } finally {
+        connection.disconnect()
+      }
     }
   }
 
@@ -114,13 +148,4 @@ object Bootstrap {
     // The only validity check for now is the existence of a bin folder
     new File(currentFolderPath + "/bin").exists()
   }
-
-  /*
-  TODO: Code deploy task (copying files, used after sbt clean and assembly)
-  TODO: Code bootstrap launcher
-  1. Bootstrap launcher checks integrity (bin folder existing)
-  2. Bootstrap launcher checks libraries (no lib folder or flag -> Download everything
-  3. Bootstrap launcher checks java path launched with and starts java -cp "..." chat overflow main class
-   */
-
 }
