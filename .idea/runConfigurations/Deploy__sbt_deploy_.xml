@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Deploy (sbt deploy)" type="SbtRunConfiguration" factoryName="sbt Task">
+    <setting name="tasks" value="deploy" />
+    <setting name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
+    <setting name="workingDir" value="$PROJECT_DIR$" />
+    <envs />
+    <method />
+  </configuration>
+</component>

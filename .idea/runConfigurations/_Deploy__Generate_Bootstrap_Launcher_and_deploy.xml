@@ -1,11 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="[Advanced] Full Reload and Run ChatOverflow" type="Application" factoryName="Application">
-    <extension name="coverage" enabled="false" merge="false" runner="idea">
-      <pattern>
-        <option name="PATTERN" value="org.codeoverflow.chatoverflow.service.*" />
-        <option name="ENABLED" value="true" />
-      </pattern>
-    </extension>
+  <configuration default="false" name="[Deploy] Generate Bootstrap Launcher and deploy" type="Application" factoryName="Application">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
     <option name="VM_PARAMETERS" value="" />
     <option name="PROGRAM_PARAMETERS" value="" />
@@ -20,10 +15,9 @@
     <method>
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Clean (sbt clean)" run_configuration_type="SbtRunConfiguration" />
       <option name="Make" enabled="true" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Fetch plugins (sbt fetch)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Reload (sbt reload)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="List plugin versions (sbt version)" run_configuration_type="SbtRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Package and copy plugins (sbt package copy)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Bootstrap Assembly (sbt bs assembly)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Deploy (sbt deploy)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
 </component>

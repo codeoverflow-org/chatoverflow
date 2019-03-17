@@ -1,103 +1,10 @@
 import java.io.File
-import java.net.{HttpURLConnection, URL}
 import java.nio.file.{Files, Paths}
 
+import BuildUtility.withTaskInfo
 import sbt.internal.util.ManagedLogger
 
-import scala.xml.{Node, XML}
-
-/**
-  * A dependency holds all information of a library like name, version and maven url.
-  *
-  * @param dependencyString the input string from the 'dependencyList' sbt command
-  * @param logger           the sbt logger
-  */
-class Dependency(dependencyString: String, logger: ManagedLogger) {
-  var nameWithoutScalaVersion = ""
-  var version = ""
-  var url = ""
-  var available = false
-  create()
-
-  override def toString: String = {
-    s"$nameWithoutScalaVersion ($version) - $available - $url"
-  }
-
-  /**
-    * Converts the dependency to its xml representation, ready to be saved.
-    *
-    * @return a xml node called 'dependency'
-    */
-  def toXML: Node = {
-    <dependency>
-      <name>
-        {nameWithoutScalaVersion}
-      </name>
-      <version>
-        {version}
-      </version>
-      <url>
-        {url}
-      </url>
-    </dependency>
-  }
-
-  /**
-    * This constructor-alike function reads the console output of the 'dependencyList' sbt command
-    * and fills all required information into the dependency object
-    */
-  private def create(): Unit = {
-    val DependencyRegex = "([^:]+):([^:_]+)(_[^:]+)?:([^:]+)".r
-    val mavenCentralFormat = "http://central.maven.org/maven2/%s/%s/%s/%s.jar"
-
-    dependencyString match {
-      case DependencyRegex(depAuthor, depName, scalaVersion, depVersion) =>
-        this.nameWithoutScalaVersion = depName
-        this.version = depVersion
-
-        val combinedName = if (scalaVersion != null) depName + scalaVersion else depName
-
-        // Create URL for maven central
-        url = mavenCentralFormat.format(depAuthor.replaceAll("\\.", "/"), s"$combinedName",
-          depVersion, s"$combinedName-$depVersion")
-
-        available = testURL(0, 3)
-
-      case _ =>
-        logger warn s"Invalid dependency format: '$dependencyString'."
-    }
-  }
-
-  /**
-    * Tests, if the dependency url is available. Uses recursion to handle connection faults.
-    */
-  private def testURL(recursionCount: Int, recursionLimit: Int): Boolean = {
-
-    var status = -1
-
-    try {
-
-      // Test if the url exists
-      val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
-      connection.setRequestMethod("HEAD")
-      connection.setConnectTimeout(200)
-      connection.setReadTimeout(200)
-      status = connection.getResponseCode
-      connection.disconnect()
-
-    } catch {
-      case e: Exception => logger warn s"Error while testing dependency (attempt $recursionCount of $recursionLimit)" +
-        s" availability of ${this}: ${e.getMessage}"
-    }
-
-    if (status != 200 && recursionCount + 1 <= recursionLimit) {
-      testURL(recursionCount + 1, recursionLimit)
-    } else {
-      status == 200
-    }
-  }
-
-}
+import scala.xml.XML
 
 /**
   * Holds the functionality to read all dependencies and feed the bootstrap launcher with this information.
@@ -115,13 +22,12 @@ object BootstrapUtility {
     * @param scalaLibraryVersion the current scala library version
     */
   def bootstrapGenTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
-    println("Welcome to the bootstrap generation utility. It's time to build!")
+    withTaskInfo("BOOTSTRAP GENERATION", logger) {
 
-    // Dependency management
-    val dependencyList = retrieveDependencies(logger, scalaLibraryVersion)
-    saveDependencyXML(dependencyList, logger)
-
-    println("Finished bootstrap generation utility. Have a nice day!")
+      // Dependency management
+      val dependencyList = retrieveDependencies(logger, scalaLibraryVersion)
+      saveDependencyXML(dependencyList, logger)
+    }
   }
 
   /**
@@ -195,48 +101,52 @@ object BootstrapUtility {
     // Assuming, before this: clean, bs, assembly bootstrapProject, package
     // Assuming: Hardcoded "bin/" and "deploy/" folders
     // Assuming: A folder called "deployment-files" with all additional files (license, bat, etc.)
-    logger info "Started deployment process."
 
-    // First step: Preparing bin folder
-    logger info "Preparing 'bin/' folder."
-    createOrEmptyFolder("bin/")
+    withTaskInfo("PREPARE DEPLOYMENT", logger) {
 
-    // Second step: Preparing deploy folder, copying bin folder, bootstrap launcher, etc.
-    logger info "Preparing 'deploy/' folder."
-    createOrEmptyFolder("deploy/")
-    createOrEmptyFolder("deploy/bin/")
+      logger info "Started deployment process."
 
-    // Third step: Copying chat overflow files
-    logger info "Copying chat overflow files..."
+      // First step: Preparing bin folder
+      logger info "Preparing 'bin/' folder."
+      createOrEmptyFolder("bin/")
 
-    val sourceJarDirectories = List(s"target/scala-$scalaLibraryVersion/",
-      s"api/target/scala-$scalaLibraryVersion/")
+      // Second step: Preparing deploy folder, copying bin folder, bootstrap launcher, etc.
+      logger info "Preparing 'deploy/' folder."
+      createOrEmptyFolder("deploy/")
+      createOrEmptyFolder("deploy/bin/")
 
-    val targetJarDirectories = List("bin", "deploy/bin")
+      // Third step: Copying chat overflow files
+      logger info "Copying chat overflow files..."
 
-    for (sourceDirectory <- sourceJarDirectories) {
-      copyJars(sourceDirectory, targetJarDirectories, logger)
-    }
+      val sourceJarDirectories = List(s"target/scala-$scalaLibraryVersion/",
+        s"api/target/scala-$scalaLibraryVersion/")
 
-    // Fourth step: Copy bootstrap launcher
-    copyJars(s"bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
+      val targetJarDirectories = List("bin", "deploy/bin")
 
-    // Last step: Copy additional files
-    logger info "Copying additional deployment files..."
-    val deploymentFiles = new File("deployment-files/")
-    if (!deploymentFiles.exists()) {
-      logger warn "Unable to find deployment files."
-    } else {
-      for (deploymentFile <- deploymentFiles.listFiles()) {
-        Files.copy(Paths.get(deploymentFile.getAbsolutePath),
-          Paths.get(s"deploy/${deploymentFile.getName}"))
-        logger info s"Finished copying additional deployment file '${deploymentFile.getName}'."
+      for (sourceDirectory <- sourceJarDirectories) {
+        copyJars(sourceDirectory, targetJarDirectories, logger)
       }
-    }
 
-    // TODO: Deployment readme file html
-    // TODO: Deployment bat file
-    // TODO: Deployment unix launch file (...?)
+      // Fourth step: Copy bootstrap launcher
+      copyJars(s"bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
+
+      // Last step: Copy additional files
+      logger info "Copying additional deployment files..."
+      val deploymentFiles = new File("deployment-files/")
+      if (!deploymentFiles.exists()) {
+        logger warn "Unable to find deployment files."
+      } else {
+        for (deploymentFile <- deploymentFiles.listFiles()) {
+          Files.copy(Paths.get(deploymentFile.getAbsolutePath),
+            Paths.get(s"deploy/${deploymentFile.getName}"))
+          logger info s"Finished copying additional deployment file '${deploymentFile.getName}'."
+        }
+      }
+
+      // TODO: Deployment readme file html
+      // TODO: Deployment bat file
+      // TODO: Deployment unix launch file (...?)
+    }
   }
 
   /**
@@ -276,6 +186,4 @@ object BootstrapUtility {
   }
 }
 
-// TODO: Use withTaskInfo to properly print tasks
 // TODO: Create missing deployment files
-// TODO: Create and commit deploy run configuration. clean, package, bs, assembly (bootstrapProject), deploy

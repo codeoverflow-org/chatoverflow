@@ -53,6 +53,26 @@ class BuildUtility(logger: ManagedLogger) {
     }
   }
 
+  private def getAllPlugins(pluginSourceFolderNames: List[String]): List[Plugin] = {
+
+    // Get all plugins (= folders) in all plugin source directories. Flatten that list of lists
+    (for (pluginSourceFolderName <- pluginSourceFolderNames) yield {
+
+      logger info s"Fetching plugins from folder '$pluginSourceFolderName'."
+
+      if (!Plugin.sourceFolderExists(pluginSourceFolderName)) {
+        logger error s"Plugin directory '$pluginSourceFolderName' does not exist."
+        List[Plugin]()
+
+      } else {
+
+        val plugins = Plugin.getPlugins(pluginSourceFolderName)
+        logger info s"Found ${plugins.length} plugins."
+        plugins
+      }
+    }).flatten
+  }
+
   /**
     * Copies all packaged plugin jars to the target plugin folder.
     *
@@ -82,26 +102,6 @@ class BuildUtility(logger: ManagedLogger) {
       // Copy all jars to the target folders
       for (pluginTargetFolderName <- pluginTargetFolderNames) copyPlugins(allJarFiles, pluginTargetFolderName)
     }
-  }
-
-  private def getAllPlugins(pluginSourceFolderNames: List[String]): List[Plugin] = {
-
-    // Get all plugins (= folders) in all plugin source directories. Flatten that list of lists
-    (for (pluginSourceFolderName <- pluginSourceFolderNames) yield {
-
-      logger info s"Fetching plugins from folder '$pluginSourceFolderName'."
-
-      if (!Plugin.sourceFolderExists(pluginSourceFolderName)) {
-        logger error s"Plugin directory '$pluginSourceFolderName' does not exist."
-        List[Plugin]()
-
-      } else {
-
-        val plugins = Plugin.getPlugins(pluginSourceFolderName)
-        logger info s"Found ${plugins.length} plugins."
-        plugins
-      }
-    }).flatten
   }
 
   private def copyPlugins(allJarFiles: List[File], pluginTargetFolderName: String): Unit = {
@@ -186,18 +186,7 @@ class BuildUtility(logger: ManagedLogger) {
     }
   }
 
-  // Just practising the beauty of scala
-  private def withTaskInfo(taskName: String)(task: => Unit): Unit = {
-
-    // Info when task started (better log comprehension)
-    logger info s"Started custom task: $taskName"
-
-    // Doing the actual work
-    task
-
-    // Info when task stopped (better log comprehension)
-    logger info s"Finished custom task: $taskName"
-  }
+  private def withTaskInfo(taskName: String)(task: Unit): Unit = BuildUtility.withTaskInfo(taskName, logger)(task)
 
   private def createPlugin(name: String, version: String, pluginFolderName: String): Unit = {
     logger info s"Trying to create plugin $name (version $version) at plugin folder $pluginFolderName."
@@ -247,6 +236,25 @@ object BuildUtility {
       input = askForInput(information, description, repeatIfEmpty)
 
     input
+  }
+
+  /**
+    * This method can be used to create better readable sbt console output by declaring start and stop of a custom task.
+    *
+    * @param taskName the name of the task (use caps for better readability)
+    * @param logger   the sbt logger of the task
+    * @param task     the task itself
+    */
+  def withTaskInfo(taskName: String, logger: ManagedLogger)(task: => Unit): Unit = {
+
+    // Info when task started (better log comprehension)
+    logger info s"Started custom task: $taskName"
+
+    // Doing the actual work
+    task
+
+    // Info when task stopped (better log comprehension)
+    logger info s"Finished custom task: $taskName"
   }
 
 }

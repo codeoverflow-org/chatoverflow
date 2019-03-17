@@ -159,8 +159,8 @@ object Bootstrap {
 
     try {
       val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-      connection.setConnectTimeout(1000)
-      connection.setReadTimeout(1000)
+      connection.setConnectTimeout(3000)
+      connection.setReadTimeout(3000)
       connection.connect()
 
       if (connection.getResponseCode >= 400) {

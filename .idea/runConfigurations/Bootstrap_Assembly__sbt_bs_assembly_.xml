@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Bootstrap Assembly (sbt bs assembly)" type="SbtRunConfiguration" factoryName="sbt Task">
+    <setting name="tasks" value="bs &quot;project bootstrapProject&quot; assembly" />
+    <setting name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
+    <setting name="workingDir" value="$PROJECT_DIR$" />
+    <envs />
+    <method />
+  </configuration>
+</component>

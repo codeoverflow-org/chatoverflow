@@ -1,15 +1,23 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="[Simple] Rebuild plugins and Run ChatOverflow" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
-    <module name="ChatOverflow" />
-    <extension name="coverage">
+    <extension name="coverage" enabled="false" merge="false" runner="idea">
       <pattern>
         <option name="PATTERN" value="org.codeoverflow.chatoverflow.service.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <method v="2">
-      <option name="Make" enabled="true" />
+    <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
+    <option name="VM_PARAMETERS" value="" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="WORKING_DIRECTORY" value="" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="root" />
+    <envs />
+    <method>
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Package and copy plugins (sbt package copy)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
