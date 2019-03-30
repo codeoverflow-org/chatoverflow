@@ -29,6 +29,12 @@ object Bootstrap {
     if (testValidity()) {
       println("Valid ChatOverflow installation. Checking libraries...")
 
+      var OSSeparator = ":"
+      if (System.getProperty("os.name").toLowerCase.contains("windows")) {
+        println("You're running windows. Changing path separator.")
+        OSSeparator = ";"
+      }
+
       if (checkLibraries(args)) {
         val javaPath = createJavaPath()
         if (javaPath.isDefined) {
@@ -41,7 +47,7 @@ object Bootstrap {
           // TODO: Fix chat overflow config service to handle non existent config folder. I mean... what?
 
           // Start chat overflow!
-          val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", "bin/*:lib/*", chatOverflowMainClass)
+          val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", s"bin/*${OSSeparator}lib/*", chatOverflowMainClass)
             .inheritIO().start()
 
           val exitCode = process.waitFor()
