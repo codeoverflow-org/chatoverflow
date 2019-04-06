@@ -1,5 +1,6 @@
-package org.codeoverflow.chatoverflow.framework
+package org.codeoverflow.chatoverflow.framework.actors
 
+import akka.actor.Actor
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
 
