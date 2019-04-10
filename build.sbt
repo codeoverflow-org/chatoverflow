@@ -47,6 +47,18 @@ libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
 // Reflections API for annotation indexing
 libraryDependencies += "org.reflections" % "reflections" % "0.9.11"
 
+// Akka Actors
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.5.18",
+  //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
+)
+
+// Akka Actors
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.5.18",
+  //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
+)
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
