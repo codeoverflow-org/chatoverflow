@@ -159,10 +159,8 @@ object BootstrapUtility {
         if (file.isFile) {
           file.delete()
         } else {
-          if (file.getName != ".git") {
             createOrEmptyFolder(file.getAbsolutePath)
             file.delete()
-          }
         }
       }
     } else {
