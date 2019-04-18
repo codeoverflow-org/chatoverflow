@@ -53,11 +53,19 @@ class ChatOverflow(val pluginFolderPath: String,
     logger debug "Finished updating type registry."
 
     logger debug "Loading configs and credentials."
+    createConfigFolder()
     askForPassword()
     load()
     logger debug "Finished loading configs and credentials."
 
     logger debug "Finished initialization."
+  }
+
+  private def createConfigFolder(): Unit = {
+    val file = new File(s"$configFolderPath/")
+    if (!file.exists()) {
+      file.mkdir()
+    }
   }
 
   private def askForPassword(): Unit = {
