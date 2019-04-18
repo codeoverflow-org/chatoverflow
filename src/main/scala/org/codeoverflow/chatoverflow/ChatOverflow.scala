@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow
 import java.security.Policy
 
 import org.codeoverflow.chatoverflow.api.APIVersion
-import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, CredentialsService}
+import org.codeoverflow.chatoverflow.configuration.{ConfigurationFolder, ConfigurationService, CredentialsService}
 import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow.framework.PluginFramework
 import org.codeoverflow.chatoverflow.framework.security.SandboxSecurityPolicy
@@ -28,6 +28,7 @@ class ChatOverflow(val pluginFolderPath: String,
   val typeRegistry = new TypeRegistry(requirementPackage)
   val credentialsService = new CredentialsService(s"$configFolderPath/credentials")
   val configService = new ConfigurationService(s"$configFolderPath/config.xml")
+  val configFolder = new ConfigurationFolder(s"$configFolderPath/")
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -62,9 +63,8 @@ class ChatOverflow(val pluginFolderPath: String,
   }
 
   private def createConfigFolder(): Unit = {
-    val file = new File(s"$configFolderPath/")
-    if (!file.exists()) {
-      file.mkdir()
+    if (!configFolder.doesExists()) {
+      configFolder.createFolder()
     }
   }
 
