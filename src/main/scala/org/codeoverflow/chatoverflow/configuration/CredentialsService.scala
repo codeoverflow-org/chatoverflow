@@ -40,8 +40,9 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
       }
 
       try {
-        val encrypted = scala.io.Source.fromFile(credentialsFilePath).getLines().mkString
-        val decrypted = CryptoUtil.decrypt(password, encrypted)
+        val encrypted = scala.io.Source.fromFile(credentialsFilePath)
+        val decrypted = CryptoUtil.decrypt(password, encrypted.getLines().mkString)
+        encrypted.close
 
         if (decrypted.isEmpty) {
           logger error "Wrong password. Unable to load credentials."
