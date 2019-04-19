@@ -129,6 +129,11 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
         val encrypted = CryptoUtil.encrypt(password, xmlContent.toString())
 
         val file = new File(credentialsFilePath)
+
+        if (!file.getParentFile.exists()) {
+          file.getParentFile.mkdirs()
+        }
+
         val bw = new BufferedWriter(new FileWriter(file))
         bw.write(encrypted)
         bw.close()
