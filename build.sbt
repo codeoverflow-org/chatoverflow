@@ -59,6 +59,9 @@ libraryDependencies ++= Seq(
   //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
 )
 
+// JDA
+resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
+libraryDependencies += "net.dv8tion" % "JDA" % "4.ALPHA.0_82"
 
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
