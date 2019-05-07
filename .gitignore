@@ -20,6 +20,7 @@ project/plugins/project/
 /api/
 /plugins-public/
 /plugins-private/
+/gui/
 
 # Plugin Framework
 /plugins/
