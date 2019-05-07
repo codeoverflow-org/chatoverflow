@@ -159,8 +159,8 @@ object BootstrapUtility {
         if (file.isFile) {
           file.delete()
         } else {
-          createOrEmptyFolder(file.getAbsolutePath)
-          file.delete()
+            createOrEmptyFolder(file.getAbsolutePath)
+            file.delete()
         }
       }
     } else {
