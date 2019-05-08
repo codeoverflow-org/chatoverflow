@@ -1,0 +1,34 @@
+!! This is a comment.
+
+!! A normal chat line contains a username and the message.
+seb: hi, what's up?
+andre: works great!
+
+!! A chat line starting with a star means that the user has premium features.
+*dennis: ...and dennis.
+
+!! For better usage, you can leave out the username to generate a random name
+this is just a message, written by user[0,999]
+
+!! Every message has a default delay (configurable, default is 100ms).
+!! You can specify a custom delay between each message (in milliseconds)
+seb: do you use internet explorer?
+!10000
+andre: yes
+
+!! You can use the repeat feature to loop messages
+!! It repeats every message and delay until the next empty line
+!2x
+*dennis: This is printed twice
+!500
+*dennis: This is also printed twice
+
+!! And... yes. You can create funny things with this recursion.
+!2x
+seb: this is printed two times
+!2x
+andre: and this is printed four times
+
+*dennis: ...and I am dennis.
+
+!! That's it, have fun :)
