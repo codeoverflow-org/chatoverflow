@@ -17,7 +17,7 @@ class SandboxSecurityPolicy extends Policy {
     */
   override def getPermissions(domain: ProtectionDomain): PermissionCollection =
     if (isPlugin(domain))
-      pluginPermissions
+      applicationPermissions // TODO pluginPermissions (when using actors!)
     else
       applicationPermissions
 

@@ -41,6 +41,9 @@ libraryDependencies ++= Seq(
 // JSON Lib (Jackson)
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 
+// GSON https://mvnrepository.com/artifact/com.google.code.gson/gson
+libraryDependencies += "com.google.code.gson" % "gson" % "1.7.1"
+
 // PIRCBotX
 libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
 

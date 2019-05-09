@@ -3,12 +3,15 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.api.impl
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import org.codeoverflow.chatoverflow.api.io.input.chat.User
+import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.api.io.input.stat.TwitchStatInput
 import org.codeoverflow.chatoverflow.framework.actors.{Mapping, StringMappingActor}
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.Connection
 import org.codeoverflow.chatoverflow.requirement.service.twitch.api.TwitchAPIConnector
+import com.google.gson.{Gson, JsonParser}
+import com.google.gson.reflect.TypeToken
+import java.time._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -59,7 +62,11 @@ class TwitchStatInputImpl extends Connection[TwitchAPIConnector] with TwitchStat
     sourceConnector.get.getSubscriptions(userID)
   }
 
-  override def serialize(): String = ???
+  override def serialize(): String = getSourceIdentifier
 
-  override def deserialize(value: String): Unit = ???
+  override def deserialize(value: String): Unit = setSourceConnector(value)
+
+  override def getVideoComments(videoID: String): java.util.List[TwitchChatMessage] = {
+    sourceConnector.get.getVideoComments(videoID)
+  }
 }

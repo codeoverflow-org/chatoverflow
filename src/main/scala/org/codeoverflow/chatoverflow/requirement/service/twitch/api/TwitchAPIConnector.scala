@@ -1,13 +1,18 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.api
 
+import java.time.format.DateTimeFormatter
+import java.time.{Instant, LocalDateTime, ZoneOffset}
+
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
+import com.google.gson.JsonParser
 import org.apache.http.HttpEntity
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.util.EntityUtils
 import org.codeoverflow.chatoverflow.WithLogger
+import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.connector.Connector
 import org.codeoverflow.chatoverflow.framework.actors.HttpClientActor
 
@@ -23,7 +28,7 @@ import scala.concurrent.duration._
   */
 class TwitchAPIConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   private val API_FORMAT: String = "application/vnd.twitchtv.v5+json"
-  private val BASE_URL: String = "https://api.twitch.tv/helix/"
+  private val BASE_URL: String = "https://api.twitch.tv/v5/"
   private val BASE_URL_v5: String = "https://api.twitch.tv/kraken/"
   private val actorSystem = ActorSystem("TwitchAPIActorSystem")
   private val actor: ActorRef = actorSystem.actorOf(Props[HttpClientActor])
@@ -99,10 +104,66 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
     get("users/follows", auth = false, oldAPI = false, Seq(("to_id", userID)))
   }
 
+  def getVideo(videoID: String): String = {
+    get(s"videos/$videoID", auth = false, oldAPI = false, Seq())
+  }
+
+  def getVideoComments(videoID: String): java.util.List[TwitchChatMessage] = {
+    val formatter = DateTimeFormatter.ISO_INSTANT
+    val messages = new java.util.ArrayList[TwitchChatMessage]()
+    val parser = new JsonParser()
+
+    var comments = get(s"videos/$videoID/comments", auth = false, oldAPI = true, Seq())
+    var jsonElement = parser.parse(comments)
+    var jsonObject = jsonElement.getAsJsonObject
+
+    var hasNext = true
+    while (hasNext) {
+      val jsonArray = jsonObject.getAsJsonArray("comments")
+      jsonArray.forEach(e => {
+        val jsonCommentObject = e.getAsJsonObject
+        val channelID: String = jsonCommentObject.getAsJsonPrimitive("channel_id").getAsString
+        val timestamp: Long = Instant.from(formatter.parse(jsonCommentObject.getAsJsonPrimitive("created_at").getAsString)).toEpochMilli
+        val timeOffset: Double = jsonCommentObject.getAsJsonPrimitive("content_offset_seconds").getAsDouble
+        val jsonCommenterObject = jsonCommentObject.getAsJsonObject("commenter")
+        val name: String = jsonCommenterObject.getAsJsonPrimitive("name").getAsString
+        val jsonMessageObject = jsonCommentObject.getAsJsonObject("message")
+        val broadcaster: Boolean = jsonMessageObject.has("broadcaster")
+        val moderator: Boolean = jsonMessageObject.has("moderator")
+        val subscriber: Boolean = jsonMessageObject.has("subscriber")
+        val premium: Boolean = jsonMessageObject.has("premium")
+        val message: String = jsonMessageObject.getAsJsonPrimitive("body").getAsString
+        val emoticons = new java.util.ArrayList[ChatEmoticon]()
+        if (jsonMessageObject.has("emoticons"))
+          jsonMessageObject.getAsJsonArray("emoticons").forEach(e => {
+            val id = e.getAsJsonObject.getAsJsonPrimitive("_id").getAsString
+            val indexBegin = e.getAsJsonObject.getAsJsonPrimitive("begin").getAsInt
+            val indexEnd = e.getAsJsonObject.getAsJsonPrimitive("end").getAsInt
+            emoticons.add(new TwitchChatEmoticon(message.substring(indexBegin, indexEnd + 1), id, indexBegin))
+          })
+
+        val color: String = if (jsonMessageObject.has("user_color")) jsonMessageObject.getAsJsonPrimitive("user_color").getAsString else "#000000"
+        messages.add(new TwitchChatMessage(new TwitchChatMessageAuthor(name, broadcaster, moderator, subscriber, premium), message, timestamp, new Channel(channelID), emoticons, color))
+      })
+
+      if (jsonObject.has("_next")) {
+        val nextPointer = jsonObject.getAsJsonPrimitive("_next").getAsString
+        comments = get(s"videos/$videoID/comments", auth = false, oldAPI = true, Seq(("cursor", nextPointer)))
+        jsonElement = parser.parse(comments)
+        jsonObject = jsonElement.getAsJsonObject
+      }
+      else hasNext = false
+    }
+
+    messages
+  }
+
   /**
     * Shuts down the connector, closes its platform connection.
     */
-  override def shutdown(): Unit = ???
+  override def shutdown(): Unit = {
+
+  }
 }
 
 object TwitchAPIConnector {

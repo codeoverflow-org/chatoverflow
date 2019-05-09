@@ -144,6 +144,11 @@ class REPL(chatOverflow: ChatOverflow) {
   }
 
   private def exit(): Unit = {
+    chatOverflow.pluginInstanceRegistry.getAllPluginInstances.foreach(plugin => plugin.stopPlease())
+    while (chatOverflow.pluginInstanceRegistry.getAllPluginInstances.exists(plugin => plugin.isRunning)) {
+      println("Waiting for all plugins to shutdown...\n")
+      Thread.sleep(100)
+    }
     System.exit(0)
   }
 }
