@@ -5,7 +5,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
 
-class SavedChatOutputConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger  {
+abstract class SavedChatOutputConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger  {
   private var running = false
   private val directoryPath = s"src/main/resources/$sourceIdentifier"
   private val directory = new File(directoryPath)

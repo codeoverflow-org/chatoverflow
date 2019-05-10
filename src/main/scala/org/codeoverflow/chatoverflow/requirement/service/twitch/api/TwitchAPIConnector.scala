@@ -128,10 +128,20 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
         val jsonCommenterObject = jsonCommentObject.getAsJsonObject("commenter")
         val name: String = jsonCommenterObject.getAsJsonPrimitive("name").getAsString
         val jsonMessageObject = jsonCommentObject.getAsJsonObject("message")
-        val broadcaster: Boolean = jsonMessageObject.has("broadcaster")
-        val moderator: Boolean = jsonMessageObject.has("moderator")
-        val subscriber: Boolean = jsonMessageObject.has("subscriber")
-        val premium: Boolean = jsonMessageObject.has("premium")
+        var broadcaster = false
+        var moderator = false
+        var premium = false
+        var subscriber = false
+        if (jsonMessageObject.has("user_badges")) {
+          val jsonUserBadgesArray = jsonMessageObject.getAsJsonArray("user_badges")
+          jsonUserBadgesArray.forEach(e => {
+            val badge_id = e.getAsJsonObject.getAsJsonPrimitive("_id").getAsString
+            broadcaster |= badge_id == "broadcaster"
+            moderator |= badge_id == "moderator"
+            subscriber |= badge_id == "subscriber"
+            premium |= badge_id == "premium"
+          })
+        }
         val message: String = jsonMessageObject.getAsJsonPrimitive("body").getAsString
         val emoticons = new java.util.ArrayList[ChatEmoticon]()
         if (jsonMessageObject.has("emoticons"))
