@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.mockup
 import java.util.Calendar
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.input.chat.{Channel, ChatMessage, ChatMessageAuthor}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatMessage, ChatMessageAuthor}
 import org.codeoverflow.chatoverflow.connector.Connector
 
 import scala.collection.mutable.ListBuffer
@@ -141,7 +141,9 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
       allElements(index) match {
         case ChatElement(user, msg, isPremium) =>
           logger.info(s"Read ChatElement($user,$msg,$isPremium).")
-          messageList += new ChatMessage(new ChatMessageAuthor(user, false, false, isPremium), msg, time, new Channel("default"))
+          //FIXME isPremium is not supported by the new api implementation.
+          //      Remove it or create MockupChatMessageAuthor that has field isPremium
+          messageList += new ChatMessage(new ChatMessageAuthor(user), msg, time, new Channel("default"))
           time += defaultDelay
         case DelayElement(delay) =>
           logger.info(s"Read DelayElement($delay).")

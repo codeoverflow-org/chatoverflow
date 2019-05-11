@@ -5,6 +5,8 @@ import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.input.chat._
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.Connection
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
