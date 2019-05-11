@@ -61,7 +61,10 @@ class ChatOverflow(val pluginFolderPath: String,
   }
 
   private def askForPassword(): Unit = {
-    val password = scala.io.StdIn.readLine("Please enter password > ").toCharArray
+    val password = if (System.console() != null)
+        System.console().readPassword("Please enter password (Input hidden) > ")
+      else
+        scala.io.StdIn.readLine("Please enter password (Input NOT hidden) > ").toCharArray
     credentialsService.setPassword(password)
   }
 
