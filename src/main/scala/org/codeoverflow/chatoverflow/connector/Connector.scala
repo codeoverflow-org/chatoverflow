@@ -1,7 +1,10 @@
 package org.codeoverflow.chatoverflow.connector
 
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.configuration.Credentials
+
+import scala.reflect.ClassTag
 
 /**
   * A connector is used to connect a input / output service to its dedicated platform
@@ -9,7 +12,8 @@ import org.codeoverflow.chatoverflow.configuration.Credentials
   * @param sourceIdentifier the unique source identifier (e.g. a login name), the connector should work with
   */
 abstract class Connector(val sourceIdentifier: String) extends WithLogger {
-  private val connectorSourceAndType = s"connector '§$sourceIdentifier' of type '$getUniqueTypeString'"
+  private[this] val actorSystem = ActorSystem(s"${getUniqueTypeString.replace('.', '-')}")
+  private val connectorSourceAndType = s"connector '$sourceIdentifier' of type '$getUniqueTypeString'"
   protected var credentials: Option[Credentials] = None
   protected var requiredCredentialKeys: List[String]
   protected var running = false
@@ -105,4 +109,13 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     * This stops the activity of the connector, e.g. by closing the platform connection.
     */
   def stop(): Boolean
+
+  /**
+    * Creates a new actor of the given type and returns the reference. Uses the connector specific actor system.
+    *
+    * @tparam T the type of the desired actor (possible trough scala magic)
+    * @return a actor reference, ready to be used
+    */
+  protected def createActor[T <: Actor : ClassTag](): ActorRef =
+    actorSystem.actorOf(Props(implicitly[ClassTag[T]].runtimeClass))
 }

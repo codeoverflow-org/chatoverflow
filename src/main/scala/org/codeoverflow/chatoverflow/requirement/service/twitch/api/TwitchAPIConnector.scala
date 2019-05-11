@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.api
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import org.apache.http.HttpEntity
@@ -25,8 +25,7 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
   private val API_FORMAT: String = "application/vnd.twitchtv.v5+json"
   private val BASE_URL: String = "https://api.twitch.tv/helix/"
   private val BASE_URL_v5: String = "https://api.twitch.tv/kraken/"
-  private val actorSystem = ActorSystem("TwitchAPIActorSystem")
-  private val actor: ActorRef = actorSystem.actorOf(Props[HttpClientActor])
+  private val actor: ActorRef = createActor[HttpClientActor]()
   override protected var requiredCredentialKeys: List[String] = List(TwitchAPIConnector.credentialsClientID, TwitchAPIConnector.credentialsOauthKey)
   private var clientID = ""
   private var oauth = ""
