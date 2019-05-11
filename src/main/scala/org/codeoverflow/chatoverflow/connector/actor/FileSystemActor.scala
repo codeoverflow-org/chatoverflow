@@ -15,19 +15,18 @@ class FileSystemActor extends Actor {
   private val resourceFilePath = "src/main/resources/"
 
   /**
-    * Receives either a string, or a 2-tuple of strings. Loads or saves a file.
+    * Receives either LoadFile or SaveFile object, acts accordingly.
     *
-    * @return message: string => the files content, the message is interpreted as relative path
-    *         message: (path, content) => true, if the file with the content of the second string could be saved
+    * @return a loaded file or a boolean if the saving process was successful
     */
   override def receive: Receive = {
-    case pathInResources: String =>
+    case LoadFile(pathInResources) =>
       try {
         sender ! Some(Source.fromFile(s"$resourceFilePath${fixPath(pathInResources)}").mkString)
       } catch {
         case _: Exception => None
       }
-    case (pathInResources: String, content: String) =>
+    case SaveFile(pathInResources, content) =>
       try {
         val writer = new PrintWriter(s"$resourceFilePath${fixPath(pathInResources)}")
         writer.write(content)
@@ -42,3 +41,18 @@ class FileSystemActor extends Actor {
     path.replace("../", "").replace("..\\", "")
   }
 }
+
+/**
+  * Send a LoadFile-object to the FileSystemActor to load a specific file.
+  *
+  * @param pathInResources the relative Path in the resource folder
+  */
+case class LoadFile(pathInResources: String)
+
+/**
+  * Send a SaveFile-object to the FileSystemActor to save a file with given content.
+  *
+  * @param pathInResources the relative Path in the resource folder
+  * @param content         the content to save
+  */
+case class SaveFile(pathInResources: String, content: String)
