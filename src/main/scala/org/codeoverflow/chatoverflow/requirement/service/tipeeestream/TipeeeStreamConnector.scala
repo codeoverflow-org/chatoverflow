@@ -3,19 +3,16 @@ package org.codeoverflow.chatoverflow.requirement.service.tipeeestream
 import org.codeoverflow.chatoverflow.connector.Connector
 
 class TipeeeStreamConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) {
-  requiredCredentialKeys = List("", "", "")
-  /**
-    * Returns true, if the connector has been already instantiated and is running.
-    */
-  override def isRunning: Boolean = ???
+
+  override protected var requiredCredentialKeys: List[String] = List()
 
   /**
-    * Initializes the connector, e.g. creates a connection with its platform.
+    * Starts the connector, e.g. creates a connection with its platform.
     */
-  override def init(): Boolean = ???
+  override def start(): Boolean = ???
 
   /**
-    * Shuts down the connector, closes its platform connection.
+    * This stops the activity of the connector, e.g. by closing the platform connection.
     */
-  override def shutdown(): Unit = ???
+  override def stop(): Boolean = ???
 }

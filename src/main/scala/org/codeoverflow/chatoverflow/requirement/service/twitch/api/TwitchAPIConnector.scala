@@ -27,9 +27,9 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
   private val BASE_URL_v5: String = "https://api.twitch.tv/kraken/"
   private val actorSystem = ActorSystem("TwitchAPIActorSystem")
   private val actor: ActorRef = actorSystem.actorOf(Props[HttpClientActor])
+  override protected var requiredCredentialKeys: List[String] = List(TwitchAPIConnector.credentialsClientID, TwitchAPIConnector.credentialsOauthKey)
   private var clientID = ""
   private var oauth = ""
-  requiredCredentialKeys = List(TwitchAPIConnector.credentialsClientID, TwitchAPIConnector.credentialsOauthKey)
 
   override def getUniqueTypeString: String = this.getClass.getName
 
@@ -38,34 +38,16 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
     */
   override def isRunning: Boolean = true
 
-  /**
-    * Initializes the connector, e.g. creates a connection with its platform.
-    */
-  override def init(): Boolean = {
-    val oauth = credentials.get.getValue(TwitchAPIConnector.credentialsOauthKey)
-    val clientID = credentials.get.getValue(TwitchAPIConnector.credentialsClientID)
-
-    if (clientID.isEmpty) {
-      logger warn s"key '${TwitchAPIConnector.credentialsClientID}' not found in credentials for '$sourceIdentifier'."
-      false
-    } else {
-      this.clientID = clientID.get
-      if (oauth.isEmpty) {
-        logger warn s"key '${TwitchAPIConnector.credentialsOauthKey}' not found in credentials for '$sourceIdentifier'."
-        false
-      } else {
-        this.oauth = oauth.get
-        true
-      }
-    }
-  }
-
   def getSubscriptions(channelID: String, offset: Int = 0, newestFirst: Boolean = true): String = {
     get("channels/" + channelID + "/subscriptions", auth = true, oldAPI = true, Seq(("limit", "100"), ("offset", String.valueOf(offset)), ("direction", if (newestFirst) "desc" else "asc")))
   }
 
   def getUser(userLogin: String): String = {
     get("users", auth = false, oldAPI = false, Seq(("login", userLogin)))
+  }
+
+  def getFollowers(userID: String): String = {
+    get("users/follows", auth = false, oldAPI = false, Seq(("to_id", userID)))
   }
 
   def get(uri: String, auth: Boolean, oldAPI: Boolean, queryParams: Seq[(String, String)]): String = {
@@ -95,14 +77,22 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
     }
   }
 
-  def getFollowers(userID: String): String = {
-    get("users/follows", auth = false, oldAPI = false, Seq(("to_id", userID)))
+  /**
+    * Starts the connector, e.g. creates a connection with its platform.
+    */
+  override def start(): Boolean = {
+    oauth = credentials.get.getValue(TwitchAPIConnector.credentialsOauthKey).get
+    clientID = credentials.get.getValue(TwitchAPIConnector.credentialsClientID).get
+    true
   }
 
   /**
-    * Shuts down the connector, closes its platform connection.
+    * This stops the activity of the connector, e.g. by closing the platform connection.
     */
-  override def shutdown(): Unit = ???
+  override def stop(): Boolean = {
+    // TODO: Implement STOP
+    false
+  }
 }
 
 object TwitchAPIConnector {

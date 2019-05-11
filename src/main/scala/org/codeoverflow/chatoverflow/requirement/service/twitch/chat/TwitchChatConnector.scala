@@ -15,9 +15,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   private val twitchChatListener = new TwitchChatListener
   private val oauthKey = "oauth"
   private var bot: PircBotX = _
-  private var running = false
   private var currentChannel: String = _
-  requiredCredentialKeys = List(oauthKey)
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     twitchChatListener.addMessageEventListener(listener)
@@ -25,30 +23,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
     twitchChatListener.addUnknownEventListener(listener)
-  }
-
-  override def isRunning: Boolean = running
-
-  override def init(): Boolean = {
-    if (!running) {
-      logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
-
-      if (!areCredentialsSet) {
-        logger warn "No credentials set."
-        false
-      } else {
-        bot = new PircBotX(getConfig)
-        startBot()
-        running = true
-        logger info "Started connector."
-        true
-      }
-    }
-    else {
-      logger warn "Connector already running."
-      false
-    }
-
   }
 
   private def getConfig: Configuration = {
@@ -119,13 +93,27 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     }
   }
 
-  override def shutdown(): Unit = {
-    bot.sendIRC().quitServer()
-    bot.close()
-    logger info s"Stopped connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
-  }
-
   override def getUniqueTypeString: String = this.getClass.getName
 
   def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
+
+  override protected var requiredCredentialKeys: List[String] = List(oauthKey)
+
+  /**
+    * Starts the connector, e.g. creates a connection with its platform.
+    */
+  override def start(): Boolean = {
+    bot = new PircBotX(getConfig)
+    startBot()
+    true
+  }
+
+  /**
+    * This stops the activity of the connector, e.g. by closing the platform connection.
+    */
+  override def stop(): Boolean = {
+    bot.sendIRC().quitServer()
+    bot.close()
+    true
+  }
 }
