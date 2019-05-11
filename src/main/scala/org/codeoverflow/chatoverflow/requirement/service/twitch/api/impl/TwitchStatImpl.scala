@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.api.impl
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import org.codeoverflow.chatoverflow.api.io.input.chat.User
+import org.codeoverflow.chatoverflow.api.io.dto.service.User
 import org.codeoverflow.chatoverflow.api.io.input.stat.TwitchStatInput
 import org.codeoverflow.chatoverflow.framework.actors.{Mapping, StringMappingActor}
 import org.codeoverflow.chatoverflow.registry.Impl
