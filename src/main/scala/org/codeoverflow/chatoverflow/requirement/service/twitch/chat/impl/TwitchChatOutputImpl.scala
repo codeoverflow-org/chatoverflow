@@ -14,11 +14,12 @@ class TwitchChatOutputImpl extends Connection[chat.TwitchChatConnector] with Twi
 
   override def sendChatMessage(message: String): Unit = sourceConnector.get.sendChatMessage(message)
 
-  override def init(): Unit = {
+  override def init(): Boolean = {
     if (sourceConnector.isDefined) {
       sourceConnector.get.init()
     } else {
       logger warn "Source Connector not set."
+      false
     }
   }
 

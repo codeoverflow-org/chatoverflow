@@ -41,13 +41,14 @@ class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpCha
 
   override def registerPrivateMessageHandler(handler: Consumer[ChatMessage]): Unit = privateMessageHandler += handler
 
-  override def init(): Unit = {
+  override def init(): Boolean = {
     if (sourceConnector.isDefined) {
       sourceConnector.get.addMessageEventListener(onMessage)
       // FIXME: Work with private messages
       sourceConnector.get.init()
     } else {
       logger warn "Source connector not set."
+      false
     }
   }
 

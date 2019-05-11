@@ -25,7 +25,7 @@ class TwitchStatInputImpl extends Connection[TwitchAPIConnector] with TwitchStat
   private val actor: ActorRef = actorSystem.actorOf(Props[StringMappingActor])
   implicit val timeout: Timeout = Timeout(5 seconds)
 
-  override def init(): Unit = {
+  override def init(): Boolean = {
     sourceConnector.get.init()
   }
 

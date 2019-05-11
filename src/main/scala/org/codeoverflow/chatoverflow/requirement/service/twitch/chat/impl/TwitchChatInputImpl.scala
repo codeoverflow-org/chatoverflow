@@ -4,9 +4,9 @@ import java.util.Calendar
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.input.chat._
-import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon}
 import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon}
+import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.Connection
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
@@ -30,7 +30,7 @@ class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with Twit
   private val messageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
   private val privateMessageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
 
-  override def init(): Unit = {
+  override def init(): Boolean = {
 
     // Add the own message handler to the twitch connector
     if (sourceConnector.isDefined) {
@@ -39,6 +39,7 @@ class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with Twit
       sourceConnector.get.init()
     } else {
       logger warn "Source connector not set."
+      false
     }
   }
 
