@@ -38,8 +38,6 @@ libraryDependencies ++= Seq(
   "org.scalatra" %% "scalatra-json" % "2.6.3",
 )
 
-// JSON Lib (Jackson)
-libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 
 // PIRCBotX
 libraryDependencies += "org.pircbotx" % "pircbotx" % "2.1"
@@ -55,6 +53,11 @@ libraryDependencies ++= Seq(
 
 // https://mvnrepository.com/artifact/com.google.code.gson/gson
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
+
+// Akka Ftp Lib
+libraryDependencies ++= Seq(
+  "com.lightbend.akka" %% "akka-stream-alpakka-ftp" % "1.0.0"
+)
 
 
 // ---------------------------------------------------------------------------------------------------------------------
