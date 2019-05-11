@@ -16,6 +16,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
   private val connectorSourceAndType = s"connector '$sourceIdentifier' of type '$getUniqueTypeString'"
   protected var credentials: Option[Credentials] = None
   protected var requiredCredentialKeys: List[String]
+  protected var optionalCredentialKeys: List[String]
   protected var running = false
 
   def getCredentials: Option[Credentials] = this.credentials
@@ -45,6 +46,13 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
   def getRequiredCredentialKeys: List[String] = requiredCredentialKeys
 
   /**
+    * Returns the keys that are optional to be set in the credentials object
+    *
+    * @return a list of keys
+    */
+  def getOptionalCredentialKeys: List[String] = optionalCredentialKeys
+
+  /**
     * Returns true, if the connector has been already instantiated and is running.
     */
   def isRunning: Boolean = running
@@ -53,22 +61,40 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     * Initializes the connector by checking the conditions and then calling the start method.
     */
   def init(): Boolean = {
+
+    // Check if running
     if (running) {
       logger warn s"Unable to start $connectorSourceAndType. Already running!"
       false
     } else {
+
+      // Check if credentials object exists
       if (!areCredentialsSet) {
-        logger warn s"Unable to start $connectorSourceAndType. Not all credentials are set."
-        val unsetCredentials = for (key <- requiredCredentialKeys if !credentials.get.exists(key)) yield key
-        logger info s"Not set credentials are: ${unsetCredentials.mkString(", ")}."
+        logger warn s"Unable to start $connectorSourceAndType. Credentials object not set."
         false
       } else {
-        if (start()) {
-          logger info s"Started $connectorSourceAndType."
-          true
-        } else {
-          logger warn s"Failed starting $connectorSourceAndType."
+
+        val unsetCredentials = for (key <- requiredCredentialKeys if !credentials.get.exists(key)) yield key
+
+        // Check required credentials
+        if (unsetCredentials.nonEmpty) {
+          logger warn s"Unable to start $connectorSourceAndType. Not all required credentials are set."
+
+          logger info s"Not set credentials are: ${unsetCredentials.mkString(", ")}."
           false
+        } else {
+
+          if (!optionalCredentialKeys.forall(key => credentials.get.exists(key))) {
+            logger info "There are unset optional credentials."
+          }
+
+          if (start()) {
+            logger info s"Started $connectorSourceAndType."
+            true
+          } else {
+            logger warn s"Failed starting $connectorSourceAndType."
+            false
+          }
         }
       }
     }
@@ -116,6 +142,8 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     * @tparam T the type of the desired actor (possible trough scala magic)
     * @return a actor reference, ready to be used
     */
-  protected def createActor[T <: Actor : ClassTag](): ActorRef =
+  protected def createActor[T <: Actor : ClassTag](): ActorRef
+
+  =
     actorSystem.actorOf(Props(implicitly[ClassTag[T]].runtimeClass))
 }

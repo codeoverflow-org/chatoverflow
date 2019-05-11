@@ -153,4 +153,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     // Nothing to do here
     true
   }
+
+  override protected var optionalCredentialKeys: List[String] = List()
 }

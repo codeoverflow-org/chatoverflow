@@ -14,6 +14,8 @@ import org.pircbotx.{Configuration, PircBotX}
 class TwitchChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   private val twitchChatListener = new TwitchChatListener
   private val oauthKey = "oauth"
+  override protected var requiredCredentialKeys: List[String] = List(oauthKey)
+  override protected var optionalCredentialKeys: List[String] = List()
   private var bot: PircBotX = _
   private var currentChannel: String = _
 
@@ -24,6 +26,25 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
     twitchChatListener.addUnknownEventListener(listener)
   }
+
+  def setChannel(channel: String): Unit = {
+    // Todo: Leave channel
+    setCurrentChannel(channel)
+    bot.send().joinChannel(currentChannel)
+    // TODO: TEST!
+  }
+
+  private def setCurrentChannel(channel: String): Unit = {
+    if (channel.startsWith("#")) {
+      currentChannel = channel.toLowerCase
+    } else {
+      currentChannel = "#" + channel.toLowerCase
+    }
+  }
+
+  override def getUniqueTypeString: String = this.getClass.getName
+
+  def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
 
   private def getConfig: Configuration = {
 
@@ -56,6 +77,15 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   }
 
+  /**
+    * Starts the connector, e.g. creates a connection with its platform.
+    */
+  override def start(): Boolean = {
+    bot = new PircBotX(getConfig)
+    startBot()
+    true
+  }
+
   private def startBot(): Unit = {
 
     var errorCount = 0
@@ -76,36 +106,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
       logger error "Fatal. Unable to start bot."
     }
 
-  }
-
-  def setChannel(channel: String): Unit = {
-    // Todo: Leave channel
-    setCurrentChannel(channel)
-    bot.send().joinChannel(currentChannel)
-    // TODO: TEST!
-  }
-
-  private def setCurrentChannel(channel: String): Unit = {
-    if (channel.startsWith("#")) {
-      currentChannel = channel.toLowerCase
-    } else {
-      currentChannel = "#" + channel.toLowerCase
-    }
-  }
-
-  override def getUniqueTypeString: String = this.getClass.getName
-
-  def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
-
-  override protected var requiredCredentialKeys: List[String] = List(oauthKey)
-
-  /**
-    * Starts the connector, e.g. creates a connection with its platform.
-    */
-  override def start(): Boolean = {
-    bot = new PircBotX(getConfig)
-    startBot()
-    true
   }
 
   /**

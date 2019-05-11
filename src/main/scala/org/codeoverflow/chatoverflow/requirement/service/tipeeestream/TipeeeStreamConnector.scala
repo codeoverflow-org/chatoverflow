@@ -5,6 +5,7 @@ import org.codeoverflow.chatoverflow.connector.Connector
 class TipeeeStreamConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) {
 
   override protected var requiredCredentialKeys: List[String] = List()
+  override protected var optionalCredentialKeys: List[String] = List()
 
   /**
     * Starts the connector, e.g. creates a connection with its platform.

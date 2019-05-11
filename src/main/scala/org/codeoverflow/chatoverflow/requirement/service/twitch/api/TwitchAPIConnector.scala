@@ -92,6 +92,8 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
     // TODO: Implement STOP
     false
   }
+
+  override protected var optionalCredentialKeys: List[String] = List()
 }
 
 object TwitchAPIConnector {
