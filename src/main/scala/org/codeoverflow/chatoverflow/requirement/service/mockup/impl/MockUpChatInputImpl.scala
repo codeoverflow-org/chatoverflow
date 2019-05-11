@@ -4,7 +4,8 @@ import java.util.Calendar
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.input.chat.{ChatMessage, MockUpChatInput}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.ChatMessage
+import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.Connection
 import org.codeoverflow.chatoverflow.requirement.service.mockup.MockUpChatConnector
@@ -40,13 +41,14 @@ class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpCha
 
   override def registerPrivateMessageHandler(handler: Consumer[ChatMessage]): Unit = privateMessageHandler += handler
 
-  override def init(): Unit = {
+  override def init(): Boolean = {
     if (sourceConnector.isDefined) {
       sourceConnector.get.addMessageEventListener(onMessage)
       // FIXME: Work with private messages
       sourceConnector.get.init()
     } else {
       logger warn "Source connector not set."
+      false
     }
   }
 

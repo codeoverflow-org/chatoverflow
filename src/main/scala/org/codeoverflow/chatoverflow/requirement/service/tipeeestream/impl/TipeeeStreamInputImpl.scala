@@ -6,7 +6,7 @@ import org.codeoverflow.chatoverflow.requirement.service.tipeeestream.TipeeeStre
 
 // TODO: This class should have probably a counterpart in the API. Not now, for testing only
 class TipeeeStreamInputImpl extends Connection[TipeeeStreamConnector] with SubscriptionEventInput {
-  override def init(): Unit = ???
+  override def init(): Boolean = ???
 
   override def serialize(): String = ???
 

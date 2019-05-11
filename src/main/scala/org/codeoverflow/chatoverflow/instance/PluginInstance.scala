@@ -74,6 +74,12 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
   }
 
   /**
+    * Returns, if the plugin instance is created. This should be always the case when a plugin instance
+    * is added to the registry.
+    */
+  private def isCreated: Boolean = plugin.isDefined
+
+  /**
     * Creates a new thread and tries to start the plugin.
     * Make sure to set the requirements first!
     *
@@ -105,13 +111,19 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
 
         } else {
 
+          // This is set to false if any connector (aka input/output) is not ready.
+          var allConnectorsReady = true
+
           // Initialize all inputs & outputs
           val inputRequirements = getRequirements.getInputRequirements.toArray
           for (requirement <- inputRequirements) {
             try {
               val input = requirement.asInstanceOf[Requirement[Input]]
               if (input.isSet) {
-                input.get().init()
+                if (!input.get().init()) {
+                  logger warn s"Failed to init connector (input) '${input.getName}' of type '${input.getTargetType.getName}'."
+                  allConnectorsReady = false
+                }
               }
             } catch {
               case e: Exception =>
@@ -123,7 +135,10 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
             try {
               val output = requirement.asInstanceOf[Requirement[Output]]
               if (output.isSet) {
-                output.get().init()
+                if (!output.get().init()) {
+                  logger warn s"Failed to init connector (output) '${output.getName}' of type '${output.getTargetType.getName}'."
+                  allConnectorsReady = false
+                }
               }
             } catch {
               case e: Exception =>
@@ -131,49 +146,49 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
             }
           }
 
-          // Now, start the plugin!
-          logger info s"Starting plugin '$instanceName' in new thread!"
-          try {
-            instanceThread = new Thread(() => {
-              try {
+          if (!allConnectorsReady) {
+            logger error "At least one connector (input/output) did fail init. Unable to start."
+            false
+          } else {
 
-                // Execute plugin setup
-                plugin.get.setup()
+            // Now, start the plugin!
+            logger info s"Starting plugin '$instanceName' in new thread!"
+            try {
+              instanceThread = new Thread(() => {
+                try {
 
-                // Execute loop, if an interval is set
-                if (plugin.get.getLoopInterval > 0) {
-                  while (!threadStopAfterNextIteration) {
-                    plugin.get.loop()
-                    Thread.sleep(plugin.get.getLoopInterval)
+                  // Execute plugin setup
+                  plugin.get.setup()
+
+                  // Execute loop, if an interval is set
+                  if (plugin.get.getLoopInterval > 0) {
+                    while (!threadStopAfterNextIteration) {
+                      plugin.get.loop()
+                      Thread.sleep(plugin.get.getLoopInterval)
+                    }
                   }
+
+                  // After the loop (or setup) the plugin should end
+                  plugin.get.shutdown()
+
+                } catch {
+                  case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
+                  case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)
+                  case e: Throwable => logger.error(s"Plugin '$instanceName' just crashed. We don't know whats going up here!", e)
                 }
-
-                // After the loop (or setup) the plugin should end
-                plugin.get.shutdown()
-
-              } catch {
-                case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
-                case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)
-                case e: Throwable => logger.error(s"Plugin '$instanceName' just crashed. We don't know whats going up here!", e)
-              }
-            })
-            instanceThread.start()
-            true
-          } catch {
-            case e: Throwable =>
-              logger.error(s"Plugin starting process of plugin '$instanceName' just crashed.", e)
-              false
+              })
+              instanceThread.start()
+              true
+            } catch {
+              case e: Throwable =>
+                logger.error(s"Plugin starting process of plugin '$instanceName' just crashed.", e)
+                false
+            }
           }
         }
       }
     }
   }
-
-  /**
-    * Returns, if the plugin instance is created. This should be always the case when a plugin instance
-    * is added to the registry.
-    */
-  private def isCreated: Boolean = plugin.isDefined
 
   /**
     * Returns the requirements object of the specific plugin instance.

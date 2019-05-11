@@ -5,7 +5,7 @@ import org.codeoverflow.chatoverflow.requirement.Connection
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 
 class TwitchSubscriptionEventInputImpl extends Connection[chat.TwitchChatConnector] with TwitchSubscriptionEventInput {
-  override def init(): Unit = ???
+  override def init(): Boolean = ???
 
   override def serialize(): String = ???
 
