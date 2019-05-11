@@ -1,9 +1,13 @@
 package org.codeoverflow.chatoverflow.connector
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.pattern.ask
+import akka.util.Timeout
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.configuration.Credentials
 
+import scala.concurrent.duration._
+import scala.concurrent.{Await, TimeoutException}
 import scala.reflect.ClassTag
 
 /**
@@ -137,13 +141,30 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
   def stop(): Boolean
 
   /**
+    * This method can be used to ask an actor for an result, using the akka system as a black box.
+    *
+    * @param actor            the specific actor to ask. Use <code>createActor()</code> to create your actor.
+    * @param timeOutInSeconds the timeout to calculate, request, ... for the actor
+    * @param message          some message to pass to the actor. Can be anything.
+    * @tparam T result type of the actor answer
+    * @return the answer of the actor if he answers in time. else: None
+    */
+  def askActor[T](actor: ActorRef, timeOutInSeconds: Int, message: Any): Option[T] = {
+    implicit val timeout: Timeout = Timeout(timeOutInSeconds seconds)
+    val future = actor ? message
+    try {
+      Some(Await.result(future, timeout.duration).asInstanceOf[T])
+    } catch {
+      case _: TimeoutException => None
+    }
+  }
+
+  /**
     * Creates a new actor of the given type and returns the reference. Uses the connector specific actor system.
     *
     * @tparam T the type of the desired actor (possible trough scala magic)
     * @return a actor reference, ready to be used
     */
-  protected def createActor[T <: Actor : ClassTag](): ActorRef
-
-  =
+  protected def createActor[T <: Actor : ClassTag](): ActorRef =
     actorSystem.actorOf(Props(implicitly[ClassTag[T]].runtimeClass))
 }

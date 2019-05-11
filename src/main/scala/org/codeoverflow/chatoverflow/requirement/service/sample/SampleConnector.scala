@@ -11,7 +11,7 @@ class SampleConnector(override val sourceIdentifier: String) extends Connector(s
     * Starts the connector, e.g. creates a connection with its platform.
     */
   override def start(): Boolean = {
-    logger info "Started sample connector!"
+    logger info s"Started sample connector! Source identifier is: '$sourceIdentifier'."
     true
   }
 
