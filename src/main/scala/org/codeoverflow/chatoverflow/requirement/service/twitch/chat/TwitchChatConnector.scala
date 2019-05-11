@@ -14,10 +14,10 @@ import org.pircbotx.{Configuration, PircBotX}
 class TwitchChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   private val twitchChatListener = new TwitchChatListener
   private val oauthKey = "oauth"
+  override protected var requiredCredentialKeys: List[String] = List(oauthKey)
+  override protected var optionalCredentialKeys: List[String] = List()
   private var bot: PircBotX = _
-  private var running = false
   private var currentChannel: String = _
-  requiredCredentialKeys = List(oauthKey)
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     twitchChatListener.addMessageEventListener(listener)
@@ -27,29 +27,24 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     twitchChatListener.addUnknownEventListener(listener)
   }
 
-  override def isRunning: Boolean = running
-
-  override def init(): Boolean = {
-    if (!running) {
-      logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
-
-      if (!areCredentialsSet) {
-        logger warn "No credentials set."
-        false
-      } else {
-        bot = new PircBotX(getConfig)
-        startBot()
-        running = true
-        logger info "Started connector."
-        true
-      }
-    }
-    else {
-      logger warn "Connector already running."
-      false
-    }
-
+  def setChannel(channel: String): Unit = {
+    // Todo: Leave channel
+    setCurrentChannel(channel)
+    bot.send().joinChannel(currentChannel)
+    // TODO: TEST!
   }
+
+  private def setCurrentChannel(channel: String): Unit = {
+    if (channel.startsWith("#")) {
+      currentChannel = channel.toLowerCase
+    } else {
+      currentChannel = "#" + channel.toLowerCase
+    }
+  }
+
+  override def getUniqueTypeString: String = this.getClass.getName
+
+  def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
 
   private def getConfig: Configuration = {
 
@@ -82,6 +77,15 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   }
 
+  /**
+    * Starts the connector, e.g. creates a connection with its platform.
+    */
+  override def start(): Boolean = {
+    bot = new PircBotX(getConfig)
+    startBot()
+    true
+  }
+
   private def startBot(): Unit = {
 
     var errorCount = 0
@@ -104,28 +108,12 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   }
 
-  def setChannel(channel: String): Unit = {
-    // Todo: Leave channel
-    setCurrentChannel(channel)
-    bot.send().joinChannel(currentChannel)
-    // TODO: TEST!
-  }
-
-  private def setCurrentChannel(channel: String): Unit = {
-    if (channel.startsWith("#")) {
-      currentChannel = channel.toLowerCase
-    } else {
-      currentChannel = "#" + channel.toLowerCase
-    }
-  }
-
-  override def shutdown(): Unit = {
+  /**
+    * This stops the activity of the connector, e.g. by closing the platform connection.
+    */
+  override def stop(): Boolean = {
     bot.sendIRC().quitServer()
     bot.close()
-    logger info s"Stopped connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
+    true
   }
-
-  override def getUniqueTypeString: String = this.getClass.getName
-
-  def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
 }

@@ -18,13 +18,7 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
   private val messageListener = ListBuffer[ChatMessage => Unit]()
   private var messages: List[ChatMessage] = _
   private var elements: List[MockupElement] = _
-  private var running = false
   private var time: Long = 0
-
-  /**
-    * Returns true, if the connector has been already instantiated and is running.
-    */
-  override def isRunning: Boolean = running
 
   def addMessageEventListener(listener: ChatMessage => Unit): Unit = {
     messageListener += listener
@@ -48,20 +42,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     }
   }
 
-  /**
-    * Initializes the connector, e.g. creates a connection with its platform.
-    */
-  override def init(): Boolean = {
-    if (running) {
-      logger warn s"MockUpChatConnector for $sourceIdentifier is already running!"
-      false
-    } else {
-      running = loadMockUpFile()
-      new Thread(() => simulateChat()).start()
-      running
-    }
-  }
-
   def loadMockUpFile(): Boolean = {
     // TODO: Handle exceptions
     val input = Source.fromFile(s"$mockUpFolder/$sourceIdentifier.chat")
@@ -73,14 +53,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     input.close()
     true
     // TODO: Do not always return true
-  }
-
-  /**
-    * Shuts down the connector, closes its platform connection.
-    */
-  override def shutdown(): Unit = {
-    logger info s"Shutting down MockUpChatConnector for $sourceIdentifier."
-    running = false
   }
 
   /**
@@ -157,10 +129,30 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
           isEmptyElement = true
       }
       index += 1
-
     }
 
     logger.info(s"Returning %d messages.".format(messageList.size))
     (messageList.toList, index)
   }
+
+  override protected var requiredCredentialKeys: List[String] = List()
+
+  /**
+    * Starts the connector, e.g. creates a connection with its platform.
+    */
+  override def start(): Boolean = {
+    val successful = loadMockUpFile()
+    new Thread(() => simulateChat()).start()
+    successful
+  }
+
+  /**
+    * This stops the activity of the connector, e.g. by closing the platform connection.
+    */
+  override def stop(): Boolean = {
+    // Nothing to do here
+    true
+  }
+
+  override protected var optionalCredentialKeys: List[String] = List()
 }

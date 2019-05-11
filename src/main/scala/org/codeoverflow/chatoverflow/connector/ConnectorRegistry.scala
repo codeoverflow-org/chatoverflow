@@ -103,7 +103,7 @@ object ConnectorRegistry extends WithLogger {
 
       // Check if all required keys had been set
       if (!connector.get.getRequiredCredentialKeys.forall(key => credentials.exists(key))) {
-        logger warn "Not all required values had been set. But they might be optional."
+        logger warn "Not all required values had been set."
       }
 
       true

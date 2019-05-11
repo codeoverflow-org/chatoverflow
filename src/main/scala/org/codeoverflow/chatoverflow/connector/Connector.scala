@@ -1,17 +1,32 @@
 package org.codeoverflow.chatoverflow.connector
 
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.configuration.Credentials
+
+import scala.reflect.ClassTag
 
 /**
   * A connector is used to connect a input / output service to its dedicated platform
   *
   * @param sourceIdentifier the unique source identifier (e.g. a login name), the connector should work with
   */
-abstract class Connector(val sourceIdentifier: String) {
+abstract class Connector(val sourceIdentifier: String) extends WithLogger {
+  private[this] val actorSystem = ActorSystem(s"${getUniqueTypeString.replace('.', '-')}")
+  private val connectorSourceAndType = s"connector '$sourceIdentifier' of type '$getUniqueTypeString'"
   protected var credentials: Option[Credentials] = None
-  protected var requiredCredentialKeys: List[String] = List[String]()
+  protected var requiredCredentialKeys: List[String]
+  protected var optionalCredentialKeys: List[String]
+  protected var running = false
 
   def getCredentials: Option[Credentials] = this.credentials
+
+  /**
+    * Sets the credentials needed for login or authentication of the connector to its platform
+    *
+    * @param credentials the credentials object to login to the platform
+    */
+  def setCredentials(credentials: Credentials): Unit = this.credentials = Some(credentials)
 
   def setCredentialsValue(key: String, value: String): Boolean = {
     if (credentials.isEmpty) false else {
@@ -31,23 +46,59 @@ abstract class Connector(val sourceIdentifier: String) {
   def getRequiredCredentialKeys: List[String] = requiredCredentialKeys
 
   /**
-    * Returns the unique type string of the implemented connector.
+    * Returns the keys that are optional to be set in the credentials object
     *
-    * @return the class type
+    * @return a list of keys
     */
-  def getUniqueTypeString: String = this.getClass.getName
+  def getOptionalCredentialKeys: List[String] = optionalCredentialKeys
 
   /**
     * Returns true, if the connector has been already instantiated and is running.
     */
-  def isRunning: Boolean
+  def isRunning: Boolean = running
 
   /**
-    * Sets the credentials needed for login or authentication of the connector to its platform
-    *
-    * @param credentials the credentials object to login to the platform
+    * Initializes the connector by checking the conditions and then calling the start method.
     */
-  def setCredentials(credentials: Credentials): Unit = this.credentials = Some(credentials)
+  def init(): Boolean = {
+
+    // Check if running
+    if (running) {
+      logger warn s"Unable to start $connectorSourceAndType. Already running!"
+      false
+    } else {
+
+      // Check if credentials object exists
+      if (!areCredentialsSet) {
+        logger warn s"Unable to start $connectorSourceAndType. Credentials object not set."
+        false
+      } else {
+
+        val unsetCredentials = for (key <- requiredCredentialKeys if !credentials.get.exists(key)) yield key
+
+        // Check required credentials
+        if (unsetCredentials.nonEmpty) {
+          logger warn s"Unable to start $connectorSourceAndType. Not all required credentials are set."
+
+          logger info s"Not set credentials are: ${unsetCredentials.mkString(", ")}."
+          false
+        } else {
+
+          if (!optionalCredentialKeys.forall(key => credentials.get.exists(key))) {
+            logger info "There are unset optional credentials."
+          }
+
+          if (start()) {
+            logger info s"Started $connectorSourceAndType."
+            true
+          } else {
+            logger warn s"Failed starting $connectorSourceAndType."
+            false
+          }
+        }
+      }
+    }
+  }
 
   /**
     * Returns if the credentials had been set. Can be asked before running the init()-function.
@@ -57,12 +108,42 @@ abstract class Connector(val sourceIdentifier: String) {
   def areCredentialsSet: Boolean = credentials.isDefined
 
   /**
-    * Initializes the connector, e.g. creates a connection with its platform.
+    * Starts the connector, e.g. creates a connection with its platform.
     */
-  def init(): Boolean
+  def start(): Boolean
 
   /**
-    * Shuts down the connector, closes its platform connection.
+    * Shuts down the connector by calling the stop method.
     */
-  def shutdown(): Unit
+  def shutdown(): Unit = {
+    if (stop()) {
+      running = false
+      logger info s"Stopped $connectorSourceAndType."
+    } else {
+      logger warn s"Unable to shutdown $connectorSourceAndType."
+    }
+  }
+
+  /**
+    * Returns the unique type string of the implemented connector.
+    *
+    * @return the class type
+    */
+  def getUniqueTypeString: String = this.getClass.getName
+
+  /**
+    * This stops the activity of the connector, e.g. by closing the platform connection.
+    */
+  def stop(): Boolean
+
+  /**
+    * Creates a new actor of the given type and returns the reference. Uses the connector specific actor system.
+    *
+    * @tparam T the type of the desired actor (possible trough scala magic)
+    * @return a actor reference, ready to be used
+    */
+  protected def createActor[T <: Actor : ClassTag](): ActorRef
+
+  =
+    actorSystem.actorOf(Props(implicitly[ClassTag[T]].runtimeClass))
 }
