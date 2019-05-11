@@ -19,7 +19,6 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
   private val password = "password"
   private val sshKey = "sshKeyString"
   private val sshKeyPassphrase = "sshKeyPassword"
-  private val running = false
   override protected var requiredCredentialKeys = List()
   override protected var optionalCredentialKeys = List(username, password, sshKey, sshKeyPassphrase)
 
@@ -27,30 +26,21 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
   val ftpDomain = ""
   val ftpPort = 21
 
-  override def isRunning: Boolean = running
-
-  override def init(): Boolean = {
-    if (!running) {
-      logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
-      parseSourceIdentifier(sourceIdentifier)
-      val ftpFileSettings = makeSettings()
-    }
-    true
-  }
-
-  private def parseSourceIdentifier(sourceIdentifier: String): Unit = {
+  private def parseSourceIdentifier(sourceIdentifier: String): Boolean = {
     try {
       val ftpSplitRegex = "^(ftp|ftps|sftp)://([a-zA-Z]+[.a-zA-Z]+):([0-9]+)$".r
       ftpSplitRegex(ftpProtocol, ftpDomain, ftpPort) = sourceIdentifier
+      true
     } catch {
       case e: Exception => {
         logger error s"$e"
+        false
       }
     }
   }
 
-  private def makeSettings(): Any = {
-
+  override def start(): Boolean = {
+    parseSourceIdentifier(sourceIdentifier)
     var ftpUsername = "anonymous"
     var ftpPassword = ""
 
@@ -63,53 +53,53 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
         ftpPassword = credentials.get.getValue(password).get
       }
 
-    }
 
-    if (credentials.get.exists(password)) {
-      ftpPassword = credentials.get.getValue(password).get
-    }
+      if (credentials.get.exists(password)) {
+        ftpPassword = credentials.get.getValue(password).get
+      }
 
-    val ftpCreds = FtpCredentials.create(ftpUsername, ftpPassword)
+      val ftpCreds = FtpCredentials.create(ftpUsername, ftpPassword)
 
-    if (ftpProtocol == "ftp") {
-
-      FtpSettings.apply(InetAddress.getByName(ftpDomain))
-        .withPort(ftpPort)
-        .withBinary(true)
-        .withPassiveMode(true)
-        .withCredentials(ftpCreds)
-
-    } else if (ftpProtocol == "ftps") {
-
-      FtpsSettings.apply(InetAddress.getByName(ftpDomain))
-        .withPort(ftpPort)
-        .withBinary(true)
-        .withPassiveMode(true)
-        .withCredentials(ftpCreds)
-
-    } else if (ftpProtocol == "sftp") {
-
-      if (credentials.get.exists(sshKey)) {
-        if (credentials.get.exists(sshKeyPassphrase)) {
-          val sshCreds = SftpIdentity.createRawSftpIdentity(sshKey.getBytes(), sshKeyPassphrase.getBytes())
-          SftpSettings.apply(InetAddress.getByName(ftpDomain))
-            .withPort(ftpPort)
-            .withCredentials(ftpCreds)
-            .withSftpIdentity(sshCreds)
-        } else {
-          val sshCreds = SftpIdentity.createRawSftpIdentity(sshKey.getBytes())
-          SftpSettings.apply(InetAddress.getByName(ftpDomain))
-            .withPort(ftpPort)
-            .withCredentials(ftpCreds)
-            .withSftpIdentity(sshCreds)
-        }
-      } else {
-        SftpSettings.apply(InetAddress.getByName(ftpDomain))
+      if (ftpProtocol == "ftp") {
+        val ftpFileSettings = FtpSettings.apply(InetAddress.getByName(ftpDomain))
           .withPort(ftpPort)
+          .withBinary(true)
+          .withPassiveMode(true)
           .withCredentials(ftpCreds)
+
+      } else if (ftpProtocol == "ftps") {
+        val ftpFileSettings = FtpsSettings.apply(InetAddress.getByName(ftpDomain))
+          .withPort(ftpPort)
+          .withBinary(true)
+          .withPassiveMode(true)
+          .withCredentials(ftpCreds)
+
+      } else if (ftpProtocol == "sftp") {
+        if (credentials.get.exists(sshKey)) {
+          if (credentials.get.exists(sshKeyPassphrase)) {
+            val sshCreds = SftpIdentity.createRawSftpIdentity(sshKey.getBytes(), sshKeyPassphrase.getBytes())
+            val ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
+              .withPort(ftpPort)
+              .withCredentials(ftpCreds)
+              .withSftpIdentity(sshCreds)
+          } else {
+            val sshCreds = SftpIdentity.createRawSftpIdentity(sshKey.getBytes())
+            val ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
+              .withPort(ftpPort)
+              .withCredentials(ftpCreds)
+              .withSftpIdentity(sshCreds)
+          }
+        } else {
+          val ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
+            .withPort(ftpPort)
+            .withCredentials(ftpCreds)
+        }
       }
     }
+    true
   }
-}
 
+  override def stop(): Boolean = {
+    true
+  }
 }
