@@ -50,11 +50,6 @@ git_pull:
 	git pull
 	git stash pop
 	cd ..
-	cd plugins
-	git stash
-	git pull
-	git stash pop
-	cd ..
 	cd plugins-public
 	git stash
 	git pull
