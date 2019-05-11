@@ -14,35 +14,14 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
   private val consumerSecretConfig = "consumerSecret"
   private val accessTokenConfig = "accessToken"
   private val accessSecretConfig = "accessSecret"
-  private var running = false
+  override protected var requiredCredentialKeys: List[String] = List(consumerTokenConfig, consumerSecretConfig, accessSecretConfig, accessTokenConfig)
+  override protected var optionalCredentialKeys: List[String] = List()
   private var client: TwitterRestClient = _
 
   override def isRunning: Boolean = running
 
-  override def init(): Boolean = {
-    if (!running) {
-      logger info s"Starting connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
 
-      if (!areCredentialsSet) {
-        logger warn "No credentials set."
-        false
-      } else {
-        client = getClient()
-        running = true
-        logger info "Started connector."
-        true
-      }
-    }
-    else {
-      logger warn "Connector already running."
-      false
-    }
-
-  }
-
-  private def getClient(): TwitterRestClient = {
-
-    //if (credentials.isDefined) {
+  override def start(): Boolean = {
 
       val consumerToken = credentials.get.getValue(consumerTokenConfig)
       val accessToken = credentials.get.getValue(accessTokenConfig)
@@ -50,32 +29,17 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
       val consumerSecret = credentials.get.getValue(consumerSecretConfig)
       val accessSecret = credentials.get.getValue(accessSecretConfig)
 
-      // todo: refactor this
-      if (consumerToken.isEmpty) {
-        logger warn s"key '$consumerToken' not found in credentials for '$sourceIdentifier'."
-      }
-      if (consumerSecret.isEmpty) {
-        logger warn s"key '$consumerSecret' not found in credentials for '$sourceIdentifier'."
-      }
-      if (accessToken.isEmpty) {
-        logger warn s"key '$accessToken' not found in credentials for '$sourceIdentifier'."
-      }
-      if (accessSecret.isEmpty) {
-        logger warn s"key '$accessSecret' not found in credentials for '$sourceIdentifier'."
-      }
-
       //fixme: orNull may crash the Connector
-      new TwitterRestClient(ConsumerToken(consumerToken.orNull, consumerSecret.orNull), AccessToken(accessToken.orNull, accessSecret.orNull))
-
-//    }
+      client = new TwitterRestClient(ConsumerToken(consumerToken.orNull, consumerSecret.orNull), AccessToken(accessToken.orNull, accessSecret.orNull))
+      true
   }
 
 
   override def getUniqueTypeString: String = this.getClass.getName
 
-  /**
-    * {@inheritdoc}
-    */
-  override def shutdown(): Unit = logger info s"Stopped connector for source '$sourceIdentifier' of type '$getUniqueTypeString'."
 
+  /**
+    * This stops the activity of the connector, e.g. by closing the platform connection.
+    */
+  override def stop(): Boolean = { true }
 }
