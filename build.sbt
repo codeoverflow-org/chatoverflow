@@ -37,6 +37,7 @@ libraryDependencies ++= Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scalatra" %% "scalatra-json" % "2.6.3",
   "org.scalatra" %% "scalatra-swagger" % "2.6.5",
+  "com.danielasfregola" %% "twitter4s" % "6.0.1",
 )
 
 // JSON Lib (Jackson)
