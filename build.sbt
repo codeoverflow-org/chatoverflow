@@ -36,6 +36,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-webapp" % "9.4.7.v20170914" % "provided",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scalatra" %% "scalatra-json" % "2.6.3",
+  "com.danielasfregola" %% "twitter4s" % "6.0.1",
 )
 
 // JSON Lib (Jackson)
