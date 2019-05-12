@@ -1,5 +1,5 @@
 import javax.servlet.ServletContext
-import org.codeoverflow.chatoverflow.ui.web.rest.PluginExampleServerlet
+import org.codeoverflow.chatoverflow.ui.web.rest.DefaultServlet
 import org.scalatra._
 
 /**
@@ -7,6 +7,6 @@ import org.scalatra._
   */
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    context.mount(new PluginExampleServerlet(), "/*")
+    context.mount(new DefaultServlet(), "/*")
   }
 }

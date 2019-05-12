@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web
 
+import org.codeoverflow.chatoverflow.ChatOverflow
 import org.eclipse.jetty.servlet.DefaultServlet
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
@@ -7,9 +8,10 @@ import org.scalatra.servlet.ScalatraListener
 /**
   * The server runs on the specified port. Servlets are injected from the ScalatraBootstrap Class.
   *
-  * @param port the port to run on the localhost
+  * @param port         the port to run on the localhost
+  * @param chatOverflow the main chat overflow object
   */
-class Server(val port: Int) {
+class Server(val chatOverflow: ChatOverflow, val port: Int) {
 
   private val server = new org.eclipse.jetty.server.Server(port)
   private val context = new WebAppContext()

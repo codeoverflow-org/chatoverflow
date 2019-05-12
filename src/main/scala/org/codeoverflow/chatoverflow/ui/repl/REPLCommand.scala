@@ -6,4 +6,5 @@ package org.codeoverflow.chatoverflow.ui.repl
   * @param methodToCall the method to call, when the command is executed
   * @param description  the description to show when the user asks for help
   */
+@Deprecated
 case class REPLCommand(methodToCall: Unit => Unit, description: String)
