@@ -5,7 +5,7 @@ import com.danielasfregola.twitter4s.entities.enums.TweetMode
 import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken, Tweet}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
-import org.codeoverflow.chatoverflow.connector.actor.{Privileged, PrivilegedActor}
+import org.codeoverflow.chatoverflow.connector.actor.{Privileged, PrivilegedActor, TwitterActor}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -31,6 +31,7 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
   protected val timeout: Duration = 5 seconds
   override protected var requiredCredentialKeys: List[String] = List(consumerTokenConfig, consumerSecretConfig, accessSecretConfig, accessTokenConfig)
   override protected var optionalCredentialKeys: List[String] = List()
+  private val twitterActor = createActor[TwitterActor]()
   private val privilegedActor = createActor[PrivilegedActor]()
   private var client: TwitterRestClient = _
 
@@ -38,7 +39,8 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
 
 
   override def start(): Boolean = {
-    client = askActor[TwitterRestClient](privilegedActor, -1, getRestClient).get
+    client = askActor[TwitterRestClient](twitterActor, -1, (credentials.get.getValue(consumerTokenConfig).get,
+      credentials.get.getValue(accessTokenConfig).get, credentials.get.getValue(consumerSecretConfig).get,credentials.get.getValue(accessSecretConfig).get)
     true
   }
 
