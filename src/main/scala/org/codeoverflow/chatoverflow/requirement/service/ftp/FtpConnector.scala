@@ -6,7 +6,7 @@ import akka.stream.alpakka.ftp.{FtpCredentials, FtpFileSettings, FtpSettings, Ft
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
 
-import scala.util.matching.Regex.Match
+import scala.util.matching.Regex
 
 /**
   * The ftp connector connects to a ftp server to store or retrieve files.
@@ -19,17 +19,21 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
   private val password = "password"
   private val sshKey = "sshKeyString"
   private val sshKeyPassphrase = "sshKeyPassword"
-  override protected var requiredCredentialKeys = List()
+  override protected var requiredCredentialKeys = List[String]()
   override protected var optionalCredentialKeys = List(username, password, sshKey, sshKeyPassphrase)
 
-  val ftpProtocol = "ftp"
-  val ftpDomain = ""
-  val ftpPort = 21
+  var ftpProtocol = "ftp"
+  var ftpDomain = ""
+  var ftpPort = 21
 
   private def parseSourceIdentifier(sourceIdentifier: String): Boolean = {
     try {
-      val ftpSplitRegex = "^(ftp|ftps|sftp)://([a-zA-Z]+[.a-zA-Z]+):([0-9]+)$".r
-      ftpSplitRegex(ftpProtocol, ftpDomain, ftpPort) = sourceIdentifier
+      val ftpSplitRegex = new Regex("^(ftp|ftps|sftp)://([a-zA-Z]+[.a-zA-Z]+):([0-9]+)$")
+      val result = ftpSplitRegex.findFirstMatchIn(sourceIdentifier).get
+      ftpProtocol = result.group(0)
+      ftpDomain = result.group(1)
+      ftpPort = result.group(2).toInt
+
       true
     } catch {
       case e: Exception => {
@@ -45,7 +49,7 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
     var ftpPassword = ""
 
     if (credentials.get.exists(username)) {
-      if (credentials.get.getValue(username).get == "" || credentials.get.getValue(username).get == "anonymous") false {
+      if (!(credentials.get.getValue(username).get == "" || credentials.get.getValue(username).get == "anonymous")) {
         ftpUsername = credentials.get.getValue(username).get
       }
 
