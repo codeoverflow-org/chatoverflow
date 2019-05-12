@@ -2,22 +2,11 @@ package org.codeoverflow.chatoverflow.requirement.service.ftp
 
 import java.net.InetAddress
 
-<<<<<<< HEAD
-import akka.stream.IOResult
-import akka.stream.alpakka.ftp.{FtpCredentials, FtpSettings, FtpsSettings, RemoteFileSettings, SftpIdentity, SftpSettings}
-import akka.stream.scaladsl.{Framing, Source}
-import akka.util.ByteString
+import akka.stream.alpakka.ftp._
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
 import org.codeoverflow.chatoverflow.connector.actor.ftp.{FileReadActor, ReadFtp, ReadFtps, ReadSftp}
 
-import scala.concurrent.Future
-=======
-import akka.stream.alpakka.ftp.{FtpCredentials, FtpFileSettings, FtpSettings, FtpsSettings, SftpIdentity, SftpSettings}
-import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.connector.Connector
-
->>>>>>> fda12a4607d765cac7cb4dbee70b7b02c5e68458
 import scala.util.matching.Regex
 
 /**
