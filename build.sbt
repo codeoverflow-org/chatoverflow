@@ -53,11 +53,8 @@ libraryDependencies ++= Seq(
   //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
 )
 
-// Akka Actors
-libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.5.18",
-  //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
-)
+// https://mvnrepository.com/artifact/com.google.code.gson/gson
+libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 
 
 // ---------------------------------------------------------------------------------------------------------------------
