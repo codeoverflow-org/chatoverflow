@@ -1,6 +1,7 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
 import java.io.PrintWriter
+import java.nio.file.Paths
 
 import akka.actor.Actor
 
@@ -12,7 +13,7 @@ import scala.io.Source
 class FileSystemActor extends Actor {
 
   // TODO: Subject of change?
-  private val resourceFilePath = "src/main/resources/"
+  private val resourceFilePath = "src/main/resources"
 
   /**
     * Receives either LoadFile or SaveFile object, acts accordingly.
@@ -38,7 +39,8 @@ class FileSystemActor extends Actor {
   }
 
   private def fixPath(path: String): String = {
-    path.replace("../", "").replace("..\\", "")
+    val fixedPath = Paths.get("/", path).normalize()
+    fixedPath.toString
   }
 }
 
