@@ -2,10 +2,15 @@ package org.codeoverflow.chatoverflow.requirement.service.ftp
 
 import java.net.InetAddress
 
-import akka.stream.alpakka.ftp.{FtpCredentials, FtpFileSettings, FtpSettings, FtpsSettings, SftpIdentity, SftpSettings}
+import akka.stream.IOResult
+import akka.stream.alpakka.ftp.{FtpCredentials, FtpSettings, FtpsSettings, RemoteFileSettings, SftpIdentity, SftpSettings}
+import akka.stream.scaladsl.{Framing, Source}
+import akka.util.ByteString
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
+import org.codeoverflow.chatoverflow.connector.actor.ftp.{FileReadActor, ReadFtp, ReadFtps, ReadSftp}
 
+import scala.concurrent.Future
 import scala.util.matching.Regex
 
 /**
@@ -15,6 +20,8 @@ import scala.util.matching.Regex
   */
 
 class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
+  private val fileReadActor = createActor[FileReadActor]()
+  protected val timeout = 10
   private val username = "username"
   private val password = "password"
   private val sshKey = "sshKeyString"
@@ -25,6 +32,8 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
   var ftpProtocol = "ftp"
   var ftpDomain = ""
   var ftpPort = 21
+
+  var ftpFileSettings: RemoteFileSettings = _
 
   private def parseSourceIdentifier(sourceIdentifier: String): Boolean = {
     try {
@@ -65,14 +74,14 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
       val ftpCreds = FtpCredentials.create(ftpUsername, ftpPassword)
 
       if (ftpProtocol == "ftp") {
-        val ftpFileSettings = FtpSettings.apply(InetAddress.getByName(ftpDomain))
+        ftpFileSettings = FtpSettings.apply(InetAddress.getByName(ftpDomain))
           .withPort(ftpPort)
           .withBinary(true)
           .withPassiveMode(true)
           .withCredentials(ftpCreds)
 
       } else if (ftpProtocol == "ftps") {
-        val ftpFileSettings = FtpsSettings.apply(InetAddress.getByName(ftpDomain))
+        ftpFileSettings = FtpsSettings.apply(InetAddress.getByName(ftpDomain))
           .withPort(ftpPort)
           .withBinary(true)
           .withPassiveMode(true)
@@ -82,25 +91,43 @@ class FtpConnector(sourceIdentifier: String) extends Connector(sourceIdentifier)
         if (credentials.get.exists(sshKey)) {
           if (credentials.get.exists(sshKeyPassphrase)) {
             val sshCreds = SftpIdentity.createRawSftpIdentity(sshKey.getBytes(), sshKeyPassphrase.getBytes())
-            val ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
+            ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
               .withPort(ftpPort)
               .withCredentials(ftpCreds)
               .withSftpIdentity(sshCreds)
           } else {
             val sshCreds = SftpIdentity.createRawSftpIdentity(sshKey.getBytes())
-            val ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
+            ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
               .withPort(ftpPort)
               .withCredentials(ftpCreds)
               .withSftpIdentity(sshCreds)
           }
         } else {
-          val ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
+          ftpFileSettings = SftpSettings.apply(InetAddress.getByName(ftpDomain))
             .withPort(ftpPort)
             .withCredentials(ftpCreds)
         }
       }
     }
     true
+  }
+
+
+  def retrieveFilecontentFromPath(path: String, settings: Any): String = {
+    val ftpSource =
+      ftpProtocol match {
+        case "ftp" => askActor(fileReadActor, timeout, ReadFtp(path, settings.asInstanceOf[FtpSettings]))
+        case "sftp" => askActor(fileReadActor, timeout, ReadSftp(path, settings.asInstanceOf[SftpSettings]))
+        case "ftps" => askActor(fileReadActor, timeout, ReadFtps(path, settings.asInstanceOf[FtpsSettings]))
+      }
+
+    val splitter = Framing.delimiter(
+      ByteString(""),
+      maximumFrameLength = Int.MaxValue,
+      allowTruncation = false
+    )
+
+    val result: Source[ByteString, Future[IOResult]] = ftpSource.via(splitter)
   }
 
   override def stop(): Boolean = {
