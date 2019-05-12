@@ -35,6 +35,18 @@ class PluginInstanceServlet extends JsonServlet {
     returnSeq
   }
 
+  get("/:instanceName/log") {
+    val instanceName = params("instanceName")
+    val startIndex = if (params.isDefinedAt("startIndex")) Some(params("startIndex")) else None
+    val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+    val logMessages = pluginInstance.get.getPluginManager.getLogMessages
+
+    val index = startIndex.getOrElse("0")
+    val msg = logMessages.toArray.drop(Integer.parseInt(index))
+    msg.toSeq
+
+  }
+
   private def pluginInstanceToDTO(pluginInstance: org.codeoverflow.chatoverflow.instance.PluginInstance) = {
     PluginInstance(pluginInstance.instanceName, pluginInstance.getPluginTypeName,
       pluginInstance.getPluginTypeAuthor, pluginInstance.isRunning,
