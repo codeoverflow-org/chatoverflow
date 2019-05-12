@@ -17,6 +17,7 @@ import scala.collection.mutable.ListBuffer
 class TypeRegistry(requirementPackage: String) extends WithLogger {
   private val requirementTypes = mutable.Map[String, Class[_]]()
   private val connectorTypes = mutable.Map[String, Class[_ <: Connector]]()
+  private val requirementConnectorLinks = mutable.Map[String, String]()
 
   /**
     * Retrieves all registered requirement types (input / output / parameter).
@@ -24,6 +25,15 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
     * @return a seq of fully qualified type names
     */
   def getRequirementTypes: Map[String, Class[_]] = requirementTypes.toMap[String, Class[_]]
+
+  /**
+    * Returns the the complementary connector for a given api (interface) requirement type string.
+    *
+    * @param apiRequirementType the fully qualified type string from the api
+    * @return some connector type string or none
+    */
+  def getRequirementConnectorLink(apiRequirementType: String): Option[String] =
+    requirementConnectorLinks.get(apiRequirementType)
 
   /**
     * Retrieves all registered connector types.
@@ -66,6 +76,9 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
         // Note: Object is default value for parameter requirements which need no connector
         if (annotations(0).connector() != classOf[Connector]) {
           connectorTypes += annotations(0).connector().getName -> annotations(0).connector()
+
+          // Link requirement type and connector type
+          requirementConnectorLinks += annotations(0).impl().getName -> annotations(0).connector().getName
         }
       }
     })
@@ -98,7 +111,7 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
     * @param interfaceQualifiedName a fully qualified (java) interface name
     * @return a list of previously registered classes that match
     */
-  def getAllClassesImplementingRequirement(interfaceQualifiedName: String): List[Class[_]] = {
+  def getAllSubTypeInterfaces(interfaceQualifiedName: String): List[Class[_]] = {
     val possibleClasses = ListBuffer[Class[_]]()
 
     for (clazz <- requirementTypes.values) {

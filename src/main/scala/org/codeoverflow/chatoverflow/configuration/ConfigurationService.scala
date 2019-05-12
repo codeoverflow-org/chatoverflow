@@ -210,7 +210,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     for (connectorKey <- ConnectorRegistry.getConnectorKeys) yield {
       <connectorInstance>
         <connectorType>
-          {connectorKey.qualifiedConnectorName}
+          {connectorKey.qualifiedConnectorType}
         </connectorType>
         <sourceIdentifier>
           {connectorKey.sourceIdentifier}

@@ -93,7 +93,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
       val credentials = mutable.Map[(String, String), Credentials]()
 
       for (key <- ConnectorRegistry.getConnectorKeys) {
-        val connector = ConnectorRegistry.getConnector(key.sourceIdentifier, key.qualifiedConnectorName)
+        val connector = ConnectorRegistry.getConnector(key.sourceIdentifier, key.qualifiedConnectorType)
 
         if (connector.isEmpty) {
           // This should never happen
@@ -104,7 +104,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
           if (retrievedCredentials.isEmpty) {
             logger warn s"Credentials object for connector '${key.sourceIdentifier}' was empty."
           } else {
-            credentials += (key.qualifiedConnectorName, key.sourceIdentifier) -> retrievedCredentials.get
+            credentials += (key.qualifiedConnectorType, key.sourceIdentifier) -> retrievedCredentials.get
           }
         }
       }

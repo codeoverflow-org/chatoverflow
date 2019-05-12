@@ -4,7 +4,7 @@ import org.codeoverflow.chatoverflow.api.io.input.Input
 import org.codeoverflow.chatoverflow.api.io.output.Output
 import org.codeoverflow.chatoverflow.api.io.parameter.Parameter
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginType, RequirementTypes, Types}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
 
 import scala.collection.mutable.ListBuffer
 
@@ -24,6 +24,19 @@ class TypeServlet extends JsonServlet {
 
   get("/") {
     Types(getPluginTypes, getRequirementTypes, getConnectorTypes)
+  }
+
+  get("/requirement/getRequirementImplementation") {
+    val apiType = params("api")
+    val specificType = chatOverflow.typeRegistry.getRequirementImplementation(apiType)
+    val connector = chatOverflow.typeRegistry.getRequirementConnectorLink(apiType)
+    APIAndSpecificType(apiType, if (specificType.isDefined) specificType.get.getName else "",
+      connector.getOrElse(""), specificType.isDefined)
+  }
+
+  get("/requirement/getSubTypes") {
+    val apiType = params("api")
+    SubTypes(apiType, chatOverflow.typeRegistry.getAllSubTypeInterfaces(apiType).map(_.getName))
   }
 
   private def getPluginTypes = chatOverflow.pluginFramework.getPlugins.map(pluginType => PluginType(pluginType.getName, pluginType.getAuthor,

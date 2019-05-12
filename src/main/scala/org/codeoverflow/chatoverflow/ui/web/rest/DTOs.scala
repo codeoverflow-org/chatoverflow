@@ -16,4 +16,12 @@ object DTOs {
 
   case class RequirementTypes(input: Seq[String], output: Seq[String], parameter: Seq[String])
 
+  case class APIAndSpecificType(interface: String, implementation: String, connector: String, found: Boolean)
+
+  case class SubTypes(interface: String, subtypes: Seq[String])
+
+  case class ConnectorDetails(found: Boolean, sourceIdentifier: String, uniqueTypeString: String,
+                              areCredentialsSet: Boolean, isRunning: Boolean, requiredCredentialKeys: Seq[String],
+                              optionalCredentialKeys: Seq[String])
+
 }
