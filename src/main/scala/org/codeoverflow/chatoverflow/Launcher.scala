@@ -29,6 +29,7 @@ object Launcher extends WithLogger {
         case UI.GUI =>
           server = Some(new Server(chatOverflow, 2400))
           server.get.startAsync()
+          new REPL(chatOverflow).run()
         case UI.REPL => new REPL(chatOverflow).run()
       }
     }

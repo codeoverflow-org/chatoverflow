@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web
 
+import org.codeoverflow.chatoverflow.{ChatOverflow, Launcher}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
@@ -9,6 +10,7 @@ import org.scalatra.json.JacksonJsonSupport
   */
 abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport {
   protected implicit val jsonFormats: Formats = DefaultFormats
+  protected val chatOverflow: ChatOverflow = Launcher.server.get.chatOverflow
 
   before() {
     contentType = formats("json")

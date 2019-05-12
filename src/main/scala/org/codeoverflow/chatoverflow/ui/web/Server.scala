@@ -15,6 +15,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) {
 
   private val server = new org.eclipse.jetty.server.Server(port)
   private val context = new WebAppContext()
+  context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
   context setContextPath "/"
   context.setResourceBase("/")
   context.addEventListener(new ScalatraListener)

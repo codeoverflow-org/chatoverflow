@@ -19,6 +19,20 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
   private val connectorTypes = mutable.Map[String, Class[_ <: Connector]]()
 
   /**
+    * Retrieves all registered requirement types (input / output / parameter).
+    *
+    * @return a seq of fully qualified type names
+    */
+  def getRequirementTypes: Map[String, Class[_]] = requirementTypes.toMap[String, Class[_]]
+
+  /**
+    * Retrieves all registered connector types.
+    *
+    * @return a seq of fully qualified type names
+    */
+  def getConnectorTypes: Seq[String] = connectorTypes.keys.toSeq
+
+  /**
     * Clears the type registry, then scans the classpath for classes with the Impl-Annotation.
     * Requirements are added to the requirement-map, found connectors the connector-map
     */
