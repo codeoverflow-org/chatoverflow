@@ -49,8 +49,8 @@ class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with Twit
     val subscriber = event.getV3Tags.get("subscriber") == "1"
     val moderator = event.getV3Tags.get("mod") == "1"
     val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
-    val premium = event.getV3Tags.get("badges").contains("premium/1")
-    val author = new TwitchChatMessageAuthor(event.getUser.getNick, broadcaster, moderator, subscriber, premium)
+    val turbo = event.getV3Tags.get("badges").contains("turbo/1")
+    val author = new TwitchChatMessageAuthor(event.getUser.getNick,color, broadcaster, moderator, subscriber, turbo)
     val channel = new Channel(event.getChannelSource)
     val emoticons = new java.util.ArrayList[ChatEmoticon]()
     wholeEmoticonRegex.findAllMatchIn(event.getV3Tags.get("emotes")).foreach(matchedElement => {
@@ -62,7 +62,7 @@ class TwitchChatInputImpl extends Connection[chat.TwitchChatConnector] with Twit
         emoticons.add(emoticon)
       })
     })
-    val msg = new TwitchChatMessage(author, message, event.getTimestamp, channel, emoticons, color)
+    val msg = new TwitchChatMessage(author, message, event.getTimestamp, channel, emoticons)
 
     messageHandler.foreach(consumer => consumer.accept(msg))
     messages += msg

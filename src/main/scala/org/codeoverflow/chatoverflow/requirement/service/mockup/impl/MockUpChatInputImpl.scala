@@ -4,7 +4,7 @@ import java.util.Calendar
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.dto.chat.ChatMessage
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, ChatMessage, ChatMessageAuthor}
 import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.Connection
@@ -18,28 +18,28 @@ class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpCha
 
   // TODO: Rewrite code to fit to the new framework style using actors, a new parser, etc.
 
-  private val messages: ListBuffer[ChatMessage] = ListBuffer[ChatMessage]()
-  private val privateMessages: ListBuffer[ChatMessage] = ListBuffer[ChatMessage]()
+  private val messages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
+  private val privateMessages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
 
-  private val messageHandler = ListBuffer[Consumer[ChatMessage]]()
-  private val privateMessageHandler = ListBuffer[Consumer[ChatMessage]]()
+  private val messageHandler = ListBuffer[Consumer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]]()
+  private val privateMessageHandler = ListBuffer[Consumer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]]()
 
-  override def getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage] = {
+  override def getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = {
     val currentTime = Calendar.getInstance.getTimeInMillis
 
     messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
   }
 
 
-  override def getLastPrivateMessages(lastMilliseconds: Long): java.util.List[ChatMessage] = {
+  override def getLastPrivateMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = {
     val currentTime = Calendar.getInstance.getTimeInMillis
 
     privateMessages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
   }
 
-  override def registerMessageHandler(handler: Consumer[ChatMessage]): Unit = messageHandler += handler
+  override def registerMessageHandler(handler: Consumer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]): Unit = messageHandler += handler
 
-  override def registerPrivateMessageHandler(handler: Consumer[ChatMessage]): Unit = privateMessageHandler += handler
+  override def registerPrivateMessageHandler(handler: Consumer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]): Unit = privateMessageHandler += handler
 
   override def init(): Boolean = {
     if (sourceConnector.isDefined) {
@@ -52,7 +52,7 @@ class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpCha
     }
   }
 
-  private def onMessage(msg: ChatMessage): Unit = {
+  private def onMessage(msg: ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]): Unit = {
     messageHandler.foreach(consumer => consumer.accept(msg))
     messages += msg
   }
