@@ -1,11 +1,9 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
-import java.io.PrintWriter
-
 import akka.actor.Actor
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.enums.TweetMode
-import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken, Tweet}
+import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -25,13 +23,13 @@ class TwitterActor extends Actor {
     case GetRestClient(consumerToken, accessToken, consumerSecret, accessSecret) => try {
       sender ! TwitterRestClient(ConsumerToken(consumerToken, consumerSecret), AccessToken(accessToken, accessSecret))
     } catch {
-      case _: Exception => None
+      case _: Exception => sender ! None
     }
 
     case GetTimeline(client, timeout) =>
       Await.result(client.homeTimeline(count = 1, tweet_mode = TweetMode.Extended), timeout).data.headOption match {
-        case Some(t) => Option(t.text)
-        case None => None
+        case Some(t) => {sender ! Option(t.text)}
+        case None => {sender ! "Test"}
       }
     case SendTweet(client, status, timeout) =>
       Await.result(client.createTweet(status), timeout)

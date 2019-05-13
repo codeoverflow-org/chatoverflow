@@ -1,13 +1,10 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitter
 
 import com.danielasfregola.twitter4s.TwitterRestClient
-import com.danielasfregola.twitter4s.entities.enums.TweetMode
-import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken, Tweet}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
-import org.codeoverflow.chatoverflow.connector.actor.{GetRestClient, GetTimeline, Privileged, PrivilegedActor, SendTweet, TwitterActor}
+import org.codeoverflow.chatoverflow.connector.actor.{GetRestClient, GetTimeline, SendTweet, TwitterActor}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 /*
@@ -38,7 +35,7 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
 
 
   override def start(): Boolean = {
-    client = askActor[TwitterRestClient](twitterActor, -1, GetRestClient(credentials.get.getValue(consumerTokenConfig).get,
+    client = askActor[TwitterRestClient](twitterActor, 5, GetRestClient(credentials.get.getValue(consumerTokenConfig).get,
       credentials.get.getValue(accessTokenConfig).get, credentials.get.getValue(consumerSecretConfig).get, credentials.get.getValue(accessSecretConfig).get)).get
     true
   }
