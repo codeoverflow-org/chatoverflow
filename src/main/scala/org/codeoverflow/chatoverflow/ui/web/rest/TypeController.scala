@@ -8,7 +8,7 @@ import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
 
 import scala.collection.mutable.ListBuffer
 
-class TypeServlet extends JsonServlet {
+class TypeController extends JsonServlet {
 
   get("/plugin/") {
     getPluginTypes

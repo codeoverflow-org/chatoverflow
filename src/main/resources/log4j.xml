@@ -19,8 +19,8 @@
     <category name="org.eclipse.jetty">
         <priority value="off"/>
     </category>
-    <category name="org.codeoverflow.chatoverflow.ui.web.OpenAPIServlet">
-        <priority value="on"/>
+    <category name="org.codeoverflow.chatoverflow.ui.web">
+        <priority value="off"/>
     </category>
 
 

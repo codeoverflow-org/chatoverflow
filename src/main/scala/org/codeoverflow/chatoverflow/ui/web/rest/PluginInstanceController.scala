@@ -8,7 +8,7 @@ import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, Requireme
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-class PluginInstanceServlet extends JsonServlet {
+class PluginInstanceController extends JsonServlet {
 
   get("/") {
     chatOverflow.pluginInstanceRegistry.getAllPluginInstances.map(pluginInstanceToDTO)

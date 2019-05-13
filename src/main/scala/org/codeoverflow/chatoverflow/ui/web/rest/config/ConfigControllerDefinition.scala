@@ -4,7 +4,7 @@ import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.ConfigInfo
 import org.scalatra.swagger.SwaggerSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
-trait ConfigServletDefinition extends SwaggerSupport {
+trait ConfigControllerDefinition extends SwaggerSupport {
 
   val getConfig: OperationBuilder =
     (apiOperation[ConfigInfo]("getConfig")
