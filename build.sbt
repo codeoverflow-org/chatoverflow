@@ -36,6 +36,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-webapp" % "9.4.7.v20170914" % "provided",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scalatra" %% "scalatra-json" % "2.6.3",
+  "org.scalatra" %% "scalatra-swagger" % "2.6.5",
 )
 
 // JSON Lib (Jackson)
@@ -53,7 +54,7 @@ libraryDependencies ++= Seq(
   //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
 )
 
-// https://mvnrepository.com/artifact/com.google.code.gson/gson
+// Google GSON
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 
 

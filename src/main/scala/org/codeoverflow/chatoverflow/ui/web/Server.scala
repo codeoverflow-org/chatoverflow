@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow.ui.web
 
 import org.codeoverflow.chatoverflow.ChatOverflow
-import org.eclipse.jetty.servlet.DefaultServlet
+import org.codeoverflow.chatoverflow.ui.web.rest.ConfigServlet
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -19,7 +19,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) {
   context setContextPath "/"
   context.setResourceBase("/")
   context.addEventListener(new ScalatraListener)
-  context.addServlet(classOf[DefaultServlet], "/")
+  context.addServlet(classOf[ConfigServlet], "/")
 
   server.setHandler(context)
 
@@ -27,6 +27,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) {
     * Starts the server in a new thread.
     */
   def startAsync(): Unit = {
+    // TODO: Enable shutting down the server
     new Thread(() => startServer()).start()
   }
 

@@ -27,11 +27,25 @@ object Launcher extends WithLogger {
       // Launch UI
       config.ui match {
         case UI.GUI =>
-          server = Some(new Server(chatOverflow, 2400))
-          server.get.startAsync()
-          new REPL(chatOverflow).run()
-        case UI.REPL => new REPL(chatOverflow).run()
+          startServer(chatOverflow)
+        case UI.REPL =>
+          startREPL(chatOverflow)
+        case UI.BOTH =>
+          startServer(chatOverflow)
+          startREPL(chatOverflow)
       }
     }
+  }
+
+  private def startServer(chatOverflow: ChatOverflow): Unit = {
+    if (server.isEmpty) {
+      // TODO: Enable custom port support
+      server = Some(new Server(chatOverflow, 2400))
+      server.get.startAsync()
+    }
+  }
+
+  private def startREPL(chatOverflow: ChatOverflow): Unit = {
+    new REPL(chatOverflow).run()
   }
 }

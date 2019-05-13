@@ -55,11 +55,11 @@ object CLI {
   case class Config(pluginFolderPath: String = "plugins/",
                     configFolderPath: String = "config/",
                     requirementPackage: String = "org.codeoverflow.chatoverflow.requirement",
-                    ui: UI = UI.GUI)
+                    ui: UI = UI.BOTH)
 
   object UI extends Enumeration {
     type UI = Value
-    val GUI, REPL = Value
+    val GUI, REPL, BOTH = Value
   }
 
 }
