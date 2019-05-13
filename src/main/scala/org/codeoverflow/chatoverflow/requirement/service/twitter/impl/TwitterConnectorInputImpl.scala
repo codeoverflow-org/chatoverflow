@@ -29,7 +29,7 @@ class TwitterConnectorInputImpl extends Connection[twitter.TwitterConnector] wit
   }
 
   override def getTimeLine: String =
-    sourceConnector.get.getTimeline(sourceConnector.get.getClient, "5 seconds".asInstanceOf[Duration]).get
+    sourceConnector.get.getTimeline(sourceConnector.get.getClient, 5 seconds).get
 
   override def sendTweet(status: String) =
     sourceConnector.get.sendTweet(sourceConnector.get.getClient, timeout, status)
