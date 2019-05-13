@@ -1,5 +1,6 @@
 import javax.servlet.ServletContext
-import org.codeoverflow.chatoverflow.ui.web.rest.{ConfigServlet, ConnectorServlet, PluginInstanceServlet, TypeServlet}
+import org.codeoverflow.chatoverflow.ui.web.rest.config.ConfigServlet
+import org.codeoverflow.chatoverflow.ui.web.rest.{ConnectorServlet, PluginInstanceServlet, TypeServlet}
 import org.codeoverflow.chatoverflow.ui.web.{CodeOverflowSwagger, OpenAPIServlet}
 import org.scalatra._
 

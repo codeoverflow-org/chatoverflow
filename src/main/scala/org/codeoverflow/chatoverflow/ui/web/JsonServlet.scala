@@ -13,6 +13,13 @@ abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport {
   protected val chatOverflow: ChatOverflow = Launcher.server.get.chatOverflow
 
   before() {
+    // Sets the return format to json only
     contentType = formats("json")
+
+    // Allows cross origin requests
+    options("/*") {
+      response.setHeader(
+        "Access-Control-Allow-Origin", "*")
+    }
   }
 }

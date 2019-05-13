@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow.ui.web
 
 import org.codeoverflow.chatoverflow.ChatOverflow
-import org.codeoverflow.chatoverflow.ui.web.rest.ConfigServlet
+import org.eclipse.jetty.servlet.ServletHandler.Default404Servlet
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -19,7 +19,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) {
   context setContextPath "/"
   context.setResourceBase("/")
   context.addEventListener(new ScalatraListener)
-  context.addServlet(classOf[ConfigServlet], "/")
+  context.addServlet(classOf[Default404Servlet], "/")
 
   server.setHandler(context)
 

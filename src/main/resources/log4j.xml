@@ -20,7 +20,7 @@
         <priority value="off"/>
     </category>
     <category name="org.codeoverflow.chatoverflow.ui.web.OpenAPIServlet">
-        <priority value="off"/>
+        <priority value="on"/>
     </category>
 
 
