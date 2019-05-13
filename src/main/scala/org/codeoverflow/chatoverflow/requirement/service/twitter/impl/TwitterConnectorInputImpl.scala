@@ -10,10 +10,12 @@ import org.codeoverflow.chatoverflow.requirement.service.twitter
 import org.codeoverflow.chatoverflow.requirement.Connection
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 @Impl(impl = classOf[TwitterTweetInput], connector = classOf[twitter.TwitterConnector])
 class TwitterConnectorInputImpl extends Connection[twitter.TwitterConnector] with TwitterTweetInput with WithLogger {
-
+  private val timeout: Duration = 5 seconds
   private val tweets: ListBuffer[Tweet] = ListBuffer[Tweet]()
 
   override def init(): Boolean = {
@@ -26,7 +28,10 @@ class TwitterConnectorInputImpl extends Connection[twitter.TwitterConnector] wit
     setSourceConnector(value)
   }
 
-  override def getTimeLine: String = sourceConnector.get.getTimeline.orNull
+  override def getTimeLine: String =
+    sourceConnector.get.getTimeline(sourceConnector.get.getClient, "5 seconds".asInstanceOf[Duration]).get
 
-  override def sendTweet(status: String): lang.Boolean = sourceConnector.get.sendTweet(status)
+  override def sendTweet(status: String) =
+    sourceConnector.get.sendTweet(sourceConnector.get.getClient, timeout, status)
+
 }

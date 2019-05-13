@@ -5,7 +5,7 @@ import com.danielasfregola.twitter4s.entities.enums.TweetMode
 import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken, Tweet}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
-import org.codeoverflow.chatoverflow.connector.actor.{Privileged, PrivilegedActor, TwitterActor}
+import org.codeoverflow.chatoverflow.connector.actor.{GetRestClient, GetTimeline, Privileged, PrivilegedActor, SendTweet, TwitterActor}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -32,40 +32,23 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
   override protected var requiredCredentialKeys: List[String] = List(consumerTokenConfig, consumerSecretConfig, accessSecretConfig, accessTokenConfig)
   override protected var optionalCredentialKeys: List[String] = List()
   private val twitterActor = createActor[TwitterActor]()
-  private val privilegedActor = createActor[PrivilegedActor]()
   private var client: TwitterRestClient = _
 
   override def isRunning: Boolean = running
 
 
   override def start(): Boolean = {
-    client = askActor[TwitterRestClient](twitterActor, -1, (credentials.get.getValue(consumerTokenConfig).get,
-      credentials.get.getValue(accessTokenConfig).get, credentials.get.getValue(consumerSecretConfig).get,credentials.get.getValue(accessSecretConfig).get)
+    client = askActor[TwitterRestClient](twitterActor, -1, GetRestClient(credentials.get.getValue(consumerTokenConfig).get,
+      credentials.get.getValue(accessTokenConfig).get, credentials.get.getValue(consumerSecretConfig).get, credentials.get.getValue(accessSecretConfig).get)).get
     true
   }
 
-  private def getRestClient: TwitterRestClient = {
-    val consumerToken = credentials.get.getValue(consumerTokenConfig).get
-    val accessToken = credentials.get.getValue(accessTokenConfig).get
+  def getTimeline(client: TwitterRestClient, timeout: Duration): Option[String] =
+    askActor(twitterActor, 5, GetTimeline(client, timeout))
 
-    val consumerSecret = credentials.get.getValue(consumerSecretConfig).get
-    val accessSecret = credentials.get.getValue(accessSecretConfig).get
+  def sendTweet(client: TwitterRestClient, timeout: Duration, status: String) : Boolean = askActor(twitterActor, 5, SendTweet(client, status, timeout)).get
 
-    TwitterRestClient(ConsumerToken(consumerToken, consumerSecret), AccessToken(accessToken, accessSecret))
-  }
-
-  def getTimeline: Option[String] = askActor(privilegedActor, 5, {
-    Await.result(client.homeTimeline(count = 1, tweet_mode = TweetMode.Extended), timeout).data.headOption match {
-      case Some(t) => Option(t.text)
-      case None => None
-    }
-  })
-
-  def sendTweet(status: String) = {
-    Await.result(client.createTweet(status), timeout)
-    true
-  }
-
+  def getClient : TwitterRestClient = client
 
   override def getUniqueTypeString: String = this.getClass.getName
 
