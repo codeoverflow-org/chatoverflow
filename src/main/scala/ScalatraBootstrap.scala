@@ -1,7 +1,8 @@
 import javax.servlet.ServletContext
 import org.codeoverflow.chatoverflow.ui.web.rest.config.ConfigController
 import org.codeoverflow.chatoverflow.ui.web.rest.connector.ConnectorController
-import org.codeoverflow.chatoverflow.ui.web.rest.{PluginInstanceController, TypeController}
+import org.codeoverflow.chatoverflow.ui.web.rest.plugin.PluginInstanceController
+import org.codeoverflow.chatoverflow.ui.web.rest.types.TypeController
 import org.codeoverflow.chatoverflow.ui.web.{CodeOverflowSwagger, OpenAPIServlet}
 import org.scalatra._
 

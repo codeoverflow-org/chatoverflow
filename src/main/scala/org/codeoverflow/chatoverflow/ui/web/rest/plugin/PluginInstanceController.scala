@@ -1,27 +1,28 @@
-package org.codeoverflow.chatoverflow.ui.web.rest
+package org.codeoverflow.chatoverflow.ui.web.rest.plugin
 
 import org.codeoverflow.chatoverflow.api.io
 import org.codeoverflow.chatoverflow.api.plugin.configuration
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
 import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, Requirement}
+import org.scalatra.swagger.Swagger
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-class PluginInstanceController extends JsonServlet {
+class PluginInstanceController(implicit val swagger: Swagger) extends JsonServlet with PluginInstanceControllerDefinition {
 
-  get("/") {
+  get("/", operation(getInstances)) {
     chatOverflow.pluginInstanceRegistry.getAllPluginInstances.map(pluginInstanceToDTO)
 
   }
 
-  get("/:instanceName") {
+  get("/:instanceName", operation(getInstance)) {
     val instanceName = params("instanceName")
 
     chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName).map(pluginInstanceToDTO)
   }
 
-  get("/:instanceName/requirements") {
+  get("/:instanceName/requirements", operation(getRequirements)) {
     val instanceName = params("instanceName")
     val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
     val requirements = pluginInstance.get.getRequirements.getRequirementMap
@@ -32,10 +33,10 @@ class PluginInstanceController extends JsonServlet {
       requirement.asInstanceOf[configuration.Requirement[io.Serializable]].get().serialize(),
       requirement.getTargetType.getName))
 
-    returnSeq
+    returnSeq.toList
   }
 
-  get("/:instanceName/log") {
+  get("/:instanceName/log", operation(getLog)) {
     val instanceName = params("instanceName")
     val startIndex = if (params.isDefinedAt("startIndex")) Some(params("startIndex")) else None
     val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)

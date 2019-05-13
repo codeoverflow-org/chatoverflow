@@ -111,10 +111,10 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
     * @param interfaceQualifiedName a fully qualified (java) interface name
     * @return a list of previously registered classes that match
     */
-  def getAllSubTypeInterfaces(interfaceQualifiedName: String): List[Class[_]] = {
-    val possibleClasses = ListBuffer[Class[_]]()
+  def getAllSubTypeInterfaces(interfaceQualifiedName: String): List[String] = {
+    val possibleClasses = ListBuffer[String]()
 
-    for (clazz <- requirementTypes.values) {
+    for ((apiType, clazz) <- requirementTypes) {
 
       // Get all higher interfaces recursively
       val allInterfaces = ListBuffer[Class[_]]()
@@ -122,7 +122,7 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
 
       // Match fully qualified interface type names
       if (allInterfaces.exists(interface => interface.getName.equals(interfaceQualifiedName))) {
-        possibleClasses += clazz
+        possibleClasses += apiType
       }
     }
 

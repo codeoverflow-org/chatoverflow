@@ -1,32 +1,33 @@
-package org.codeoverflow.chatoverflow.ui.web.rest
+package org.codeoverflow.chatoverflow.ui.web.rest.types
 
 import org.codeoverflow.chatoverflow.api.io.input.Input
 import org.codeoverflow.chatoverflow.api.io.output.Output
 import org.codeoverflow.chatoverflow.api.io.parameter.Parameter
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
 import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
+import org.scalatra.swagger.Swagger
 
 import scala.collection.mutable.ListBuffer
 
-class TypeController extends JsonServlet {
+class TypeController(implicit val swagger: Swagger) extends JsonServlet with TypesControllerDefinition {
 
-  get("/plugin/") {
+  get("/plugin/", operation(getPluginType)) {
     getPluginTypes
   }
 
-  get("/requirement/") {
+  get("/requirement/", operation(getRequirementType)) {
     getRequirementTypes
   }
 
-  get("/connector/") {
+  get("/connector/", operation(getConnectorType)) {
     getConnectorTypes
   }
 
-  get("/") {
+  get("/", operation(getTypes)) {
     Types(getPluginTypes, getRequirementTypes, getConnectorTypes)
   }
 
-  get("/requirement/getRequirementImplementation") {
+  get("/requirement/getRequirementImplementation", operation(getReqImpl)) {
     val apiType = params("api")
     val specificType = chatOverflow.typeRegistry.getRequirementImplementation(apiType)
     val connector = chatOverflow.typeRegistry.getRequirementConnectorLink(apiType)
@@ -34,9 +35,9 @@ class TypeController extends JsonServlet {
       connector.getOrElse(""), specificType.isDefined)
   }
 
-  get("/requirement/getSubTypes") {
+  get("/requirement/getSubTypes", operation(getSubTypes)) {
     val apiType = params("api")
-    SubTypes(apiType, chatOverflow.typeRegistry.getAllSubTypeInterfaces(apiType).map(_.getName))
+    SubTypes(apiType, chatOverflow.typeRegistry.getAllSubTypeInterfaces(apiType))
   }
 
   private def getPluginTypes = chatOverflow.pluginFramework.getPlugins.map(pluginType => PluginType(pluginType.getName, pluginType.getAuthor,
