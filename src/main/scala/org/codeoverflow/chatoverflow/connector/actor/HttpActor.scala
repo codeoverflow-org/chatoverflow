@@ -5,6 +5,7 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
+import org.codeoverflow.chatoverflow.connector.actor.HttpActor.GetRequest
 
 /**
   * The HttpActor can be used to handle http requests.
@@ -39,13 +40,17 @@ class HttpActor extends Actor {
   }
 }
 
-/**
-  * A get request consists of a URI at least. Http (e.g. header) settings and query parameters are optional.
-  *
-  * @param uri         the web address incl. the protocol you want to request
-  * @param settings    a function manipulating the generated HttpGet-Element, e.g. by adding header-entries
-  * @param queryParams the query params as sequence of key-value-tuple
-  */
-case class GetRequest(uri: String,
-                      settings: HttpGet => HttpGet = httpGet => httpGet,
-                      queryParams: Seq[(String, String)] = Seq[(String, String)]()) extends ActorMessage
+object HttpActor {
+
+  /**
+    * A get request consists of a URI at least. Http (e.g. header) settings and query parameters are optional.
+    *
+    * @param uri         the web address incl. the protocol you want to request
+    * @param settings    a function manipulating the generated HttpGet-Element, e.g. by adding header-entries
+    * @param queryParams the query params as sequence of key-value-tuple
+    */
+  case class GetRequest(uri: String,
+                        settings: HttpGet => HttpGet = httpGet => httpGet,
+                        queryParams: Seq[(String, String)] = Seq[(String, String)]()) extends ActorMessage
+
+}
