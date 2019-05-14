@@ -70,8 +70,8 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
 
     // Check if running
     if (running) {
-      logger warn s"Unable to start $connectorSourceAndType. Already running!"
-      false
+      logger info s"Unable to start $connectorSourceAndType. Already running!"
+      true
     } else {
 
       // Check if credentials object exists
