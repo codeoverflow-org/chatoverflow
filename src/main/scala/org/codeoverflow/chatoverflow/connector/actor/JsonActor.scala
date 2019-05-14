@@ -27,4 +27,4 @@ class JsonActor extends Actor {
   * @param json  the serialized json string
   * @param parse a function what should happen with the parsed json. Return type is any
   */
-case class ParseJSON(json: String, parse: JsonObject => Any)
+case class ParseJSON(json: String, parse: JsonObject => Any) extends ActorMessage

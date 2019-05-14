@@ -48,4 +48,4 @@ class HttpActor extends Actor {
   */
 case class GetRequest(uri: String,
                       settings: HttpGet => HttpGet = httpGet => httpGet,
-                      queryParams: Seq[(String, String)] = Seq[(String, String)]())
+                      queryParams: Seq[(String, String)] = Seq[(String, String)]()) extends ActorMessage

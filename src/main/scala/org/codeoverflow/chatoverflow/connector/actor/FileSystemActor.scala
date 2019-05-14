@@ -49,7 +49,7 @@ class FileSystemActor extends Actor {
   *
   * @param pathInResources the relative Path in the resource folder
   */
-case class LoadFile(pathInResources: String)
+case class LoadFile(pathInResources: String) extends ActorMessage
 
 /**
   * Send a SaveFile-object to the FileSystemActor to save a file with given content.
@@ -57,4 +57,4 @@ case class LoadFile(pathInResources: String)
   * @param pathInResources the relative Path in the resource folder
   * @param content         the content to save
   */
-case class SaveFile(pathInResources: String, content: String)
+case class SaveFile(pathInResources: String, content: String) extends ActorMessage

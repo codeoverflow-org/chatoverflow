@@ -6,6 +6,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.connector.actor.ActorMessage
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, TimeoutException}
@@ -150,7 +151,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     * @tparam T result type of the actor answer
     * @return the answer of the actor if he answers in time. else: None
     */
-  def askActor[T](actor: ActorRef, timeOutInSeconds: Int, message: Any): Option[T] = {
+  def askActor[T](actor: ActorRef, timeOutInSeconds: Int, message: ActorMessage): Option[T] = {
     implicit val timeout: Timeout = Timeout(timeOutInSeconds seconds)
     val future = actor ? message
     try {
@@ -184,7 +185,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
       * @tparam T result type of the actor answer
       * @return the answer of the actor if he answers in time. else: None
       */
-    def ??[T](timeOutInSeconds: Int)(message: Any): Option[T] = {
+    def ??[T](timeOutInSeconds: Int)(message: ActorMessage): Option[T] = {
       askActor[T](actorRef, timeOutInSeconds, message)
     }
   }

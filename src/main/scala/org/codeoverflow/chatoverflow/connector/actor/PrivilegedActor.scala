@@ -24,4 +24,4 @@ class PrivilegedActor extends Actor {
   * @param function a function of type T => Any
   * @param args     the args for the function of type T
   */
-case class Privileged(function: Any => Any, args: Any)
+case class Privileged(function: Any => Any, args: Any) extends ActorMessage
