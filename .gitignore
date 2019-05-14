@@ -33,6 +33,7 @@ project/plugins/project/
 /bin/
 /lib/
 /deploy/
+/wiki/
 
 # Plugin Data
 data/
