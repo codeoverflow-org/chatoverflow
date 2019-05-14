@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.connector
 
+
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -16,7 +17,7 @@ import scala.reflect.ClassTag
   * @param sourceIdentifier the unique source identifier (e.g. a login name), the connector should work with
   */
 abstract class Connector(val sourceIdentifier: String) extends WithLogger {
-  private[this] val actorSystem = ActorSystem(s"${getUniqueTypeString.replace('.', '-')}")
+  private[this] val actorSystem: ActorSystem = ActorSystem(s"${getUniqueTypeString.replace('.', '-')}")
   private val connectorSourceAndType = s"connector '$sourceIdentifier' of type '$getUniqueTypeString'"
   protected var credentials: Option[Credentials] = None
   protected var requiredCredentialKeys: List[String]
@@ -167,4 +168,25 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     */
   protected def createActor[T <: Actor : ClassTag](): ActorRef =
     actorSystem.actorOf(Props(implicitly[ClassTag[T]].runtimeClass))
+
+  implicit def toRichActorRef(actorRef: ActorRef): RichActorRef = new RichActorRef(actorRef)
+
+  class RichActorRef(actorRef: ActorRef) {
+
+    /**
+      * Syntactic sugar for the askActor()-function. Works like this:
+      * <code>anActor.??[String](5) {
+      * // message goes here
+      * }</code>
+      *
+      * @param timeOutInSeconds the timeout to calculate, request, ... for the actor
+      * @param message          some message to pass to the actor. Can be anything.
+      * @tparam T result type of the actor answer
+      * @return the answer of the actor if he answers in time. else: None
+      */
+    def ??[T](timeOutInSeconds: Int)(message: Any): Option[T] = {
+      askActor[T](actorRef, timeOutInSeconds, message)
+    }
+  }
+
 }
