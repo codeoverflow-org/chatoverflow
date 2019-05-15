@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
 @Impl(impl = classOf[MockUpChatInput], connector = classOf[MockUpChatConnector])
 class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpChatInput with WithLogger {
 
-  // TODO: Rewrite code to fit to the new framework style using actors, a new parser, etc.
+  // TODO: Rewrite code to fit to the new framework style using actors, a new parser, extend InputImpl etc.
 
   private val messages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
   private val privateMessages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
