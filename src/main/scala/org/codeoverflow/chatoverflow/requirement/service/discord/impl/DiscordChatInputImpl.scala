@@ -1,17 +1,16 @@
 package org.codeoverflow.chatoverflow.requirement.service.discord.impl
 
-import java.awt.Color
 import java.util
 import java.util.Calendar
 import java.util.function.{BiConsumer, Consumer}
 
-import net.dv8tion.jda.api.entities.{ChannelType, Message, MessageType, PrivateChannel, TextChannel}
+import net.dv8tion.jda.api.entities._
 import net.dv8tion.jda.api.events.message.{MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.discord.{DiscordChannel, DiscordChatCustomEmoticon, DiscordChatMessage, DiscordChatMessageAuthor}
 import org.codeoverflow.chatoverflow.api.io.input.chat.DiscordChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.Connection
+import org.codeoverflow.chatoverflow.requirement.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.discord.DiscordChatConnector
 
 import scala.collection.JavaConverters._
@@ -21,7 +20,7 @@ import scala.collection.mutable.ListBuffer
   * This is the implementation of the discord chat input, using the discord connector.
   */
 @Impl(impl = classOf[DiscordChatInput], connector = classOf[DiscordChatConnector])
-class DiscordChatInputImpl extends Connection[DiscordChatConnector] with DiscordChatInput with WithLogger {
+class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordChatInput with WithLogger {
 
   private var channelId = getSourceIdentifier
   private val messages: ListBuffer[DiscordChatMessage] = ListBuffer[DiscordChatMessage]()
@@ -33,19 +32,12 @@ class DiscordChatInputImpl extends Connection[DiscordChatConnector] with Discord
   private val privateMessageEditHandler = ListBuffer[BiConsumer[DiscordChatMessage, DiscordChatMessage]]()
   private val privateMessageDeleteHandler = ListBuffer[Consumer[DiscordChatMessage]]()
 
-  override def init(): Boolean = {
-    if (sourceConnector.isDefined) {
-      if (sourceConnector.get.isRunning || sourceConnector.get.init()) {
-        setChannel(getSourceIdentifier)
-        sourceConnector.get.addMessageReceivedListener(onMessage)
-        sourceConnector.get.addMessageUpdateListener(onMessageUpdate)
-        sourceConnector.get.addMessageDeleteListener(onMessageDelete)
-        true
-      } else false
-    } else {
-      logger warn "Source connector not set."
-      false
-    }
+  override def start(): Boolean = {
+    setChannel(getSourceIdentifier)
+    sourceConnector.get.addMessageReceivedListener(onMessage)
+    sourceConnector.get.addMessageUpdateListener(onMessageUpdate)
+    sourceConnector.get.addMessageDeleteListener(onMessageDelete)
+    true
   }
 
   /**
@@ -150,12 +142,6 @@ class DiscordChatInputImpl extends Connection[DiscordChatConnector] with Discord
   }
 
   override def getChannelId: String = channelId
-
-  override def serialize(): String = getSourceIdentifier
-
-  override def deserialize(value: String): Unit = {
-    setSourceConnector(value)
-  }
 
   override def getMessage(messageId: String): DiscordChatMessage =
     messages.find(_.getId == messageId).getOrElse(privateMessages.find(_.getId == messageId).orNull)
