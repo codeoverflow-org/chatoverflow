@@ -4,9 +4,9 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.input.Input
 import org.codeoverflow.chatoverflow.connector.Connector
 
-import scala.collection.mutable
+import scala.reflect.ClassTag
 
-abstract class InputImpl[C <: Connector] extends Connection[C] with Input with WithLogger {
+abstract class InputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Connection[C] with Input with WithLogger {
 
   /**
     * Inits this connection, checks if teh source connector is defined, and can be inited, then calls start
