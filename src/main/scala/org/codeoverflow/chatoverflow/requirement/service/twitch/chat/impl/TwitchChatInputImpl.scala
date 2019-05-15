@@ -30,6 +30,8 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
   private val messageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
   private val privateMessageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
 
+  private var currentChannel: Option[String] = None
+
   override def start(): Boolean = {
     sourceConnector.get.addMessageEventListener(onMessage)
     sourceConnector.get.addUnknownEventListener(onUnknown)
@@ -37,28 +39,30 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
   }
 
   private def onMessage(event: MessageEvent): Unit = {
-    val message = event.getMessage
-    val color = if (event.getV3Tags.get("color").contains("#")) event.getV3Tags.get("color") else ""
-    val subscriber = event.getV3Tags.get("subscriber") == "1"
-    val moderator = event.getV3Tags.get("mod") == "1"
-    val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
-    val turbo = event.getV3Tags.get("badges").contains("turbo/1")
-    val author = new TwitchChatMessageAuthor(event.getUser.getNick,color, broadcaster, moderator, subscriber, turbo)
-    val channel = new Channel(event.getChannelSource)
-    val emoticons = new java.util.ArrayList[ChatEmoticon]()
-    wholeEmoticonRegex.findAllMatchIn(event.getV3Tags.get("emotes")).foreach(matchedElement => {
-      val id = matchedElement.group(1)
-      emoticonRegex.findAllMatchIn(matchedElement.group(2)).foreach(matchedElement => {
-        val index = matchedElement.group(1).toInt
-        val regex = message.substring(index, matchedElement.group(2).toInt + 1)
-        val emoticon = new TwitchChatEmoticon(regex, id, index)
-        emoticons.add(emoticon)
+    if (currentChannel.isDefined && event.getChannelSource == currentChannel.get) {
+      val message = event.getMessage
+      val color = if (event.getV3Tags.get("color").contains("#")) event.getV3Tags.get("color") else ""
+      val subscriber = event.getV3Tags.get("subscriber") == "1"
+      val moderator = event.getV3Tags.get("mod") == "1"
+      val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
+      val turbo = event.getV3Tags.get("badges").contains("turbo/1")
+      val author = new TwitchChatMessageAuthor(event.getUser.getNick, color, broadcaster, moderator, subscriber, turbo)
+      val channel = new Channel(event.getChannelSource)
+      val emoticons = new java.util.ArrayList[ChatEmoticon]()
+      wholeEmoticonRegex.findAllMatchIn(event.getV3Tags.get("emotes")).foreach(matchedElement => {
+        val id = matchedElement.group(1)
+        emoticonRegex.findAllMatchIn(matchedElement.group(2)).foreach(matchedElement => {
+          val index = matchedElement.group(1).toInt
+          val regex = message.substring(index, matchedElement.group(2).toInt + 1)
+          val emoticon = new TwitchChatEmoticon(regex, id, index)
+          emoticons.add(emoticon)
+        })
       })
-    })
-    val msg = new TwitchChatMessage(author, message, event.getTimestamp, channel, emoticons)
+      val msg = new TwitchChatMessage(author, message, event.getTimestamp, channel, emoticons)
 
-    messageHandler.foreach(consumer => consumer.accept(msg))
-    messages += msg
+      messageHandler.foreach(consumer => consumer.accept(msg))
+      messages += msg
+    }
   }
 
   private def onUnknown(event: UnknownEvent): Unit = {
@@ -76,6 +80,7 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
   }
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
+    if (currentChannel.isEmpty) throw new IllegalStateException("first set the channel for this input")
     val currentTime = Calendar.getInstance.getTimeInMillis
 
     messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
@@ -88,10 +93,15 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
     privateMessages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
   }
 
-  override def registerMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = messageHandler += handler
+  override def registerMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = {
+    if (currentChannel.isEmpty) throw new IllegalStateException("first set the channel for this input")
+    messageHandler += handler
+  }
 
   override def registerPrivateMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = privateMessageHandler += handler
 
-  override def setChannel(channel: String): Unit = sourceConnector.get.setChannel(channel)
-
+  override def setChannel(channel: String): Unit = {
+    currentChannel = Some(channel.trim)
+    if (!sourceConnector.get.isJoined(channel.trim)) sourceConnector.get.joinChannel(channel.trim)
+  }
 }
