@@ -1,6 +1,5 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitter.impl
 
-import java.lang
 
 import com.danielasfregola.twitter4s.entities.Tweet
 import org.codeoverflow.chatoverflow.WithLogger
@@ -8,12 +7,13 @@ import org.codeoverflow.chatoverflow.api.io.input.twitter._
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.service.twitter
 import org.codeoverflow.chatoverflow.requirement.Connection
+import org.codeoverflow.chatoverflow.requirement.service.twitter.TwitterConnector
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
-@Impl(impl = classOf[TwitterTweetInput], connector = classOf[twitter.TwitterConnector])
+@Impl(impl = classOf[TwitterTweetInput], connector = classOf[TwitterConnector])
 class TwitterConnectorInputImpl extends Connection[twitter.TwitterConnector] with TwitterTweetInput with WithLogger {
   private val timeout: Duration = 5 seconds
   private val tweets: ListBuffer[Tweet] = ListBuffer[Tweet]()
