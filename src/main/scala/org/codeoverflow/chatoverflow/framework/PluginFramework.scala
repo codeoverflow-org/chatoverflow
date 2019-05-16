@@ -18,6 +18,17 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
   private val loadedJarPaths: ListBuffer[String] = ListBuffer[String]()
 
   /**
+    * Returns, if a plugin type exists.
+    *
+    * @param pluginName   the name of the plugin set in the plugin jar file
+    * @param pluginAuthor the author of the plugin
+    * @return true, if the specified plugin type exists
+    */
+  def pluginExists(pluginName: String, pluginAuthor: String): Boolean = {
+    getPlugin(pluginName, pluginAuthor).isDefined
+  }
+
+  /**
     * Returns the plugin type specified by name and author.
     *
     * @param pluginName   the name of the plugin set in the plugin jar file

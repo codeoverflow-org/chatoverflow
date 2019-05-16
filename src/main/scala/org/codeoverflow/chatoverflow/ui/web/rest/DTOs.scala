@@ -24,4 +24,8 @@ object DTOs {
                               areCredentialsSet: Boolean, isRunning: Boolean, requiredCredentialKeys: Seq[String],
                               optionalCredentialKeys: Seq[String])
 
+  case class PluginInstanceRef(instanceName: String, pluginName: String, pluginAuthor: String)
+
+  case class ResultMessage(success: Boolean, message: String = "")
+
 }

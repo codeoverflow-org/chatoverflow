@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.plugin
 
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, Requirement}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, PluginInstanceRef, Requirement, ResultMessage}
 import org.scalatra.swagger.SwaggerSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
@@ -30,6 +30,17 @@ trait PluginInstanceControllerDefinition extends SwaggerSupport {
       parameter pathParam[String]("instanceName").description("The name of the plugin instance.")
       parameter queryParam[Option[String]]("startIndex").description("The start index of the message stream").optional)
 
+  val postInstance: OperationBuilder =
+    (apiOperation[ResultMessage]("postInstance")
+      summary "Creates a new plugin instance."
+      description "Creates a new plugin instance with given name and plugin type."
+      parameter bodyParam[PluginInstanceRef]("body").description("Requires new instance name and PluginType (name and author)."))
+
+  val deleteInstance: OperationBuilder =
+    (apiOperation[PluginInstance]("deleteInstance")
+      summary "Removes a plugin instance."
+      description "Removes a plugin instance specified by its name, if possible."
+      parameter pathParam[String]("instanceName").description("The name of the plugin instance."))
 
   override protected def applicationDescription: String = "Handles plugin instances and requirements."
 

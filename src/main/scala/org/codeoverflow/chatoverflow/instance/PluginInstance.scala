@@ -168,6 +168,8 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                     }
                   }
 
+                  // TODO: Also connectors & input/output should be shutdown somewhere (if the plugin ends OR is ended)
+
                   // After the loop (or setup) the plugin should end
                   plugin.get.shutdown()
 

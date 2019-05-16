@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.ui.web.rest.plugin
 import org.codeoverflow.chatoverflow.api.io
 import org.codeoverflow.chatoverflow.api.plugin.configuration
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, Requirement}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, PluginInstanceRef, Requirement, ResultMessage}
 import org.scalatra.swagger.Swagger
 
 import scala.collection.JavaConverters._
@@ -45,15 +45,54 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
     val index = startIndex.getOrElse("0")
     val msg = logMessages.toArray.drop(Integer.parseInt(index))
     msg.toSeq
+  }
 
+  post("/", operation(postInstance)) {
+    parsedAs[PluginInstanceRef] {
+      case PluginInstanceRef(instanceName, pluginName, pluginAuthor) =>
+        // Check existence of key first
+        if (chatOverflow.pluginInstanceRegistry.pluginInstanceExists(instanceName)) {
+          ResultMessage(success = false, "Plugin instance already exists.")
+
+        } else if (!chatOverflow.pluginFramework.pluginExists(pluginName, pluginAuthor)) {
+          ResultMessage(success = false, "Plugin type does not exist.")
+
+        } else {
+          val pluginType = chatOverflow.pluginFramework.getPlugin(pluginName, pluginAuthor)
+
+          if (!chatOverflow.pluginInstanceRegistry.addPluginInstance(instanceName, pluginType.get)) {
+            ResultMessage(success = false, "Unable to create new plugin instance.")
+          } else {
+            chatOverflow.save()
+            ResultMessage(success = true)
+          }
+        }
+    }
+  }
+
+  delete("/:instanceName", operation(deleteInstance)) {
+    val instanceName = params("instanceName")
+
+    val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+    if (pluginInstance.isEmpty) {
+      ResultMessage(success = false, "Plugin instance not found.")
+
+    } else if (pluginInstance.get.isRunning) {
+      ResultMessage(success = false, "Plugin instance is running.")
+
+    } else if (!chatOverflow.pluginInstanceRegistry.removePluginInstance(instanceName)) {
+      ResultMessage(success = false, "Unable to remove plugin instance.")
+
+    } else {
+      chatOverflow.save()
+      ResultMessage(success = true)
+    }
   }
 
   private def pluginInstanceToDTO(pluginInstance: org.codeoverflow.chatoverflow.instance.PluginInstance) = {
     PluginInstance(pluginInstance.instanceName, pluginInstance.getPluginTypeName,
       pluginInstance.getPluginTypeAuthor, pluginInstance.isRunning,
       pluginInstance.getRequirements.getRequirementMap.keySet().asScala.toList)
-
   }
-
-
 }

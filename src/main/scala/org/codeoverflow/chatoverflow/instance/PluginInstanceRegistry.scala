@@ -53,6 +53,29 @@ class PluginInstanceRegistry extends WithLogger {
   }
 
   /**
+    * Removes a plugin specified by its name, if possible.
+    *
+    * @param instanceName the name of the instance to remove
+    * @return true, if the removing process was possible
+    */
+  def removePluginInstance(instanceName: String): Boolean = {
+    if (pluginInstances.contains(instanceName) && pluginInstances(instanceName).isRunning) {
+      false
+    } else {
+      pluginInstances -= instanceName
+      true
+    }
+  }
+
+  /**
+    * Returns if the registry contains a specified instanceName (key).
+    *
+    * @param instanceName the name to search for
+    * @return true, if a plugin instance with the given name exists
+    */
+  def pluginInstanceExists(instanceName: String): Boolean = pluginInstances.contains(instanceName)
+
+  /**
     * Returns a list of all plugin instances. Can be used to serialize the instance content.
     *
     * @return a list of plugin instance objects of the runtime environment
