@@ -23,6 +23,32 @@ object ConnectorRegistry extends WithLogger {
   def setTypeRegistry(typeRegistry: TypeRegistry): Unit = this.typeRegistry = Some(typeRegistry)
 
   /**
+    * Tries to remove the specified connector if it is not running.
+    *
+    * @param sourceIdentifier       the identifier for the source platform
+    * @param qualifiedConnectorName a fully qualified connector type string
+    * @return false, if a major error happened
+    */
+  def removeConnector(sourceIdentifier: String, qualifiedConnectorName: String): Boolean = {
+    logger info s"Trying to remove connector '$sourceIdentifier' of type '$qualifiedConnectorName'."
+    val connectorKey = ConnectorKey(sourceIdentifier, qualifiedConnectorName)
+
+    if (!connectors.contains(connectorKey)) {
+      logger warn "Unable to remove connector. Connector does not exist."
+      false
+    } else {
+      if (connectors(connectorKey).isRunning) {
+        logger warn "Unable to remove connector. Connector is running."
+        false
+      } else {
+        // TODO: Check if this might crash anything
+        connectors -= connectorKey
+        true
+      }
+    }
+  }
+
+  /**
     * Adds a new connector to the registry. Before instantiating the state is checked to be correct.
     *
     * @param sourceIdentifier       the identifier for the source platform

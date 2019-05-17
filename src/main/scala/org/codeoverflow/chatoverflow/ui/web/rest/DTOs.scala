@@ -28,4 +28,6 @@ object DTOs {
 
   case class ResultMessage(success: Boolean, message: String = "")
 
+  case class ConnectorRef(sourceIdentifier: String, uniqueTypeString: String)
+
 }
