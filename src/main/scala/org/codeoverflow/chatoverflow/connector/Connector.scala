@@ -96,6 +96,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
 
           if (start()) {
             logger info s"Started $connectorSourceAndType."
+            running = true
             true
           } else {
             logger warn s"Failed starting $connectorSourceAndType."

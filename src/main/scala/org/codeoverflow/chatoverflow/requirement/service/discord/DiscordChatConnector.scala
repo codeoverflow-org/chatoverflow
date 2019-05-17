@@ -46,8 +46,6 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
       jda.get.addEventListener(discordChatListener)
       logger info "Waiting while the bot is connecting..."
       jda.get.awaitReady()
-      running = true
-      logger info "Started connector."
       true
     } catch {
       case _: LoginException =>
