@@ -3,29 +3,28 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.Connection
+import org.codeoverflow.chatoverflow.requirement.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 
 /**
   * This is the implementation of the twitch chat output, using the twitch connector.
   */
 @Impl(impl = classOf[TwitchChatOutput], connector = classOf[chat.TwitchChatConnector])
-class TwitchChatOutputImpl extends Connection[chat.TwitchChatConnector] with TwitchChatOutput with WithLogger {
+class TwitchChatOutputImpl extends OutputImpl[chat.TwitchChatConnector] with TwitchChatOutput with WithLogger {
 
-  override def sendChatMessage(message: String): Unit = sourceConnector.get.sendChatMessage(message)
+  private var currentChannel: Option[String] = None
 
-  override def init(): Boolean = {
-    if (sourceConnector.isDefined) {
-      sourceConnector.get.init()
-    } else {
-      logger warn "Source Connector not set."
-      false
+  override def sendChatMessage(message: String): Unit = {
+    currentChannel match {
+      case Some(value) => sourceConnector.get.sendChatMessage(value, message)
+      case None => throw new IllegalStateException("first set the channel for this output")
     }
   }
 
-  override def serialize(): String = getSourceIdentifier
+  override def start(): Boolean = true
 
-  override def deserialize(value: String): Unit = {
-    setSourceConnector(value)
+  override def setChannel(channel: String): Unit = {
+    currentChannel = Some(channel.trim)
+    if (!sourceConnector.get.isJoined(channel.trim)) sourceConnector.get.joinChannel(channel.trim)
   }
 }

@@ -1,17 +1,16 @@
 package org.codeoverflow.chatoverflow.requirement.service.discord.impl
 
-import java.awt.Color
 import java.util
 import java.util.Calendar
 import java.util.function.{BiConsumer, Consumer}
 
-import net.dv8tion.jda.api.entities.{ChannelType, Message, MessageType, PrivateChannel, TextChannel}
+import net.dv8tion.jda.api.entities._
 import net.dv8tion.jda.api.events.message.{MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.discord.{DiscordChannel, DiscordChatCustomEmoticon, DiscordChatMessage, DiscordChatMessageAuthor}
 import org.codeoverflow.chatoverflow.api.io.input.chat.DiscordChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.Connection
+import org.codeoverflow.chatoverflow.requirement.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.discord.DiscordChatConnector
 
 import scala.collection.JavaConverters._
@@ -21,9 +20,9 @@ import scala.collection.mutable.ListBuffer
   * This is the implementation of the discord chat input, using the discord connector.
   */
 @Impl(impl = classOf[DiscordChatInput], connector = classOf[DiscordChatConnector])
-class DiscordChatInputImpl extends Connection[DiscordChatConnector] with DiscordChatInput with WithLogger {
+class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordChatInput with WithLogger {
 
-  private var channelId = getSourceIdentifier
+  private var channelId: Option[String] = None
   private val messages: ListBuffer[DiscordChatMessage] = ListBuffer[DiscordChatMessage]()
   private val privateMessages: ListBuffer[DiscordChatMessage] = ListBuffer[DiscordChatMessage]()
   private val messageHandler = ListBuffer[Consumer[DiscordChatMessage]]()
@@ -33,19 +32,11 @@ class DiscordChatInputImpl extends Connection[DiscordChatConnector] with Discord
   private val privateMessageEditHandler = ListBuffer[BiConsumer[DiscordChatMessage, DiscordChatMessage]]()
   private val privateMessageDeleteHandler = ListBuffer[Consumer[DiscordChatMessage]]()
 
-  override def init(): Boolean = {
-    if (sourceConnector.isDefined) {
-      if (sourceConnector.get.isRunning || sourceConnector.get.init()) {
-        setChannel(getSourceIdentifier)
-        sourceConnector.get.addMessageReceivedListener(onMessage)
-        sourceConnector.get.addMessageUpdateListener(onMessageUpdate)
-        sourceConnector.get.addMessageDeleteListener(onMessageDelete)
-        true
-      } else false
-    } else {
-      logger warn "Source connector not set."
-      false
-    }
+  override def start(): Boolean = {
+    sourceConnector.get.addMessageReceivedListener(onMessage)
+    sourceConnector.get.addMessageUpdateListener(onMessageUpdate)
+    sourceConnector.get.addMessageDeleteListener(onMessageDelete)
+    true
   }
 
   /**
@@ -55,15 +46,17 @@ class DiscordChatInputImpl extends Connection[DiscordChatConnector] with Discord
     */
   private def onMessage(event: MessageReceivedEvent): Unit = {
     if (event.getMessage.getType == MessageType.DEFAULT) {
-      val message = DiscordChatInputImpl.parse(event.getMessage)
-      event.getChannelType match {
-        case ChannelType.TEXT if event.getTextChannel.getId == channelId =>
-          messageHandler.foreach(_.accept(message))
-          messages += message
-        case ChannelType.PRIVATE =>
-          privateMessageHandler.foreach(_.accept(message))
-          privateMessages += message
-        case _ => //Unknown channel, do nothing
+      if (channelId.isDefined) {
+        val message = DiscordChatInputImpl.parse(event.getMessage)
+        event.getChannelType match {
+          case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+            messageHandler.foreach(_.accept(message))
+            messages += message
+          case ChannelType.PRIVATE =>
+            privateMessageHandler.foreach(_.accept(message))
+            privateMessages += message
+          case _ => //Unknown channel, do nothing
+        }
       }
     }
   }
@@ -102,20 +95,22 @@ class DiscordChatInputImpl extends Connection[DiscordChatConnector] with Discord
     * @param event a event with an deleted message
     */
   private def onMessageDelete(event: MessageDeleteEvent): Unit = {
-    val id = event.getMessageId
-    event.getChannelType match {
-      case ChannelType.TEXT if event.getTextChannel.getId == channelId =>
-        val i = messages.indexWhere(_.getId == id)
-        if (i != -1) {
-          val oldMessage = messages.remove(i)
-          messageDeleteHandler.foreach(_.accept(oldMessage))
-        }
-      case ChannelType.PRIVATE =>
-        val i = privateMessages.indexWhere(_.getId == id)
-        if (i != -1) {
-          val oldMessage = privateMessages.remove(i)
-          privateMessageDeleteHandler.foreach(_.accept(oldMessage))
-        }
+    if (channelId.isDefined) {
+      val id = event.getMessageId
+      event.getChannelType match {
+        case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+          val i = messages.indexWhere(_.getId == id)
+          if (i != -1) {
+            val oldMessage = messages.remove(i)
+            messageDeleteHandler.foreach(_.accept(oldMessage))
+          }
+        case ChannelType.PRIVATE =>
+          val i = privateMessages.indexWhere(_.getId == id)
+          if (i != -1) {
+            val oldMessage = privateMessages.remove(i)
+            privateMessageDeleteHandler.foreach(_.accept(oldMessage))
+          }
+      }
     }
   }
 
@@ -130,32 +125,35 @@ class DiscordChatInputImpl extends Connection[DiscordChatConnector] with Discord
 
     privateMessages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
   }
-  override def registerMessageHandler(handler: Consumer[DiscordChatMessage]): Unit = messageHandler += handler
+  override def registerMessageHandler(handler: Consumer[DiscordChatMessage]): Unit = {
+    if (channelId.isEmpty) throw new IllegalStateException("first set the channel for this input")
+    messageHandler += handler
+  }
 
   override def registerPrivateMessageHandler(handler : Consumer[DiscordChatMessage]): Unit = privateMessageHandler += handler
 
-  override def registerMessageEditHandler(handler: BiConsumer[DiscordChatMessage, DiscordChatMessage]): Unit = messageEditHandler += handler
+  override def registerMessageEditHandler(handler: BiConsumer[DiscordChatMessage, DiscordChatMessage]): Unit = {
+    if (channelId.isEmpty) throw new IllegalStateException("first set the channel for this input")
+    messageEditHandler += handler
+  }
 
   override def registerPrivateMessageEditHandler(handler: BiConsumer[DiscordChatMessage, DiscordChatMessage]): Unit = privateMessageEditHandler += handler
 
-  override def registerMessageDeleteHandler(handler: Consumer[DiscordChatMessage]): Unit = messageDeleteHandler += handler
+  override def registerMessageDeleteHandler(handler: Consumer[DiscordChatMessage]): Unit = {
+    if (channelId.isEmpty) throw new IllegalStateException("first set the channel for this input")
+    messageDeleteHandler += handler
+  }
 
   override def registerPrivateMessageDeleteHandler(handler: Consumer[DiscordChatMessage]): Unit = privateMessageDeleteHandler += handler
 
   override def setChannel(channelId: String): Unit = {
     sourceConnector.get.getTextChannel(channelId) match {
-      case Some(_) => this.channelId = channelId
+      case Some(_) => this.channelId = Some(channelId.trim)
       case None => throw new IllegalArgumentException("Channel with that id doesn't exist")
     }
   }
 
-  override def getChannelId: String = channelId
-
-  override def serialize(): String = getSourceIdentifier
-
-  override def deserialize(value: String): Unit = {
-    setSourceConnector(value)
-  }
+  override def getChannelId: String = channelId.get
 
   override def getMessage(messageId: String): DiscordChatMessage =
     messages.find(_.getId == messageId).getOrElse(privateMessages.find(_.getId == messageId).orNull)
