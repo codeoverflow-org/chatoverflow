@@ -1,6 +1,7 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
 import akka.actor.Actor
+import org.codeoverflow.chatoverflow.connector.actor.PrivilegedActor.Privileged
 
 /**
   * The privileged actor is the most general idea of an actor to handle privileged actions.
@@ -18,10 +19,14 @@ class PrivilegedActor extends Actor {
   }
 }
 
-/**
-  * Send a Privileged-ojbect to the PrivilegedActor to get the function executed with the given args.
-  *
-  * @param function a function of type T => Any
-  * @param args     the args for the function of type T
-  */
-case class Privileged(function: Any => Any, args: Any)
+object PrivilegedActor {
+
+  /**
+    * Send a Privileged-ojbect to the PrivilegedActor to get the function executed with the given args.
+    *
+    * @param function a function of type T => Any
+    * @param args     the args for the function of type T
+    */
+  case class Privileged(function: Any => Any, args: Any) extends ActorMessage
+
+}

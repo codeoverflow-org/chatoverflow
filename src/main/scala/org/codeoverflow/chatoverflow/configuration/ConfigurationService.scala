@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.configuration
 
-import java.io.File
+import java.io.{File, PrintWriter}
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io
@@ -10,7 +10,7 @@ import org.codeoverflow.chatoverflow.framework.PluginFramework
 import org.codeoverflow.chatoverflow.instance.PluginInstanceRegistry
 import org.codeoverflow.chatoverflow.registry.TypeRegistry
 
-import scala.xml.{Elem, Node}
+import scala.xml.{Elem, Node, PrettyPrinter}
 
 /**
   * The configuration service provides methods to work with serialized state information.
@@ -153,7 +153,9 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     * Saves the xml content to the config xml.
     */
   private def saveXML(xmlContent: Node): Unit = {
-    xml.XML.save(configFilePath, xmlContent)
+    val writer = new PrintWriter(configFilePath)
+    writer.print(new PrettyPrinter(120, 2).format(xmlContent))
+    writer.close()
     logger info "Saved config file."
   }
 

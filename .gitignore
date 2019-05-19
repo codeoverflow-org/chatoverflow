@@ -34,3 +34,6 @@ project/plugins/project/
 /lib/
 /deploy/
 /wiki/
+
+# Plugin Data
+data/

@@ -6,6 +6,8 @@ import org.pircbotx.cap.EnableCapHandler
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 import org.pircbotx.{Configuration, PircBotX}
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * The twitch connector connects to the irc service to work with chat messages.
   *
@@ -17,7 +19,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   override protected var requiredCredentialKeys: List[String] = List(oauthKey)
   override protected var optionalCredentialKeys: List[String] = List()
   private var bot: PircBotX = _
-  private var currentChannel: String = _
+  private val channels = ListBuffer[String]()
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     twitchChatListener.addMessageEventListener(listener)
@@ -27,24 +29,19 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     twitchChatListener.addUnknownEventListener(listener)
   }
 
-  def setChannel(channel: String): Unit = {
-    // Todo: Leave channel
-    setCurrentChannel(channel)
-    bot.send().joinChannel(currentChannel)
-    // TODO: TEST!
+  def joinChannel(channel: String): Unit = {
+    bot.send().joinChannel(channel)
+    channels += channel
   }
 
-  private def setCurrentChannel(channel: String): Unit = {
-    if (channel.startsWith("#")) {
-      currentChannel = channel.toLowerCase
-    } else {
-      currentChannel = "#" + channel.toLowerCase
-    }
+  def sendChatMessage(channel: String, chatMessage: String): Unit = {
+    if (!isJoined(channel)) throw new IllegalArgumentException(s"you must join the '$channel' channel, before you can send messages to it")
+    bot.send().message(channel, chatMessage)
   }
 
   override def getUniqueTypeString: String = this.getClass.getName
 
-  def sendChatMessage(chatMessage: String): Unit = bot.send().message(currentChannel, chatMessage)
+  def isJoined(channel: String): Boolean = channels.contains(channel)
 
   private def getConfig: Configuration = {
 
@@ -56,8 +53,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
         logger warn s"key '$oauthKey' not found in credentials for '$sourceIdentifier'."
       }
 
-      setCurrentChannel(sourceIdentifier)
-
       new Configuration.Builder()
         .setAutoNickChange(false)
         .setOnJoinWhoEnabled(false)
@@ -67,7 +62,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
         .addServer("irc.chat.twitch.tv")
         .setName(credentials.get.credentialsIdentifier)
         .setServerPassword(password.getOrElse(""))
-        .addAutoJoinChannel(currentChannel)
         .addListener(twitchChatListener)
         .buildConfiguration()
     } else {

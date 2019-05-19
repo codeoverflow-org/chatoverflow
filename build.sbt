@@ -57,6 +57,12 @@ libraryDependencies ++= Seq(
 // Google GSON
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 
+// JDA
+resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
+libraryDependencies += "net.dv8tion" % "JDA" % "4.ALPHA.0_82"
+
+//Serial Communication
+libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS

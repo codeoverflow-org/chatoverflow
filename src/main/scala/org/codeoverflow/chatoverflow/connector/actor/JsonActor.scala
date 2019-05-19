@@ -1,13 +1,17 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
 import akka.actor.Actor
-import com.google.gson.{JsonObject, JsonParser}
+import org.codeoverflow.chatoverflow.connector.actor.JsonActor.ParseJSON
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 
 /**
-  * The JSON Actor uses Google GSON to parse serialized json and enable traversing.
+  * The JSON Actor uses json4s to parse serialized json and enable traversing.
   */
 class JsonActor extends Actor {
-  val parser = new JsonParser
+
+  // TODO: Implement proper functionality with json4s. This is not more than a proof of concept
+  // TODO: Test, when reflection kicks in to allow the most functionality without an actor call
 
   /**
     * Receives a ParseJSON Object to start parsing.
@@ -15,16 +19,20 @@ class JsonActor extends Actor {
     * @return the desired values, can be any type
     */
   override def receive: Receive = {
-    case ParseJSON(json, parse) =>
-      val rootObject = parser.parse(json).getAsJsonObject
-      parse(rootObject)
+    case ParseJSON(json, parseMethod) =>
+      val rootObject = parse(json)
+      sender ! parseMethod(rootObject)
   }
 }
 
-/**
-  * Send a ParseJSON-object to start parsing. The traversal is custom.
-  *
-  * @param json  the serialized json string
-  * @param parse a function what should happen with the parsed json. Return type is any
-  */
-case class ParseJSON(json: String, parse: JsonObject => Any)
+object JsonActor {
+
+  /**
+    * Send a ParseJSON-object to start parsing. The traversal is custom.
+    *
+    * @param json        the serialized json string
+    * @param parseMethod a function what should happen with the parsed json. Return type is any
+    */
+  case class ParseJSON(json: String, parseMethod: JValue => Any) extends ActorMessage
+
+}

@@ -1,10 +1,12 @@
 package org.codeoverflow.chatoverflow.connector
 
+
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.connector.actor.ActorMessage
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, TimeoutException}
@@ -16,7 +18,7 @@ import scala.reflect.ClassTag
   * @param sourceIdentifier the unique source identifier (e.g. a login name), the connector should work with
   */
 abstract class Connector(val sourceIdentifier: String) extends WithLogger {
-  private[this] val actorSystem = ActorSystem(s"${getUniqueTypeString.replace('.', '-')}")
+  private[this] val actorSystem: ActorSystem = ActorSystem(s"${getUniqueTypeString.replace('.', '-')}")
   private val connectorSourceAndType = s"connector '$sourceIdentifier' of type '$getUniqueTypeString'"
   protected var credentials: Option[Credentials] = None
   protected var requiredCredentialKeys: List[String]
@@ -68,8 +70,8 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
 
     // Check if running
     if (running) {
-      logger warn s"Unable to start $connectorSourceAndType. Already running!"
-      false
+      logger info s"Unable to start $connectorSourceAndType. Already running!"
+      true
     } else {
 
       // Check if credentials object exists
@@ -94,6 +96,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
 
           if (start()) {
             logger info s"Started $connectorSourceAndType."
+            running = true
             true
           } else {
             logger warn s"Failed starting $connectorSourceAndType."
@@ -149,7 +152,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     * @tparam T result type of the actor answer
     * @return the answer of the actor if he answers in time. else: None
     */
-  def askActor[T](actor: ActorRef, timeOutInSeconds: Int, message: Any): Option[T] = {
+  def askActor[T](actor: ActorRef, timeOutInSeconds: Int, message: ActorMessage): Option[T] = {
     implicit val timeout: Timeout = Timeout(timeOutInSeconds seconds)
     val future = actor ? message
     try {
@@ -167,4 +170,25 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     */
   protected def createActor[T <: Actor : ClassTag](): ActorRef =
     actorSystem.actorOf(Props(implicitly[ClassTag[T]].runtimeClass))
+
+  implicit def toRichActorRef(actorRef: ActorRef): RichActorRef = new RichActorRef(actorRef)
+
+  class RichActorRef(actorRef: ActorRef) {
+
+    /**
+      * Syntactic sugar for the askActor()-function. Works like this:
+      * <code>anActor.??[String](5) {
+      * // message goes here
+      * }</code>
+      *
+      * @param timeOutInSeconds the timeout to calculate, request, ... for the actor
+      * @param message          some message to pass to the actor. Can be anything.
+      * @tparam T result type of the actor answer
+      * @return the answer of the actor if he answers in time. else: None
+      */
+    def ??[T](timeOutInSeconds: Int)(message: ActorMessage): Option[T] = {
+      askActor[T](actorRef, timeOutInSeconds, message)
+    }
+  }
+
 }
