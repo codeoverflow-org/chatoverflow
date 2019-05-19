@@ -30,4 +30,6 @@ object DTOs {
 
   case class ConnectorRef(sourceIdentifier: String, uniqueTypeString: String)
 
+  case class Password(password: String)
+
 }

@@ -22,6 +22,10 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
     */
   def setPassword(password: Array[Char]): Unit = this.password = password
 
+  def isLoggedIn: Boolean = {
+    password.length > 0
+  }
+
   /**
     * Loads the credentials form the credentials file and decrypts them.
     *
@@ -45,7 +49,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
         encrypted.close
 
         if (decrypted.isEmpty) {
-          logger error "Wrong password. Unable to load credentials."
+          logger warn "Wrong password. Unable to load credentials."
           false
         } else {
           logger info "Password correct."

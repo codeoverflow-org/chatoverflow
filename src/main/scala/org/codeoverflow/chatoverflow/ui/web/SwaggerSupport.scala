@@ -6,6 +6,11 @@ import org.json4s.{JValue, _}
 import org.scalatra.ScalatraServlet
 import org.scalatra.swagger.{Api, ApiInfo, JacksonSwaggerBase, Swagger}
 
+/**
+  * The open API servlet provides a generated swagger.json with the api definitions of the framework.
+  *
+  * @param swagger the swagger framework, implicitly passed from the Scalatra Bootstrap
+  */
 class OpenAPIServlet(implicit val swagger: Swagger) extends ScalatraServlet with JacksonSwaggerBase {
 
   /**

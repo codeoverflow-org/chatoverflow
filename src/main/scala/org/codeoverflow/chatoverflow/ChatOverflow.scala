@@ -53,19 +53,34 @@ class ChatOverflow(val pluginFolderPath: String,
     logger debug "Finished updating type registry."
 
     logger debug "Loading configs and credentials."
-    askForPassword()
-    load()
+    // TODO: Add flag for asking for the password on the console prior to the gui
+    //askForPassword()
+    //load()
     logger debug "Finished loading configs and credentials."
 
     logger debug "Finished initialization."
   }
 
-  private def askForPassword(): Unit = {
-    val password = if (System.console() != null)
-        System.console().readPassword("Please enter password (Input hidden) > ")
-      else
-        scala.io.StdIn.readLine("Please enter password (Input NOT hidden) > ").toCharArray
-    credentialsService.setPassword(password)
+  /**
+    * Loads all config settings and credentials from the config folder.
+    */
+  def load(): Boolean = {
+    val currentTime = System.currentTimeMillis()
+    var success = true
+
+    // Start by loading connectors
+    if (!configService.loadConnectors())
+      success = false
+
+    // Then load credentials that can be put into the connectors
+    if (!credentialsService.load())
+      success = false
+
+    // Finish by loading plugin instances
+    configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
+
+    logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
+    success
   }
 
   private def enableFrameworkSecurity(): Unit = {
@@ -73,22 +88,12 @@ class ChatOverflow(val pluginFolderPath: String,
     System.setSecurityManager(new SecurityManager)
   }
 
-  /**
-    * Loads all config settings and credentials from the config folder.
-    */
-  def load(): Unit = {
-    val currentTime = System.currentTimeMillis()
-
-    // Start by loading connectors
-    configService.loadConnectors()
-
-    // Then load credentials that can be put into the connectors
-    credentialsService.load()
-
-    // Finish by loading plugin instances
-    configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
-
-    logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
+  private def askForPassword(): Unit = {
+    val password = if (System.console() != null)
+      System.console().readPassword("Please enter password (Input hidden) > ")
+    else
+      scala.io.StdIn.readLine("Please enter password (Input NOT hidden) > ").toCharArray
+    credentialsService.setPassword(password)
   }
 
   /**
