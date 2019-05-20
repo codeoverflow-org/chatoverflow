@@ -11,6 +11,7 @@ import org.codeoverflow.chatoverflow.ui.web.Server
 object Launcher extends WithLogger {
 
   var server: Option[Server] = None
+  var pluginDataPath: String = "data"
 
   /**
     * Software entry point.
@@ -18,28 +19,29 @@ object Launcher extends WithLogger {
   def main(args: Array[String]): Unit = {
     parse(args) { config =>
 
+      this.pluginDataPath = config.pluginDataPath
+
       // The complete project visible trough one single instance
       val chatOverflow = new ChatOverflow(config.pluginFolderPath,
-        config.configFolderPath, config.requirementPackage)
+        config.configFolderPath, config.requirementPackage, config.requirePasswordOnStartup, config.pluginLogOutputOnConsole)
 
       chatOverflow.init()
 
       // Launch UI
       config.ui match {
         case UI.GUI =>
-          startServer(chatOverflow)
+          startServer(chatOverflow, config.webServerPort)
         case UI.REPL =>
           startREPL(chatOverflow)
         case UI.BOTH =>
-          startServer(chatOverflow)
+          startServer(chatOverflow, config.webServerPort)
           startREPL(chatOverflow)
       }
     }
   }
 
-  private def startServer(chatOverflow: ChatOverflow): Unit = {
+  private def startServer(chatOverflow: ChatOverflow, port: Int): Unit = {
     if (server.isEmpty) {
-      // TODO: Enable custom port support
       server = Some(new Server(chatOverflow, 2400))
       server.get.startAsync()
     }

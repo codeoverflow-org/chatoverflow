@@ -231,8 +231,8 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
     * Creates a new plugin instance with the default manager implementation.
     * Note: This is instance-private, because non-instantiatable plugins should be not added in the registry
     */
-  private[instance] def createPluginInstanceWithDefaultManager: Boolean = {
-    createPluginInstance(new PluginManagerImpl(instanceName))
+  private[instance] def createPluginInstanceWithDefaultManager(logOutputOnConsole: Boolean): Boolean = {
+    createPluginInstance(new PluginManagerImpl(instanceName, logOutputOnConsole))
   }
 
   /**

@@ -13,7 +13,7 @@ import scala.collection.mutable
   * @param credentialsFilePath the file path of the credentials file
   */
 class CredentialsService(val credentialsFilePath: String) extends WithLogger {
-  private var password = Array[Char]()
+  private[this] var password = Array[Char]()
 
   /**
     * Sets the password. Needed to load or save credentials.
@@ -22,6 +22,11 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
     */
   def setPassword(password: Array[Char]): Unit = this.password = password
 
+  /**
+    * Returns true, if a password is set. Note that this says nothing about the correctness of it.
+    *
+    * @return true, if the password length is greater than zero
+    */
   def isLoggedIn: Boolean = {
     password.length > 0
   }

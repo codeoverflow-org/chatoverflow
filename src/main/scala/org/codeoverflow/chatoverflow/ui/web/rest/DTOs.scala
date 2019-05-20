@@ -8,7 +8,7 @@ object DTOs {
   case class PluginInstance(instanceName: String, pluginName: String, pluginAuthor: String, isRunning: Boolean, requirementIDs: Seq[String])
 
   case class ConfigInfo(name: String, apiMajorVersion: Int, apiMinorVersion: Int, pluginFolderPath: String,
-                        configFolderPath: String, requirementPackage: String)
+                        configFolderPath: String, requirementPackage: String, pluginDataPath: String)
 
   case class Requirement(uniqueRequirementId: String, name: String, isOptional: Boolean, isSet: Boolean, value: String, targetType: String)
 

@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.config
 
+import org.codeoverflow.chatoverflow.Launcher
 import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
 import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConfigInfo, Password, ResultMessage}
@@ -10,7 +11,7 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
   get("/", operation(getConfig)) {
     ConfigInfo("Chat Overflow", APIVersion.MAJOR_VERSION,
       APIVersion.MINOR_VERSION, chatOverflow.pluginFolderPath,
-      chatOverflow.configFolderPath, chatOverflow.requirementPackage)
+      chatOverflow.configFolderPath, chatOverflow.requirementPackage, Launcher.pluginDataPath)
   }
 
   post("/save", operation(postSave)) {
@@ -36,6 +37,4 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
   }
 
   // TODO: Handle first time login / Creation of the config files (same as postLogin above...?)
-
-  // TODO: After this: Add the flags (pw, log output, data folder) and update the ConfigInfo
 }

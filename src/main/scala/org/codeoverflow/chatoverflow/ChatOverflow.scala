@@ -20,11 +20,13 @@ import org.codeoverflow.chatoverflow.registry.TypeRegistry
   */
 class ChatOverflow(val pluginFolderPath: String,
                    val configFolderPath: String,
-                   val requirementPackage: String)
+                   val requirementPackage: String,
+                   val requirePasswordOnStartup: Boolean,
+                   val logOutputOnConsole: Boolean)
   extends WithLogger {
 
   val pluginFramework = new PluginFramework(pluginFolderPath)
-  val pluginInstanceRegistry = new PluginInstanceRegistry
+  val pluginInstanceRegistry = new PluginInstanceRegistry(logOutputOnConsole)
   val typeRegistry = new TypeRegistry(requirementPackage)
   val credentialsService = new CredentialsService(s"$configFolderPath/credentials")
   val configService = new ConfigurationService(s"$configFolderPath/config.xml")
@@ -52,11 +54,12 @@ class ChatOverflow(val pluginFolderPath: String,
     ConnectorRegistry.setTypeRegistry(typeRegistry)
     logger debug "Finished updating type registry."
 
-    logger debug "Loading configs and credentials."
-    // TODO: Add flag for asking for the password on the console prior to the gui
-    //askForPassword()
-    //load()
-    logger debug "Finished loading configs and credentials."
+    if (requirePasswordOnStartup) {
+      logger debug "Loading configs and credentials."
+      askForPassword()
+      load()
+      logger debug "Finished loading configs and credentials."
+    }
 
     logger debug "Finished initialization."
   }

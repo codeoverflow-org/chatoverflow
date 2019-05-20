@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
   *
   * @param pluginInstanceName the name of the plugin instance
   */
-class PluginManagerImpl(pluginInstanceName: String) extends PluginManager with WithLogger {
+class PluginManagerImpl(pluginInstanceName: String, logOutputOnConsole: Boolean) extends PluginManager with WithLogger {
 
   private val logMessages = new ListBuffer[String]
 
@@ -24,8 +24,10 @@ class PluginManagerImpl(pluginInstanceName: String) extends PluginManager with W
     */
   override def log(message: String): Unit = {
     logMessages += message
-    // TODO: Add disabling plugin messages by flag
-    logger info s"[$pluginInstanceName] $message"
+
+    if (logOutputOnConsole) {
+      logger info s"[$pluginInstanceName] $message"
+    }
   }
 
   /**

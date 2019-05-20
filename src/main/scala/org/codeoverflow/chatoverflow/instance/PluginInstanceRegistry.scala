@@ -8,7 +8,7 @@ import scala.collection.mutable
 /**
   * The plugin instance registry does hold all running and not-running instances of plugins.
   */
-class PluginInstanceRegistry extends WithLogger {
+class PluginInstanceRegistry(logOutputOnConsole: Boolean) extends WithLogger {
   private val pluginInstances = mutable.Map[String, PluginInstance]()
 
   /**
@@ -31,7 +31,7 @@ class PluginInstanceRegistry extends WithLogger {
       // The plugin instance is created here. Why: A plugin, which could not be created
       // e.g. due to version issues or code failures has no reason to be in the list of plugin instances
       val instance = new PluginInstance(instanceName, pluginType)
-      if (instance.createPluginInstanceWithDefaultManager) {
+      if (instance.createPluginInstanceWithDefaultManager(logOutputOnConsole)) {
         pluginInstances += instanceName -> instance
         logger info s"Successfully instantiated and added plugin instance '$instanceName' of type '${pluginType.getName}'."
         true
