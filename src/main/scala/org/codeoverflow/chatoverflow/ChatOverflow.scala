@@ -30,6 +30,14 @@ class ChatOverflow(val pluginFolderPath: String,
   val typeRegistry = new TypeRegistry(requirementPackage)
   val credentialsService = new CredentialsService(s"$configFolderPath/credentials")
   val configService = new ConfigurationService(s"$configFolderPath/config.xml")
+  private var loaded = false
+
+  /**
+    * Returns if configs and credentials had been loaded.
+    *
+    * @return true, if has been called successfully in this run of the framework.
+    */
+  def isLoaded: Boolean = loaded
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -54,7 +62,7 @@ class ChatOverflow(val pluginFolderPath: String,
     ConnectorRegistry.setTypeRegistry(typeRegistry)
     logger debug "Finished updating type registry."
 
-    if (requirePasswordOnStartup) {
+    if (requirePasswordOnStartup && !loaded) {
       logger debug "Loading configs and credentials."
       askForPassword()
       load()
@@ -66,24 +74,32 @@ class ChatOverflow(val pluginFolderPath: String,
 
   /**
     * Loads all config settings and credentials from the config folder.
+    * Note that its only possible once per run to load everything successfully.
     */
   def load(): Boolean = {
-    val currentTime = System.currentTimeMillis()
-    var success = true
+    if (loaded) {
+      false
+    } else {
+      val currentTime = System.currentTimeMillis()
+      var success = true
 
-    // Start by loading connectors
-    if (!configService.loadConnectors())
-      success = false
+      // Start by loading connectors
+      if (!configService.loadConnectors())
+        success = false
 
-    // Then load credentials that can be put into the connectors
-    if (!credentialsService.load())
-      success = false
+      // Then load credentials that can be put into the connectors
+      if (success && !credentialsService.load())
+        success = false
 
-    // Finish by loading plugin instances
-    configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
+      // Finish by loading plugin instances
+      if (success && !configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry))
+        success = false
 
-    logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
-    success
+      logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
+
+      loaded = success
+      success
+    }
   }
 
   private def enableFrameworkSecurity(): Unit = {

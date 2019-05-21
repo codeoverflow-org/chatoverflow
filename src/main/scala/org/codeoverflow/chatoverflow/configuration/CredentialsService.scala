@@ -16,6 +16,15 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
   private[this] var password = Array[Char]()
 
   /**
+    * Generates a authentication key using the password of the framework.
+    *
+    * @return an auth key based the password an an random array
+    */
+  def generateAuthKey(): String = {
+    CryptoUtil.generateAuthKey(this.password.mkString)
+  }
+
+  /**
     * Sets the password. Needed to load or save credentials.
     *
     * @param password an array of chars, representing the users password
@@ -23,12 +32,20 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
   def setPassword(password: Array[Char]): Unit = this.password = password
 
   /**
-    * Returns true, if a password is set. Note that this says nothing about the correctness of it.
+    * Checks if the specified password is correct by trying to decrypt the saved credentials.
     *
-    * @return true, if the password length is greater than zero
+    * @param password the password to test
+    * @return true, if the credentials file exists and could be decrypted
     */
-  def isLoggedIn: Boolean = {
-    password.length > 0
+  def checkPasswordCorrectness(password: Array[Char]): Boolean = {
+    try {
+      val encrypted = scala.io.Source.fromFile(credentialsFilePath)
+      val decrypted = CryptoUtil.decrypt(password, encrypted.getLines().mkString)
+      encrypted.close
+      decrypted.isDefined
+    } catch {
+      case _: Exception => false
+    }
   }
 
   /**

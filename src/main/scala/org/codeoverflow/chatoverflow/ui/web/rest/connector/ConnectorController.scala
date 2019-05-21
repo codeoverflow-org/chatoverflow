@@ -23,6 +23,7 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
   }
 
   post("/", operation(postConnector)) {
+    // TODO: Should implicitly create the credentials object
     parsedAs[ConnectorRef] {
       case ConnectorRef(sourceIdentifier, uniqueTypeString) =>
         val connector = ConnectorRegistry.getConnector(sourceIdentifier, uniqueTypeString)
@@ -47,6 +48,7 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
   }
 
   delete("/:sourceIdentifier/:qualifiedConnectorType", operation(deleteConnector)) {
+    // TODO: Should implicitly delete the credentials object
     val sourceIdentifier = params("sourceIdentifier")
     val qualifiedConnectorType = params("qualifiedConnectorType")
 

@@ -1,6 +1,7 @@
 package org.codeoverflow.chatoverflow.configuration
 
-import java.security.SecureRandom
+import java.nio.charset.StandardCharsets
+import java.security.{MessageDigest, SecureRandom}
 
 import javax.crypto.spec.{IvParameterSpec, PBEKeySpec, SecretKeySpec}
 import javax.crypto.{Cipher, SecretKeyFactory}
@@ -13,6 +14,23 @@ import org.apache.commons.codec.binary.Base64
 object CryptoUtil {
 
   // TODO: This code should be reviewed by an expert to find potential security issues.
+
+  // Used for the run-unique auth key
+  private val runSpecificRandom = generateIV
+
+  /**
+    * Generates a run-unique authentication key using a supplied password.
+    *
+    * @param password a password to communicate with the framework
+    * @return an auth key based the password an an random array
+    */
+  def generateAuthKey(password: String): String = {
+
+    val authBase = runSpecificRandom.mkString + password
+
+    val digest = MessageDigest.getInstance("SHA-256")
+    digest.digest(authBase.getBytes(StandardCharsets.UTF_8)).mkString
+  }
 
   /**
     * Encrypts the provided plaintext using AES.
