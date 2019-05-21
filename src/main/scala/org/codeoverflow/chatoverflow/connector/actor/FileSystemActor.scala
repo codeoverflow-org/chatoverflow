@@ -1,10 +1,10 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
 import java.io.{File, PrintWriter}
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
 import akka.actor.Actor
-import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor.{CreateDirectory, LoadFile, SaveFile}
+import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor._
 
 import scala.io.Source
 
@@ -34,11 +34,24 @@ class FileSystemActor extends Actor {
       } catch {
         case _: Exception => None
       }
+    case LoadBinaryFile(pathInResources) =>
+      try {
+        sender ! Some(Files.readAllBytes(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath))
+      } catch {
+        case _: Exception => None
+      }
     case SaveFile(pathInResources, content) =>
       try {
         val writer = new PrintWriter(s"$dataFilePath${fixPath(pathInResources)}")
         writer.write(content)
         writer.close()
+        sender ! true
+      } catch {
+        case _: Exception => sender ! false
+      }
+    case SaveBinaryFile(pathInResources, content) =>
+      try {
+        Files.write(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath, content)
         sender ! true
       } catch {
         case _: Exception => sender ! false
@@ -52,7 +65,7 @@ class FileSystemActor extends Actor {
   }
 
   private def fixPath(path: String): String = {
-    val fixedPath = Paths.get("/", path).normalize()
+    val fixedPath = Paths.get(File.pathSeparator, path).normalize()
     fixedPath.toString
   }
 }
@@ -60,11 +73,18 @@ class FileSystemActor extends Actor {
 object FileSystemActor {
 
   /**
-    * Send a LoadFile-object to the FileSystemActor to load a specific file.
+    * Send a LoadFile-object to the FileSystemActor to load a specific file and return a string.
     *
     * @param pathInResources the relative Path in the resource folder
     */
   case class LoadFile(pathInResources: String) extends ActorMessage
+
+  /**
+    * Send a LoadFile-object to the FileSystemActor to load a specific file and return a byte array.
+    *
+    * @param pathInResources the relative Path in the resource folder
+    */
+  case class LoadBinaryFile(pathInResources: String) extends ActorMessage
 
   /**
     * Send a SaveFile-object to the FileSystemActor to save a file with given content.
@@ -73,6 +93,14 @@ object FileSystemActor {
     * @param content         the content to save
     */
   case class SaveFile(pathInResources: String, content: String) extends ActorMessage
+
+  /**
+    * Send a SaveFile-object to the FileSystemActor to save a file with given content.
+    *
+    * @param pathInResources the relative Path in the resource folder
+    * @param content         the content to save
+    */
+  case class SaveBinaryFile(pathInResources: String, content: Array[Byte]) extends ActorMessage
 
   /**
     * Send a CreateDirectory-object to the FileSystemActor to create a new sub directory.
