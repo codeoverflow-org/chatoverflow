@@ -51,5 +51,31 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
     }
   }
 
-  // TODO: Handle first time login / Creation of the config files (same as postLogin above...?)
+  get("/register", operation(getRegister)) {
+    chatOverflow.credentialsService.credentialsFileExists()
+  }
+
+  post("/register", operation(postRegister)) {
+    parsedAs[Password] {
+      case Password(password) =>
+
+        if (chatOverflow.credentialsService.credentialsFileExists()) {
+          ResultMessage(success = false, "Already registered.")
+
+          // Extreme exotic case. Wtf?
+        } else if (chatOverflow.isLoaded) {
+          ResultMessage(success = false, "Framework already loaded.")
+
+        } else {
+          chatOverflow.credentialsService.setPassword(password.toCharArray)
+
+          if (!chatOverflow.load()) {
+            ResultMessage(success = false, "Unable to load.")
+          } else {
+
+            ResultMessage(success = true, CryptoUtil.generateAuthKey(password))
+          }
+        }
+    }
+  }
 }

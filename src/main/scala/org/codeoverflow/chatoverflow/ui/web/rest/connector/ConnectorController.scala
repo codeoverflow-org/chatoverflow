@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.connector
 
+import org.codeoverflow.chatoverflow.configuration.Credentials
 import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
 import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConnectorDetails, ConnectorRef, ResultMessage}
@@ -23,7 +24,6 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
   }
 
   post("/", operation(postConnector)) {
-    // TODO: Should implicitly create the credentials object
     parsedAs[ConnectorRef] {
       case ConnectorRef(sourceIdentifier, uniqueTypeString) =>
         val connector = ConnectorRegistry.getConnector(sourceIdentifier, uniqueTypeString)
@@ -40,15 +40,21 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
             ResultMessage(success = false, "Unable to add connector.")
 
           } else {
-            chatOverflow.save()
-            ResultMessage(success = true)
+
+            val credentials = new Credentials(sourceIdentifier)
+            if (!ConnectorRegistry.setConnectorCredentials(sourceIdentifier, uniqueTypeString, credentials)) {
+              ResultMessage(success = false, "Unable to create credentials.")
+
+            } else {
+              chatOverflow.save()
+              ResultMessage(success = true)
+            }
           }
         }
     }
   }
 
   delete("/:sourceIdentifier/:qualifiedConnectorType", operation(deleteConnector)) {
-    // TODO: Should implicitly delete the credentials object
     val sourceIdentifier = params("sourceIdentifier")
     val qualifiedConnectorType = params("qualifiedConnectorType")
 
@@ -64,6 +70,7 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
       ResultMessage(success = false, "Unable to remove connector.")
 
     } else {
+      connector.get.removeCredentials()
       chatOverflow.save()
       ResultMessage(success = true)
     }

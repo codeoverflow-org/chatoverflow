@@ -49,6 +49,13 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
   }
 
   /**
+    * Returns if the credentials file exists. Can be used to determine if login or register is the right method.
+    *
+    * @return true, if the file was previously created
+    */
+  def credentialsFileExists(): Boolean = new File(credentialsFilePath).exists()
+
+  /**
     * Loads the credentials form the credentials file and decrypts them.
     *
     * @return true, if the loading process was successful
