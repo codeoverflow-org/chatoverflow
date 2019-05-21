@@ -30,7 +30,7 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
 
         // Check for password correctness first
         if (!chatOverflow.credentialsService.checkPasswordCorrectness(password.toCharArray)) {
-          ResultMessage(success = false, "Unable to load. Wrong password!")
+          ResultMessage(success = false, "Unable to login. Wrong password!")
         } else {
 
           // Password is correct. Login if first call.
