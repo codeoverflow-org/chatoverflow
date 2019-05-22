@@ -69,7 +69,6 @@ class FileSystemActor extends Actor {
     if(fixedPath.startsWith(";")){
       fixedPath = fixedPath.replaceFirst(";", "")
     }
-    //System.out.println(fixedPath)
     fixedPath
   }
 }
