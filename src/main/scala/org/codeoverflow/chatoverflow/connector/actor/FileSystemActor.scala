@@ -36,9 +36,9 @@ class FileSystemActor extends Actor {
       }
     case LoadBinaryFile(pathInResources) =>
       try {
-        sender ! Some(Files.readAllBytes(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath))
+        sender ! Files.readAllBytes(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath)
       } catch {
-        case _: Exception => None
+        case _: Exception => Array[Byte]()
       }
     case SaveFile(pathInResources, content) =>
       try {
@@ -65,7 +65,7 @@ class FileSystemActor extends Actor {
   }
 
   private def fixPath(path: String): String = {
-    val fixedPath = Paths.get(File.pathSeparator, path).normalize()
+    val fixedPath = Paths.get(File.separator, path).normalize()
     fixedPath.toString
   }
 }
