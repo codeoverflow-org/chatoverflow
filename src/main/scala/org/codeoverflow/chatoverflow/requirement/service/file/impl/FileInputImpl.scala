@@ -18,9 +18,27 @@ class FileInputImpl extends InputImpl[FileConnector] with FileInput with WithLog
     sourceConnector.get.init()
   }
 
-  override def getFile(pathInResources: String): String = sourceConnector.get.getFile(pathInResources).get
+  override def getFile(pathInResources: String): String = {
+    try {
+      sourceConnector.get.getFile(pathInResources).get
+    }catch{
+      case _: Exception => {
+        logger.error(s"Error. File $pathInResources does not exist.")
+        "ERROR"
+      }
+    }
+  }
 
-  override def getBinaryFile(pathInResources: String): Array[Byte] = sourceConnector.get.getBinaryFile(pathInResources).get
+  override def getBinaryFile(pathInResources: String): Array[Byte] = {
+    try {
+      sourceConnector.get.getBinaryFile(pathInResources).get
+    }catch{
+      case _: Exception => {
+        logger.error(s"Error. File $pathInResources does not exist.")
+        Array[Byte]()
+      }
+    }
+  }
 
   override def getImage(pathInResources: String, format: ImageFormat): BufferedImage = {
     val data = sourceConnector.get.getBinaryFile(s"$pathInResources.${format.toString.toLowerCase}").get
