@@ -30,19 +30,20 @@ class FileSystemActor extends Actor {
   override def receive: Receive = {
     case LoadFile(pathInResources) =>
       try {
-        sender ! Some(Source.fromFile(s"$dataFilePath${fixPath(pathInResources)}").mkString)
+        sender ! Some(Source.fromFile(new File(dataFolder, pathInResources)).mkString)
       } catch {
         case _: Exception => None
       }
     case LoadBinaryFile(pathInResources) =>
       try {
-        sender ! Files.readAllBytes(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath)
+        sender ! Some(Files.readAllBytes(new File(dataFolder, pathInResources).toPath))
       } catch {
-        case _: Exception => Array[Byte]()
+        case e: Exception => e.printStackTrace()
+          None
       }
     case SaveFile(pathInResources, content) =>
       try {
-        val writer = new PrintWriter(s"$dataFilePath${fixPath(pathInResources)}")
+        val writer = new PrintWriter(new File(dataFolder, pathInResources))
         writer.write(content)
         writer.close()
         sender ! true
@@ -51,22 +52,17 @@ class FileSystemActor extends Actor {
       }
     case SaveBinaryFile(pathInResources, content) =>
       try {
-        Files.write(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath, content)
+        Files.write(new File(dataFolder, pathInResources).toPath, content)
         sender ! true
       } catch {
         case _: Exception => sender ! false
       }
     case CreateDirectory(folderName) =>
       try {
-        sender ! new File(s"$dataFilePath${fixPath(folderName)}").mkdir()
+        sender !new File(dataFolder, folderName).mkdir()
       } catch {
         case _: Exception => sender ! false
       }
-  }
-
-  private def fixPath(path: String): String = {
-    val fixedPath = Paths.get(File.separator, path).normalize()
-    fixedPath.toString
   }
 }
 
