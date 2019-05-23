@@ -2,6 +2,7 @@ package org.codeoverflow.chatoverflow.requirement.service.file.impl
 
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
+import java.util.Optional
 
 import javax.imageio.ImageIO
 import org.codeoverflow.chatoverflow.WithLogger
@@ -18,32 +19,17 @@ class FileInputImpl extends InputImpl[FileConnector] with FileInput with WithLog
     sourceConnector.get.init()
   }
 
-  override def getFile(pathInResources: String): String = {
-    try {
-      sourceConnector.get.getFile(pathInResources).get
-    }catch{
-      case _: Exception => {
-        logger.error(s"Error. File $pathInResources does not exist.")
-        "ERROR"
-      }
-    }
-  }
+  override def getFile(pathInResources: String): Optional[String] = Optional.ofNullable(sourceConnector.get.getFile(pathInResources).orNull)
 
-  override def getBinaryFile(pathInResources: String): Array[Byte] = {
-    try {
-      sourceConnector.get.getBinaryFile(pathInResources).get
-    }catch{
-      case _: Exception => {
-        logger.error(s"Error. File $pathInResources does not exist.")
-        Array[Byte]()
-      }
-    }
-  }
+  override def getBinaryFile(pathInResources: String): Optional[Array[Byte]] = Optional.ofNullable(sourceConnector.get.getBinaryFile(pathInResources).orNull)
 
-  override def getImage(pathInResources: String, format: ImageFormat): BufferedImage = {
-    val data = sourceConnector.get.getBinaryFile(s"$pathInResources.${format.toString.toLowerCase}").get
-    val bis = new ByteArrayInputStream(data)
-    ImageIO.read(bis)
+  override def getImage(pathInResources: String, format: ImageFormat): Optional[BufferedImage] = {
+    val data = sourceConnector.get.getBinaryFile(s"$pathInResources.${format.toString.toLowerCase}")
+    if(!data.isDefined){
+      None
+    }
+    val bis = new ByteArrayInputStream(data.get)
+    Optional.of(ImageIO.read(bis))
   }
 
   override def start(): Boolean = true
