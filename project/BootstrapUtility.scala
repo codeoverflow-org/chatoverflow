@@ -65,7 +65,9 @@ object BootstrapUtility {
       logger info "Found dependency file."
 
       // Load file, remove the info tag and create dependency objects
-      val input = scala.io.Source.fromFile(dependencyFile).getLines().toList
+      val dependencySource = scala.io.Source.fromFile(dependencyFile)
+      val input = dependencySource.getLines().toList
+      dependencySource.close()
       val lines = input.map(line => line.replaceFirst("\\[info\\] ", ""))
 
       logger info "Read dependencies successfully. Creating dependency list."
@@ -74,10 +76,15 @@ object BootstrapUtility {
 
       logger info "Updating and modifying dependencies..."
 
-      // Modify dependencies: Remove ChatOverflow, add scala library
-      val depsWithoutChatOverflow = dependencies.filter(d =>
-        d.nameWithoutScalaVersion != "chatoverflow" && d.nameWithoutScalaVersion != "chatoverflow-api")
-      val modifiedDependencies = depsWithoutChatOverflow ++
+      // Modify dependencies: Remove ChatOverflow and opus-java, add scala library
+      // opus-java is a virtual package which instructs sbt or any other build tool to get opus-java-api and opus-java-native.
+      // Therefore it doesn't have a jar that needs to be downloaded and sbt includes the requested dependencies in the dependencyList.
+      // So we can just ignore it as it can't be resolved and only need to include the requested deps in our xml.
+      // Check https://github.com/discord-java/opus-java#opus-java-1 for more information on this.
+      val excludedDeps = List("chatoverflow", "chatoverflow-api", "opus-java")
+      val filteredDeps = dependencies.filter(d => !excludedDeps.contains(d.nameWithoutScalaVersion))
+
+      val modifiedDependencies = filteredDeps ++
         List(new Dependency(s"org.scala-lang:scala-library:$scalaLibraryVersion", logger))
 
       // Info output
