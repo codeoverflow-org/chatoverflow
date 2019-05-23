@@ -1,10 +1,12 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.connector
 
-import org.codeoverflow.chatoverflow.configuration.Credentials
+import org.codeoverflow.chatoverflow.configuration.{Credentials, CryptoUtil}
 import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConnectorDetails, ConnectorRef, ResultMessage}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConnectorDetails, ConnectorRef, CredentialsDetails, ResultMessage}
 import org.scalatra.swagger.Swagger
+
+import scala.collection.mutable
 
 class ConnectorController(implicit val swagger: Swagger) extends JsonServlet with ConnectorControllerDefinition {
 
@@ -74,6 +76,46 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
       chatOverflow.save()
       ResultMessage(success = true)
     }
+  }
+
+  // TODO: Get one encrypted entry, post, delete
+
+  get("/:sourceIdentifier/:qualifiedConnectorType/credentials", operation(getCredentials)) {
+    if (!chatOverflow.isLoaded) {
+      CredentialsDetails(found = false)
+    } else {
+      val connector = ConnectorRegistry.getConnector(params("sourceIdentifier"), params("qualifiedConnectorType"))
+
+      if (connector.isEmpty) {
+        CredentialsDetails(found = false)
+
+      } else if (!connector.get.areCredentialsSet) {
+        CredentialsDetails(found = false)
+
+      } else {
+
+        val requiredCredentials = getCredentialsMap(connector.get.getRequiredCredentialKeys, connector.get.getCredentials.get)
+        val optionalCredentials = getCredentialsMap(connector.get.getOptionalCredentialKeys, connector.get.getCredentials.get)
+
+        CredentialsDetails(found = true, requiredCredentials, optionalCredentials)
+      }
+    }
+  }
+
+  protected def getCredentialsMap(keys: List[String], credentials: Credentials): Map[String, String] = {
+    val authKey = chatOverflow.credentialsService.generateAuthKey()
+    val credentialsMap = mutable.Map[String, String]()
+
+    for (key <- keys) {
+      if (credentials.exists(key)) {
+        val plainValue = credentials.getValue(key).get
+        val encryptedValue = CryptoUtil.encryptSSLcompliant(authKey, plainValue)
+
+        credentialsMap += key -> encryptedValue
+      }
+    }
+
+    credentialsMap.toMap
   }
 
 }
