@@ -13,7 +13,6 @@ simple_run:
 	sbt package copy
 
 bootstrap_deploy:
-	sbt dependencyList | cut -d " " -f2 | grep ":" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | uniq > dependencyList.txt
 	sbt compile
 	sbt clean
 	sbt package copy

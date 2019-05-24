@@ -3,6 +3,7 @@ import java.nio.file.{Files, Paths}
 
 import BuildUtility.withTaskInfo
 import sbt.internal.util.ManagedLogger
+import sbt.librarymanagement.ModuleID
 
 import scala.xml.XML
 
@@ -11,7 +12,6 @@ import scala.xml.XML
   * Should be used once for every new public version of chat overflow.
   */
 object BootstrapUtility {
-  val dependencyListFileName = "dependencyList.txt"
   val dependencyProjectBasePath = "bootstrap/src/main"
   val dependencyXMLFileName = s"$dependencyProjectBasePath/resources/dependencies.xml"
 
@@ -21,11 +21,11 @@ object BootstrapUtility {
     * @param logger              the sbt logger
     * @param scalaLibraryVersion the current scala library version
     */
-  def bootstrapGenTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
+  def bootstrapGenTask(logger: ManagedLogger, scalaLibraryVersion: String, modules: List[ModuleID]): Unit = {
     withTaskInfo("BOOTSTRAP GENERATION", logger) {
 
       // Dependency management
-      val dependencyList = retrieveDependencies(logger, scalaLibraryVersion)
+      val dependencyList = retrieveDependencies(logger, scalaLibraryVersion, modules)
       saveDependencyXML(dependencyList, logger)
     }
   }
@@ -48,54 +48,41 @@ object BootstrapUtility {
   }
 
   /**
-    * Uses a file called 'dependencyList.txt' with the output of the
-    * sbt command 'dependencyList' to retrieve all dependencies.
+    * Converts passed modules to a list of Dependency, resolves them to urls, filters out codeoverflow
+    * and adds the scala library to the list.
     */
-  private def retrieveDependencies(logger: ManagedLogger, scalaLibraryVersion: String): List[Dependency] = {
+  private def retrieveDependencies(logger: ManagedLogger, scalaLibraryVersion: String, modules: List[ModuleID]): List[Dependency] = {
 
     logger info "Starting dependency retrieval."
 
-    val dependencyFile = new File(dependencyListFileName)
+    logger info "Creating dependency list and resolve dependencies."
 
-    if (!dependencyFile.exists()) {
-      logger error "No dependency file found. Please copy the output of the task 'dependencyList' into a file named 'dependencyList.txt' in the root folder."
-      List[Dependency]()
-    } else {
-
-      logger info "Found dependency file."
-
-      // Load file, remove the info tag and create dependency objects
-      val dependencySource = scala.io.Source.fromFile(dependencyFile)
-      val input = dependencySource.getLines().toList
-      dependencySource.close()
-      val lines = input.map(line => line.replaceFirst("\\[info\\] ", ""))
-
-      logger info "Read dependencies successfully. Creating dependency list."
-
-      val dependencies = for (line <- lines) yield new Dependency(line, logger)
-
-      logger info "Updating and modifying dependencies..."
-
-      // Modify dependencies: Remove ChatOverflow and opus-java, add scala library
-      // opus-java is a virtual package which instructs sbt or any other build tool to get opus-java-api and opus-java-native.
-      // Therefore it doesn't have a jar that needs to be downloaded and sbt includes the requested dependencies in the dependencyList.
-      // So we can just ignore it as it can't be resolved and only need to include the requested deps in our xml.
-      // Check https://github.com/discord-java/opus-java#opus-java-1 for more information on this.
-      val excludedDeps = List("chatoverflow", "chatoverflow-api", "opus-java")
-      val filteredDeps = dependencies.filter(d => !excludedDeps.contains(d.nameWithoutScalaVersion))
-
-      val modifiedDependencies = filteredDeps ++
-        List(new Dependency(s"org.scala-lang:scala-library:$scalaLibraryVersion", logger))
-
-      // Info output
-      logger info s"Found ${modifiedDependencies.length} dependencies."
-      if (modifiedDependencies.exists(d => !d.available)) {
-        logger warn "Found the following dependencies, that could not be retrieved online:"
-        logger warn modifiedDependencies.filter(d => !d.available).map(_.toString).mkString("\n")
-      }
-
-      modifiedDependencies
+    val dependencyList = for (dep <- modules) yield {
+      val dependencyString = s"${dep.organization}:${dep.name}:${dep.revision}"
+      new Dependency(dependencyString, logger)
     }
+
+    logger info "Updating and modifying dependencies..."
+
+    // Modify dependencies: Remove ChatOverflow and opus-java, add scala library
+    // opus-java is a virtual package which instructs sbt or any other build tool to get opus-java-api and opus-java-native.
+    // Therefore it doesn't have a jar that needs to be downloaded and sbt includes the requested dependencies in the dependencyList.
+    // So we can just ignore it as it can't be resolved and only need to include the requested deps in our xml.
+    // Check https://github.com/discord-java/opus-java#opus-java-1 for more information on this.
+    val excludedDeps = List("chatoverflow", "chatoverflow-api", "opus-java")
+    val filteredDeps = dependencyList.filter(d => !excludedDeps.contains(d.nameWithoutScalaVersion))
+
+    val modifiedDependencies = filteredDeps ++
+      List(new Dependency(s"org.scala-lang:scala-library:$scalaLibraryVersion", logger))
+
+    // Info output
+    logger info s"Found ${modifiedDependencies.length} dependencies."
+    if (modifiedDependencies.exists(d => !d.available)) {
+      logger warn "Found the following dependencies, that could not be retrieved online:"
+      logger warn modifiedDependencies.filter(d => !d.available).map(_.toString).mkString("\n")
+    }
+
+    modifiedDependencies
   }
 
   /**
