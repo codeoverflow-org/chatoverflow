@@ -31,7 +31,7 @@ class FileSystemActor extends Actor {
   override def receive: Receive = {
     case LoadFile(pathInResources) =>
       try {
-        sender ! Some(Source.fromFile(s"$dataFilePath${fixPath(pathInResources)}").mkString)
+        sender ! Some(Source.fromFile(fixPath(pathInResources)).mkString)
       } catch {
         case _: Exception => None
       }
