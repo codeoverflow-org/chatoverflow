@@ -138,7 +138,6 @@ object BootstrapUtility {
       }
 
       // TODO: Deployment readme file html
-      // TODO: Deployment bat file
       // TODO: Deployment unix launch file (...?)
     }
   }

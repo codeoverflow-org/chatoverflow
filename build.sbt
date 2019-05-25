@@ -70,18 +70,6 @@ lazy val pluginFolderNames = settingKey[List[String]]("The folder names of all p
 lazy val pluginTargetFolderNames = settingKey[List[String]]("The folder names of compiled and packaged plugins. Remember to gitignore these!")
 lazy val apiProjectPath = settingKey[String]("The path to the api sub project. Remember to gitignore it!")
 
-// Util task for bs, gets a dependency list kinda like "sbt dependencyList", but only includes deps required for runtime
-lazy val getDependencyList = Def.task[List[ModuleID]] {
-  // only get deps required for runtime and not for anything else like testing
-  val updateReport = update.value.configuration(ConfigRef("runtime"))
-
-  if (updateReport.isEmpty) {
-    List()
-  } else {
-    updateReport.get.modules.map(m => m.module).toList
-  }
-}
-
 // Plugin framework tasks
 lazy val create = TaskKey[Unit]("create", "Creates a new plugin. Interactive command using the console.")
 lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin directories, builds the plugin build file.")
@@ -100,3 +88,19 @@ fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.valu
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// UTIL
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Util task for bs, gets a dependency list kinda like "sbt dependencyList", but only includes deps required for runtime
+lazy val getDependencyList = Def.task[List[ModuleID]] {
+  // only get deps required for runtime and not for anything else like testing
+  val updateReport = update.value.configuration(ConfigRef("runtime"))
+
+  if (updateReport.isEmpty) {
+    List()
+  } else {
+    updateReport.get.modules.map(m => m.module).toList
+  }
+}
