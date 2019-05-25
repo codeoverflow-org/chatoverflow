@@ -27,6 +27,10 @@ object DTOs {
   case class CredentialsDetails(found: Boolean, requiredCredentials: Map[String, String] = Map[String, String](),
                                 optionalCredentials: Map[String, String] = Map[String, String]())
 
+  case class CredentialsEntry(found: Boolean, key: String = "", value: String = "")
+
+  case class EncryptedKeyValuePair(key: String, value: String)
+
   case class PluginInstanceRef(instanceName: String, pluginName: String, pluginAuthor: String)
 
   case class ResultMessage(success: Boolean, message: String = "")
@@ -34,5 +38,7 @@ object DTOs {
   case class ConnectorRef(sourceIdentifier: String, uniqueTypeString: String)
 
   case class Password(password: String)
+
+  case class AuthKey(authKey: String)
 
 }
