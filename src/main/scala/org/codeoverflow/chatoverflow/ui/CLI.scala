@@ -30,9 +30,15 @@ object CLI {
     opt[String]('r', "requirementPackage").action((x, c) =>
       c.copy(requirementPackage = x)).text("path to the package where all requirements are defined")
 
-    // Subject of change. After GUI will be -l (for requireLogin)
+    // Subject of change. After GUI will be -l (for login)
     opt[Unit]('n', "noPassword").action((_, c) =>
       c.copy(requirePasswordOnStartup = false)).text("set this flag to disable password checking on framework startup")
+
+    opt[String]('l', "login").action((x, c) =>
+      c.copy(loginPassword = x.toCharArray)).text("the password to login to chat overflow (not recommended, has to be combined with -n)")
+
+    opt[Seq[String]]('s', "start").action((x, c) =>
+      c.copy(startupPlugins = x)).text("a comma-separated list of plugin instances to start after login (has to be combined with -n and -l)")
 
     opt[String]('d', "pluginDataFolder").action((x, c) =>
       c.copy(pluginDataPath = x)).text("path to the data folder, accessible from within plugins")
@@ -73,7 +79,9 @@ object CLI {
                     requirePasswordOnStartup: Boolean = true,
                     pluginDataPath: String = "data",
                     webServerPort: Int = 2400,
-                    pluginLogOutputOnConsole: Boolean = true)
+                    pluginLogOutputOnConsole: Boolean = true,
+                    loginPassword: Array[Char] = Array[Char](),
+                    startupPlugins: Seq[String] = Seq[String]())
 
   object UI extends Enumeration {
     type UI = Value

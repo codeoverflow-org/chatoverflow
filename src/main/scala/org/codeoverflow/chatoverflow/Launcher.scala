@@ -19,13 +19,35 @@ object Launcher extends WithLogger {
   def main(args: Array[String]): Unit = {
     parse(args) { config =>
 
+      // Set globally available plugin data path
       this.pluginDataPath = config.pluginDataPath
 
       // The complete project visible trough one single instance
       val chatOverflow = new ChatOverflow(config.pluginFolderPath,
         config.configFolderPath, config.requirementPackage, config.requirePasswordOnStartup, config.pluginLogOutputOnConsole)
 
+      // Initialize chat overflow
       chatOverflow.init()
+
+      // Login if a password is specified
+      if (config.loginPassword.nonEmpty && !chatOverflow.isLoaded) {
+        chatOverflow.credentialsService.setPassword(config.loginPassword)
+        chatOverflow.load()
+      }
+
+      // Start plugins if specified
+      // TODO: Move this down after server start when the REPL is history
+      if (chatOverflow.isLoaded && config.startupPlugins.nonEmpty) {
+        for (instanceName <- config.startupPlugins) {
+          val instance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+          if (instance.isEmpty) {
+            println(s"No plugin instance named '$instanceName' was registered.")
+          } else {
+            instance.get.start()
+          }
+        }
+      }
 
       // Launch UI
       config.ui match {
