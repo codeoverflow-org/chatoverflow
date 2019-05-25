@@ -43,6 +43,12 @@ object BootstrapUtility {
       </dependencies>
 
     logger info "Saving dependency XML now."
+
+    // Create directory if not existent, otherwise saving will fail.
+    if (new File(dependencyXMLFileName).getParentFile.mkdir()) {
+      logger info "Created directory bootstrap/src/main/resources"
+    }
+
     XML.save(dependencyXMLFileName, xml)
     logger info "Finished saving XML file."
   }
