@@ -55,7 +55,7 @@ libraryDependencies ++= Seq(
 
 // JDA
 resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
-libraryDependencies += "net.dv8tion" % "JDA" % "4.ALPHA.0_82"
+libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 
 //Serial Communication
 libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
