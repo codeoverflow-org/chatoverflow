@@ -32,6 +32,12 @@ Please see the wiki to learn how to code new [platform sources](https://github.c
 
 Chat Overflow releases are not yet available. ETA Q2 2019.
 
+### Discord
+
+The perfect place if you need help with the framework, found a bug or want to share your own plugin:
+
+[![discord](https://discordapp.com/api/guilds/577412066994946060/widget.png?style=banner2)](https://discord.gg/p2HDsme)
+
 ### About Code Overflow
 
 Code Overflow started as a coding-livestream project by three computer science students @ [KIT, Karlsruhe](http://www.kit.edu/) and is headed by [skate702](http://skate702.de).
