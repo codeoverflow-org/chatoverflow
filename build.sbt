@@ -64,6 +64,8 @@ libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 //Serial Communication
 libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 
+// Socket.io
+libraryDependencies += "io.socket" % "socket.io-client"% "1.0.0"
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
