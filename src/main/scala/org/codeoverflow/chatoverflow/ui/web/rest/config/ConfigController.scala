@@ -16,8 +16,12 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
   }
 
   post("/save", operation(postSave)) {
-    chatOverflow.save()
-    true
+    if (!chatOverflow.isLoaded) {
+      false
+    } else {
+      chatOverflow.save()
+      true
+    }
   }
 
   get("/login", operation(getLogin)) {

@@ -50,21 +50,27 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
   post("/", operation(postInstance)) {
     parsedAs[PluginInstanceRef] {
       case PluginInstanceRef(instanceName, pluginName, pluginAuthor) =>
-        // Check existence of key first
-        if (chatOverflow.pluginInstanceRegistry.pluginInstanceExists(instanceName)) {
-          ResultMessage(success = false, "Plugin instance already exists.")
-
-        } else if (!chatOverflow.pluginFramework.pluginExists(pluginName, pluginAuthor)) {
-          ResultMessage(success = false, "Plugin type does not exist.")
+        if (!chatOverflow.isLoaded) {
+          ResultMessage(success = false, "Framework not loaded.")
 
         } else {
-          val pluginType = chatOverflow.pluginFramework.getPlugin(pluginName, pluginAuthor)
 
-          if (!chatOverflow.pluginInstanceRegistry.addPluginInstance(instanceName, pluginType.get)) {
-            ResultMessage(success = false, "Unable to create new plugin instance.")
+          // Check existence of key first
+          if (chatOverflow.pluginInstanceRegistry.pluginInstanceExists(instanceName)) {
+            ResultMessage(success = false, "Plugin instance already exists.")
+
+          } else if (!chatOverflow.pluginFramework.pluginExists(pluginName, pluginAuthor)) {
+            ResultMessage(success = false, "Plugin type does not exist.")
+
           } else {
-            chatOverflow.save()
-            ResultMessage(success = true)
+            val pluginType = chatOverflow.pluginFramework.getPlugin(pluginName, pluginAuthor)
+
+            if (!chatOverflow.pluginInstanceRegistry.addPluginInstance(instanceName, pluginType.get)) {
+              ResultMessage(success = false, "Unable to create new plugin instance.")
+            } else {
+              chatOverflow.save()
+              ResultMessage(success = true)
+            }
           }
         }
     }
@@ -73,20 +79,26 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
   delete("/:instanceName", operation(deleteInstance)) {
     val instanceName = params("instanceName")
 
-    val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
-
-    if (pluginInstance.isEmpty) {
-      ResultMessage(success = false, "Plugin instance not found.")
-
-    } else if (pluginInstance.get.isRunning) {
-      ResultMessage(success = false, "Plugin instance is running.")
-
-    } else if (!chatOverflow.pluginInstanceRegistry.removePluginInstance(instanceName)) {
-      ResultMessage(success = false, "Unable to remove plugin instance.")
+    if (!chatOverflow.isLoaded) {
+      ResultMessage(success = false, "Framework not loaded.")
 
     } else {
-      chatOverflow.save()
-      ResultMessage(success = true)
+
+      val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+      if (pluginInstance.isEmpty) {
+        ResultMessage(success = false, "Plugin instance not found.")
+
+      } else if (pluginInstance.get.isRunning) {
+        ResultMessage(success = false, "Plugin instance is running.")
+
+      } else if (!chatOverflow.pluginInstanceRegistry.removePluginInstance(instanceName)) {
+        ResultMessage(success = false, "Unable to remove plugin instance.")
+
+      } else {
+        chatOverflow.save()
+        ResultMessage(success = true)
+      }
     }
   }
 

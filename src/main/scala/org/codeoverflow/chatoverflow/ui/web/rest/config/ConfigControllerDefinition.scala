@@ -13,7 +13,7 @@ trait ConfigControllerDefinition extends SwaggerSupport {
 
   val postSave: OperationBuilder =
     (apiOperation[Boolean]("postSave")
-      summary "Triggers the saving process of the framework manually."
+      summary "Triggers the saving process of the framework manually (if loaded previously)."
       description "Triggers saving of credentials and configuration. Should not be needed manually.")
 
   val getLogin: OperationBuilder =

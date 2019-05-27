@@ -28,28 +28,33 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
   post("/", operation(postConnector)) {
     parsedAs[ConnectorRef] {
       case ConnectorRef(sourceIdentifier, uniqueTypeString) =>
-        val connector = ConnectorRegistry.getConnector(sourceIdentifier, uniqueTypeString)
+        if (!chatOverflow.isLoaded) {
+          ResultMessage(success = false, "Framework not loaded.")
 
-        if (connector.isDefined) {
-          ResultMessage(success = false, "Connector already defined.")
         } else {
-          val connectorClass = chatOverflow.typeRegistry.getConnectorType(uniqueTypeString)
+          val connector = ConnectorRegistry.getConnector(sourceIdentifier, uniqueTypeString)
 
-          if (connectorClass.isEmpty) {
-            ResultMessage(success = false, "Connector type not found.")
-
-          } else if (!ConnectorRegistry.addConnector(sourceIdentifier, uniqueTypeString)) {
-            ResultMessage(success = false, "Unable to add connector.")
-
+          if (connector.isDefined) {
+            ResultMessage(success = false, "Connector already defined.")
           } else {
+            val connectorClass = chatOverflow.typeRegistry.getConnectorType(uniqueTypeString)
 
-            val credentials = new Credentials(sourceIdentifier)
-            if (!ConnectorRegistry.setConnectorCredentials(sourceIdentifier, uniqueTypeString, credentials)) {
-              ResultMessage(success = false, "Unable to create credentials.")
+            if (connectorClass.isEmpty) {
+              ResultMessage(success = false, "Connector type not found.")
+
+            } else if (!ConnectorRegistry.addConnector(sourceIdentifier, uniqueTypeString)) {
+              ResultMessage(success = false, "Unable to add connector.")
 
             } else {
-              chatOverflow.save()
-              ResultMessage(success = true)
+
+              val credentials = new Credentials(sourceIdentifier)
+              if (!ConnectorRegistry.setConnectorCredentials(sourceIdentifier, uniqueTypeString, credentials)) {
+                ResultMessage(success = false, "Unable to create credentials.")
+
+              } else {
+                chatOverflow.save()
+                ResultMessage(success = true)
+              }
             }
           }
         }
@@ -62,7 +67,10 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
 
     val connector = ConnectorRegistry.getConnector(sourceIdentifier, qualifiedConnectorType)
 
-    if (connector.isEmpty) {
+    if (!chatOverflow.isLoaded) {
+      ResultMessage(success = false, "Framework not loaded.")
+
+    } else if (connector.isEmpty) {
       ResultMessage(success = false, "Connector does not exist.")
 
     } else if (connector.get.isRunning) {
@@ -77,8 +85,6 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
       ResultMessage(success = true)
     }
   }
-
-  // TODO: Get one encrypted entry, post, delete
 
   get("/:sourceIdentifier/:qualifiedConnectorType/credentials", operation(getCredentials)) {
     if (!chatOverflow.isLoaded) {
