@@ -2,8 +2,9 @@ package org.codeoverflow.chatoverflow.ui.web.rest.plugin
 
 import org.codeoverflow.chatoverflow.api.io
 import org.codeoverflow.chatoverflow.api.plugin.configuration
+import org.codeoverflow.chatoverflow.configuration.ConfigurationService
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, PluginInstanceRef, Requirement, ResultMessage}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
 import org.scalatra.swagger.Swagger
 
 import scala.collection.JavaConverters._
@@ -24,16 +25,74 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
 
   get("/:instanceName/requirements", operation(getRequirements)) {
     val instanceName = params("instanceName")
-    val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
-    val requirements = pluginInstance.get.getRequirements.getRequirementMap
     val returnSeq = ListBuffer[Requirement]()
+    val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
 
-    requirements.forEach((uniqueRequirementID, requirement) => returnSeq += Requirement(uniqueRequirementID,
-      requirement.getName, requirement.isOptional, requirement.isSet,
-      requirement.asInstanceOf[configuration.Requirement[io.Serializable]].get().serialize(),
-      requirement.getTargetType.getName))
+    if (pluginInstance.isEmpty) {
+      returnSeq
 
-    returnSeq.toList
+    } else {
+      val requirements = pluginInstance.get.getRequirements.getRequirementMap
+
+      requirements.forEach((uniqueRequirementID, requirement) =>
+        returnSeq += createRequirement(uniqueRequirementID, requirement))
+
+      returnSeq.toList
+    }
+  }
+
+  get("/:instanceName/requirements/:requirementID", operation(getRequirement)) {
+    val instanceName = params("instanceName")
+    val requirementID = params("requirementID")
+
+    val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+    if (pluginInstance.isEmpty) {
+      Requirement("", "", isOptional = false, isSet = false, "", "")
+    } else {
+      val requirement = pluginInstance.get.getRequirements.getRequirementById(requirementID)
+
+      if (!requirement.isPresent) {
+        Requirement("", "", isOptional = false, isSet = false, "", "")
+      } else {
+        createRequirement(requirementID, requirement.get)
+      }
+    }
+  }
+
+  put("/:instanceName/requirements/:requirementID", operation(putRequirement)) {
+    parsedAs[RequirementInfo] {
+      case RequirementInfo(targetType, value) =>
+        val instanceName = params("instanceName")
+        val requirementID = params("requirementID")
+
+        if (!chatOverflow.isLoaded) {
+          ResultMessage(success = false, "Framework not loaded.")
+
+        } else {
+          val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+          if (pluginInstance.isEmpty) {
+            ResultMessage(success = false, "Plugin instance not found.")
+
+          } else if (pluginInstance.get.isRunning) {
+            ResultMessage(success = false, "Plugin is running.")
+
+          } else if (!pluginInstance.get.getRequirements.getRequirementById(requirementID).isPresent) {
+            ResultMessage(success = false, "Requirement not found.")
+          } else {
+
+            if (!ConfigurationService.fulfillRequirementByDeserializing(instanceName, requirementID, targetType,
+              value, chatOverflow.pluginInstanceRegistry, chatOverflow.typeRegistry)) {
+
+              ResultMessage(success = false, "Unable to set requirement.")
+            } else {
+              chatOverflow.save()
+              ResultMessage(success = true)
+            }
+          }
+        }
+    }
   }
 
   get("/:instanceName/log", operation(getLog)) {
@@ -102,9 +161,29 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
     }
   }
 
-  private def pluginInstanceToDTO(pluginInstance: org.codeoverflow.chatoverflow.instance.PluginInstance) = {
+  private def pluginInstanceToDTO(pluginInstance: org.codeoverflow.chatoverflow.instance.PluginInstance)
+
+  = {
     PluginInstance(pluginInstance.instanceName, pluginInstance.getPluginTypeName,
       pluginInstance.getPluginTypeAuthor, pluginInstance.isRunning,
       pluginInstance.getRequirements.getRequirementMap.keySet().asScala.toList)
+  }
+
+  private def createRequirement(requirementID: String, requirement: configuration.Requirement[_ <: io.Serializable]): Requirement
+
+  = {
+    Requirement(requirementID,
+      requirement.getName, requirement.isOptional, requirement.isSet,
+      {
+        // Can be null if the requirement was freshly created in this run
+        val requirementContent = requirement.asInstanceOf[configuration.Requirement[io.Serializable]].get()
+
+        if (requirementContent == null) {
+          ""
+        } else {
+          requirementContent.serialize()
+        }
+      },
+      requirement.getTargetType.getName)
   }
 }

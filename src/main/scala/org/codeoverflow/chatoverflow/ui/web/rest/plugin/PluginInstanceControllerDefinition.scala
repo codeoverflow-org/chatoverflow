@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.plugin
 
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{PluginInstance, PluginInstanceRef, Requirement, ResultMessage}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
 import org.scalatra.swagger.SwaggerSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
@@ -22,6 +22,21 @@ trait PluginInstanceControllerDefinition extends SwaggerSupport {
       summary "Shows all requirements of a plugin instance."
       description "Shows state, name and type of all requirements of a specified plugin instance."
       parameter pathParam[String]("instanceName").description("The name of the plugin instance."))
+
+  val getRequirement: OperationBuilder =
+    (apiOperation[Requirement]("getRequirement")
+      summary "Shows a specific requirement of a plugin instance."
+      description "Shows state, name and type of one specific requirement of a specified plugin instance."
+      parameter pathParam[String]("instanceName").description("The name of the plugin instance.")
+      parameter pathParam[String]("requirementID").description("The unique id of the requirement."))
+
+  val putRequirement: OperationBuilder =
+    (apiOperation[ResultMessage]("putRequirement")
+      summary "Changes the value and type of a specific requirement."
+      description "Changes the value (serialized content) and the target type of a requirement of one instance."
+      parameter pathParam[String]("instanceName").description("The name of the plugin instance.")
+      parameter pathParam[String]("requirementID").description("The unique id of the requirement.")
+      parameter bodyParam[RequirementInfo]("body").description("Requires target type and serialized content."))
 
   val getLog: OperationBuilder =
     (apiOperation[List[String]]("getLog")

@@ -12,6 +12,8 @@ object DTOs {
 
   case class Requirement(uniqueRequirementId: String, name: String, isOptional: Boolean, isSet: Boolean, value: String, targetType: String)
 
+  case class RequirementInfo(targetType: String, value: String)
+
   case class Types(pluginTypes: Seq[PluginType], requirementTypes: RequirementTypes, connectorTypes: Seq[String])
 
   case class RequirementTypes(input: Seq[String], output: Seq[String], parameter: Seq[String])

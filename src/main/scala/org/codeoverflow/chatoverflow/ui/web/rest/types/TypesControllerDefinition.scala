@@ -12,7 +12,7 @@ trait TypesControllerDefinition extends SwaggerSupport {
       description "Shows name, author, api version and state of all possible plugin types.")
 
   val getRequirementType: OperationBuilder =
-    (apiOperation[RequirementTypes]("getRequirement")
+    (apiOperation[RequirementTypes]("getRequirementType")
       summary "Shows all possible requirement types."
       description "Shows the fully qualified api type strings of all requirement types, grouped by input/output/parameter.")
 
