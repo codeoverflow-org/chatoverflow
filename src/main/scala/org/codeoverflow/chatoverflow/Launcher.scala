@@ -64,12 +64,21 @@ object Launcher extends WithLogger {
 
   private def startServer(chatOverflow: ChatOverflow, port: Int): Unit = {
     if (server.isEmpty) {
-      server = Some(new Server(chatOverflow, 2400))
+      server = Some(new Server(chatOverflow, port))
       server.get.startAsync()
     }
   }
 
   private def startREPL(chatOverflow: ChatOverflow): Unit = {
     new REPL(chatOverflow).run()
+  }
+
+  /**
+    * Shuts down the framework.
+    */
+  def exit(): Unit = {
+    logger info "Shutting down Chat Overflow."
+    // TODO: Deal with running plugins, connectors, ...
+    System.exit(0)
   }
 }

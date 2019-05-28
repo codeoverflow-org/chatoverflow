@@ -174,6 +174,8 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                   // After the loop (or setup) the plugin should end
                   plugin.get.shutdown()
 
+                  logger info s"Stopped plugin instance '$instanceName'."
+
                 } catch {
                   case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
                   case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)
@@ -225,6 +227,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
     * Tells the plugin to stop its execution after the next iteration of the loop()-method and its sleeping-cycle.
     */
   def stopPlease(): Unit = {
+    logger info s"Requested stop of plugin instance '$instanceName'."
     threadStopAfterNextIteration = true
   }
 

@@ -35,7 +35,7 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
           // Give enough time to return success. Then bye bye
           new Thread(() => {
             Thread.sleep(500)
-            System.exit(0)
+            Launcher.exit()
           }).start()
           ResultMessage(success = true)
         }
