@@ -4,6 +4,7 @@ import java.io.{File, PrintWriter}
 import java.nio.file.Files
 
 import akka.actor.Actor
+import org.codeoverflow.chatoverflow.Launcher
 import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor._
 
 import scala.annotation.tailrec
@@ -14,8 +15,8 @@ import scala.io.Source
   */
 class FileSystemActor extends Actor {
 
-  // TODO: Should be an startup option in the CLI
-  private val dataFilePath = "data"
+  // TODO: Should be tested
+  private val dataFilePath = Launcher.pluginDataPath
 
   // Create data folder if non existent
   private val dataFolder = new File(dataFilePath)
