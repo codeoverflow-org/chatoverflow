@@ -57,6 +57,18 @@ trait PluginInstanceControllerDefinition extends SwaggerSupport {
       description "Removes a plugin instance specified by its name, if possible."
       parameter pathParam[String]("instanceName").description("The name of the plugin instance."))
 
+  val startInstance: OperationBuilder =
+    (apiOperation[ResultMessage]("startInstance")
+      summary "Starts a specific plugin instance."
+      description "Starts a specific plugin instance if possible."
+      parameter bodyParam[PluginInstanceName]("body").description("Requires the name of the plugin instance."))
+
+  val stopInstance: OperationBuilder =
+    (apiOperation[ResultMessage]("stopInstance")
+      summary "Stops a specific plugin instance."
+      description "Requires the stop of a specified plugin instance. This can take up to one loop interval."
+      parameter bodyParam[PluginInstanceName]("body").description("Requires the name of the plugin instance."))
+
   override protected def applicationDescription: String = "Handles plugin instances and requirements."
 
 }

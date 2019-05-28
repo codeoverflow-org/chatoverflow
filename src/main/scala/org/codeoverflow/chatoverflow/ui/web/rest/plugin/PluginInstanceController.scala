@@ -23,6 +23,59 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
     chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName).map(pluginInstanceToDTO)
   }
 
+  post("/start", operation(startInstance)) {
+    parsedAs[PluginInstanceName] {
+      case PluginInstanceName(instanceName) =>
+
+        if (!chatOverflow.isLoaded) {
+          ResultMessage(success = false, "Framework not loaded.")
+
+        } else {
+          val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+          if (pluginInstance.isEmpty) {
+            ResultMessage(success = false, "Plugin instance not found.")
+
+          } else if (pluginInstance.get.isRunning) {
+            ResultMessage(success = false, "Plugin instance already running.")
+
+          } else if (!pluginInstance.get.getRequirements.isComplete) {
+            ResultMessage(success = false, "Not all required requirements have been set.")
+
+          } else if (!pluginInstance.get.start()) {
+            ResultMessage(success = false, "Unable to start plugin.")
+
+          } else {
+            ResultMessage(success = true)
+          }
+        }
+    }
+  }
+
+  post("/stop", operation(stopInstance)) {
+    parsedAs[PluginInstanceName] {
+      case PluginInstanceName(instanceName) =>
+
+        if (!chatOverflow.isLoaded) {
+          ResultMessage(success = false, "Framework not loaded.")
+
+        } else {
+          val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+          if (pluginInstance.isEmpty) {
+            ResultMessage(success = false, "Plugin instance not found.")
+
+          } else if (!pluginInstance.get.isRunning) {
+            ResultMessage(success = false, "Plugin instance is not running.")
+
+          } else {
+            pluginInstance.get.stopPlease()
+            ResultMessage(success = true)
+          }
+        }
+    }
+  }
+
   get("/:instanceName/requirements", operation(getRequirements)) {
     val instanceName = params("instanceName")
     val returnSeq = ListBuffer[Requirement]()

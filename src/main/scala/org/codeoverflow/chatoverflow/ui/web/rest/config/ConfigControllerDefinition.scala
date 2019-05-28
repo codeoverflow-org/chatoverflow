@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.config
 
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConfigInfo, Password, ResultMessage}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{AuthKey, ConfigInfo, Password, ResultMessage}
 import org.scalatra.swagger.SwaggerSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
@@ -15,6 +15,13 @@ trait ConfigControllerDefinition extends SwaggerSupport {
     (apiOperation[Boolean]("postSave")
       summary "Triggers the saving process of the framework manually (if loaded previously)."
       description "Triggers saving of credentials and configuration. Should not be needed manually.")
+
+  val postExit: OperationBuilder =
+    (apiOperation[ResultMessage]("postExit")
+      summary "Shuts the framework down."
+      description "Shutdown the framework in the next second if a correct auth key is supplied."
+      parameter bodyParam[AuthKey]("body").description("Requires the run specific auth key."))
+
 
   val getLogin: OperationBuilder =
     (apiOperation[Boolean]("getLogin")

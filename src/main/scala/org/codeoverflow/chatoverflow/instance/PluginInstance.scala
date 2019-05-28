@@ -164,6 +164,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                   if (plugin.get.getLoopInterval > 0) {
                     while (!threadStopAfterNextIteration) {
                       plugin.get.loop()
+                      // FIXME: This is not a loop interval. Should be responsive to the loop runtime
                       Thread.sleep(plugin.get.getLoopInterval)
                     }
                   }
