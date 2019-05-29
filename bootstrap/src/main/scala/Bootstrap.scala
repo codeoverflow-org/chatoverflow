@@ -85,69 +85,104 @@ object Bootstrap {
   }
 
   /**
-    * Checks if the library folder exists or the reload-flag is set. Triggers the download-process.
+    * Checks if the library folder exists or the reload-flag is set. Triggers the download-process if libraries are missing.
     *
     * @param args the args, the launcher has been called with
     * @return false, if there is a serious problem
     */
   def checkLibraries(args: Array[String]): Boolean = {
 
-    // TODO: Someday in the future, we need incremental library checking to manage updates without full download
-
     val libFolder = new File(s"$currentFolderPath/lib")
-    // Args contains --reload or lib folder is non existent?
-    if ((args.length > 0 && args.head == "--reload") || !libFolder.exists()) {
 
-      // Create or clean directory
-      if (libFolder.exists()) {
-        for (libFile <- libFolder.listFiles()) {
-          try {
-            libFile.delete()
-          } catch {
-            case e: Exception => println(s"Unable to delete file '${libFile.getName}'. Message: ${e.getMessage}")
-          }
-        }
-      } else {
+    // Create folder for libs if missing
+    if (!libFolder.exists()) {
+      try {
+        libFolder.mkdir()
+      } catch {
+        case e: Exception => println(s"Unable to create library directory. Message: ${e.getMessage}")
+          return false
+      }
+    }
+
+    // --reload flags instructs to delete all downloaded libraries and to re-download them
+    if (args.contains("--reload")) {
+      for (libFile <- libFolder.listFiles()) {
         try {
-          libFolder.mkdir()
+          libFile.delete()
         } catch {
-          case e: Exception => println(s"Unable to create library directory. Message: ${e.getMessage}")
+          case e: Exception => println(s"Unable to delete file '${libFile.getName}'. Message: ${e.getMessage}")
+            return false
         }
       }
-
-      // Download all libraries
-      // TODO: Check validity if everything is downloaded
-      println("Downloading libraries...")
-      downloadLibraries()
-
-    } else {
-      println("Found libraries folder. Assuming all dependencies are available properly.")
-      true
     }
+
+    val dependencies = getDependencies
+
+    // Download all libraries
+    // TODO: Check validity if everything is downloaded
+    // try downloading libs and only if it succeeded (returned true) then try to delete older libs
+    downloadMissingLibraries(dependencies) && deleteUndesiredLibraries(dependencies)
   }
 
   /**
-    * Reads the dependency xml file and tries to download every library.
+    * Reads the dependency xml file and tries to download every library that is missing.
     *
     * @return false, if there is a serious problem
     */
-  def downloadLibraries(): Boolean = {
+  private def downloadMissingLibraries(dependencies: List[(String, String)]): Boolean = {
+    // using par here to make multiple http requests in parallel, otherwise its awfully slow on internet connections with high RTTs
+    val missing = dependencies.par.filterNot(dep => isLibraryDownloaded(dep._2)).toList
 
-    // Get dependency xml and read dependencies with their download URL
-    val dependencyStream = getClass.getResourceAsStream("/dependencies.xml")
-    val dependencyXML = xml.XML.load(dependencyStream)
-    val dependencies = for (dependency <- dependencyXML \\ "dependency")
-      yield ((dependency \ "name").text.trim, (dependency \ "url").text.trim)
+    if (missing.isEmpty) {
+      println("All required libraries are already downloaded.")
+    } else {
+      println(s"Downloading ${missing.length} missing libraries...")
 
-    for (i <- dependencies.indices) {
-      val dependency = dependencies(i)
-      println(s"[${i + 1}/${dependencies.length}] ${dependency._1} (${dependency._2})")
-      if (!downloadLibrary(dependency._1, dependency._2)) {
-        // Second try, just in case
-        downloadLibrary(dependency._1, dependency._2)
+      for (i <- missing.indices) {
+        val (name, url) = missing(i)
+
+        println(s"[${i + 1}/${missing.length}] $name ($url)")
+        if (!downloadLibrary(name, url)) {
+          // Second try, just in case
+          if (!downloadLibrary(name, url)) {
+            return false // error has been displayed, stop bootstrapper from starting with missing lib
+          }
+        }
       }
     }
-    true
+    true // everything went fine
+  }
+
+  /**
+    * Deletes all undesired libraries. Currently these are all libs that aren't on the list of dependencies.
+    * The main responsibility is to delete old libs that got updated or libs that aren't required anymore by Chat Overflow.
+    *
+    * @param dependencies the libs that should be kept
+    * @return false, if a file couldn't be deleted
+    */
+  private def deleteUndesiredLibraries(dependencies: List[(String, String)]): Boolean = {
+    val libDir = new File(s"$currentFolderPath/lib")
+    if (libDir.exists() && libDir.isDirectory) {
+      // Desired filenames
+      val libraryFilenames = dependencies.map(d => libraryFile(d._2).getName)
+
+      val undesiredFiles = libDir.listFiles().filterNot(file => libraryFilenames.contains(file.getName)) // filter out libs on the dependency list
+
+      // Count errors while trying to remove undesired files
+      val errorCount = undesiredFiles.count(file => {
+        println(s"Deleting old or unnecessary library at $file")
+        if (file.delete()) {
+          false // no error
+        } else {
+          println(s"Error: Couldn't delete file $file.")
+          true // error
+        }
+      })
+      errorCount == 0 // return false if at least one error occurred
+    } else {
+      // Shouldn't be possible, because this is called from checkLibraries, which creates this directory.
+      true
+    }
   }
 
   /**
@@ -169,7 +204,7 @@ object Bootstrap {
       else {
         // Save file in the lib folder (keeping the name and type)
         try {
-          url #> new File(s"$currentFolderPath/lib/${libraryURL.substring(libraryURL.lastIndexOf("/"))}") !!
+          url #> libraryFile(libraryURL) !!
 
           true
         } catch {
@@ -185,6 +220,53 @@ object Bootstrap {
         println(s"Error. Unable to connect to the url '$url'. Message: ${e.getMessage}")
         false
     }
+  }
+
+  /**
+    * Gets all required dependencies from the dependencies.xml in the jar file
+    *
+    * @return a list of tuples that contain the name (e.g. log4j) without org or version and the url.
+    */
+  private def getDependencies: List[(String, String)] = {
+    val stream = getClass.getResourceAsStream("/dependencies.xml")
+    val depXml = xml.XML.load(stream)
+    val dependencies = depXml \\ "dependency"
+    val dependencyTuples = dependencies.map(dep => {
+      val name = (dep \ "name").text.trim
+      val url = (dep \ "url").text.trim
+      (name, url)
+    })
+
+    dependencyTuples.toList
+  }
+
+  /**
+    * Checks whether this library is fully downloaded
+    *
+    * @param libraryURL the url of the library
+    * @return true if it is completely downloaded, false if only partially downloaded or not downloaded at all
+    */
+  private def isLibraryDownloaded(libraryURL: String): Boolean = {
+    val f = libraryFile(libraryURL)
+
+    if (!f.exists()) {
+      false
+    } else {
+      try {
+        // We assume here that the libs don't change at the repo.
+        // While this is true for Maven Central, which is immutable once a file has been uploaded, its not for JCenter.
+        // Updating a released artifact generally isn't valued among developers
+        // and the odds of the updated artifact having the same size is very unlikely.
+        val url = new URL(libraryURL)
+        url.openConnection().getContentLengthLong == f.length()
+      } catch {
+        case _: Exception => false
+      }
+    }
+  }
+
+  private def libraryFile(libraryURL: String): File = {
+    new File(s"$currentFolderPath/lib/${libraryURL.substring(libraryURL.lastIndexOf("/"))}")
   }
 
   /**
