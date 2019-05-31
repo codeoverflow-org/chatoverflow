@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.file
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
 import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor
-import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor.{CreateDirectory, LoadBinaryFile, LoadFile, SaveBinaryFile, SaveFile}
+import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor._
 
 class FileConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   override protected var requiredCredentialKeys: List[String] = List()

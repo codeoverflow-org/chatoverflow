@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream
 
 import javax.imageio.ImageIO
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.dto.ImageFormat
 import org.codeoverflow.chatoverflow.api.io.output.FileOutput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.OutputImpl
@@ -26,10 +25,14 @@ class FileOutputImpl extends OutputImpl[FileConnector] with FileOutput with With
     sourceConnector.get.saveBinaryFile(pathInResources, bytes)
   }
 
-  override def saveImage(image: BufferedImage, format: ImageFormat, pathInResources: String): Boolean = {
+  override def saveImage(image: BufferedImage, format: String, pathInResources: String): Boolean = {
     val bao = new ByteArrayOutputStream()
-    ImageIO.write(image, format.toString.toLowerCase, bao)
-    sourceConnector.get.saveBinaryFile(s"$pathInResources.${format.toString.toLowerCase}", bao.toByteArray)
+    ImageIO.write(image, format.toLowerCase, bao)
+    sourceConnector.get.saveBinaryFile(s"$pathInResources.${format.toLowerCase}", bao.toByteArray)
+  }
+
+  override def createDirectory(folderName: String): Boolean = {
+    sourceConnector.get.createDirectory(folderName)
   }
 
   override def start() = true
