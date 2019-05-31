@@ -18,6 +18,17 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
   private val loadedJarPaths: ListBuffer[String] = ListBuffer[String]()
 
   /**
+    * Returns, if a plugin type exists.
+    *
+    * @param pluginName   the name of the plugin set in the plugin jar file
+    * @param pluginAuthor the author of the plugin
+    * @return true, if the specified plugin type exists
+    */
+  def pluginExists(pluginName: String, pluginAuthor: String): Boolean = {
+    getPlugin(pluginName, pluginAuthor).isDefined
+  }
+
+  /**
     * Returns the plugin type specified by name and author.
     *
     * @param pluginName   the name of the plugin set in the plugin jar file
@@ -80,7 +91,9 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
               logger info s"Successfully tested instantiation of plugin '${plugin.getName}'"
               pluginTypes += plugin
             } catch {
-              case _: Exception => logger warn s"Error while test init of plugin '${plugin.getName}'."
+              // Note that we catch not only exceptions, but also errors like NoSuchMethodError. Deep stuff
+              case _: Error => logger warn s"Error while test init of plugin '${plugin.getName}'."
+              case _: Exception => logger warn s"Exception while test init of plugin '${plugin.getName}'."
             }
           }
         }

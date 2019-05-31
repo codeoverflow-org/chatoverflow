@@ -8,7 +8,7 @@ import scala.collection.mutable
 /**
   * The plugin instance registry does hold all running and not-running instances of plugins.
   */
-class PluginInstanceRegistry extends WithLogger {
+class PluginInstanceRegistry(logOutputOnConsole: Boolean) extends WithLogger {
   private val pluginInstances = mutable.Map[String, PluginInstance]()
 
   /**
@@ -31,7 +31,7 @@ class PluginInstanceRegistry extends WithLogger {
       // The plugin instance is created here. Why: A plugin, which could not be created
       // e.g. due to version issues or code failures has no reason to be in the list of plugin instances
       val instance = new PluginInstance(instanceName, pluginType)
-      if (instance.createPluginInstanceWithDefaultManager) {
+      if (instance.createPluginInstanceWithDefaultManager(logOutputOnConsole)) {
         pluginInstances += instanceName -> instance
         logger info s"Successfully instantiated and added plugin instance '$instanceName' of type '${pluginType.getName}'."
         true
@@ -51,6 +51,29 @@ class PluginInstanceRegistry extends WithLogger {
   def getPluginInstance(instanceName: String): Option[PluginInstance] = {
     pluginInstances.get(instanceName)
   }
+
+  /**
+    * Removes a plugin specified by its name, if possible.
+    *
+    * @param instanceName the name of the instance to remove
+    * @return true, if the removing process was possible
+    */
+  def removePluginInstance(instanceName: String): Boolean = {
+    if (pluginInstances.contains(instanceName) && pluginInstances(instanceName).isRunning) {
+      false
+    } else {
+      pluginInstances -= instanceName
+      true
+    }
+  }
+
+  /**
+    * Returns if the registry contains a specified instanceName (key).
+    *
+    * @param instanceName the name to search for
+    * @return true, if a plugin instance with the given name exists
+    */
+  def pluginInstanceExists(instanceName: String): Boolean = pluginInstances.contains(instanceName)
 
   /**
     * Returns a list of all plugin instances. Can be used to serialize the instance content.

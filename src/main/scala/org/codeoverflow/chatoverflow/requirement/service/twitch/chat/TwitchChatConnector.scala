@@ -34,14 +34,14 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     channels += channel
   }
 
-  def isJoined(channel: String): Boolean = channels.contains(channel)
-
-  override def getUniqueTypeString: String = this.getClass.getName
-
   def sendChatMessage(channel: String, chatMessage: String): Unit = {
     if (!isJoined(channel)) throw new IllegalArgumentException(s"you must join the '$channel' channel, before you can send messages to it")
     bot.send().message(channel, chatMessage)
   }
+
+  override def getUniqueTypeString: String = this.getClass.getName
+
+  def isJoined(channel: String): Boolean = channels.contains(channel)
 
   private def getConfig: Configuration = {
 

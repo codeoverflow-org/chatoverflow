@@ -1,11 +1,13 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
 import java.io.{File, PrintWriter}
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 
 import akka.actor.Actor
+import org.codeoverflow.chatoverflow.Launcher
 import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor._
 
+import scala.annotation.tailrec
 import scala.io.Source
 
 /**
@@ -13,8 +15,8 @@ import scala.io.Source
   */
 class FileSystemActor extends Actor {
 
-  // TODO: Should be an startup option in the CLI
-  private val dataFilePath = "data"
+  // TODO: Should be tested
+  private val dataFilePath = Launcher.pluginDataPath
 
   // Create data folder if non existent
   private val dataFolder = new File(dataFilePath)
@@ -30,19 +32,19 @@ class FileSystemActor extends Actor {
   override def receive: Receive = {
     case LoadFile(pathInResources) =>
       try {
-        sender ! Some(Source.fromFile(s"$dataFilePath${fixPath(pathInResources)}").mkString)
+        sender ! Some(Source.fromFile(fixPath(pathInResources)).mkString)
       } catch {
         case _: Exception => None
       }
     case LoadBinaryFile(pathInResources) =>
       try {
-        sender ! Some(Files.readAllBytes(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath))
+        sender ! Some(Files.readAllBytes(fixPath(pathInResources).toPath))
       } catch {
         case _: Exception => None
       }
     case SaveFile(pathInResources, content) =>
       try {
-        val writer = new PrintWriter(s"$dataFilePath${fixPath(pathInResources)}")
+        val writer = new PrintWriter(fixPath(pathInResources))
         writer.write(content)
         writer.close()
         sender ! true
@@ -51,24 +53,34 @@ class FileSystemActor extends Actor {
       }
     case SaveBinaryFile(pathInResources, content) =>
       try {
-        Files.write(new File(s"$dataFilePath${fixPath(pathInResources)}").toPath, content)
+        Files.write(fixPath(pathInResources).toPath, content)
         sender ! true
       } catch {
         case _: Exception => sender ! false
       }
     case CreateDirectory(folderName) =>
       try {
-        sender ! new File(s"$dataFilePath${fixPath(folderName)}").mkdir()
+        sender ! fixPath(folderName).mkdir()
       } catch {
         case _: Exception => sender ! false
       }
   }
 
-  private def fixPath(path: String): String = {
-    var fixedPath = Paths.get(File.pathSeparator, path).normalize().toString
-    if(fixedPath.startsWith(";")){
-      fixedPath = fixedPath.replaceFirst(";", "")
+  private def fixPath(path: String): File = {
+    val fixedPath = new File(dataFolder, path).getCanonicalFile
+    val dataCanonical = dataFolder.getCanonicalFile
+    @tailrec def insideDataFolder(path: File): Boolean = {
+      val parent = Option(path.getParentFile)
+      if (parent.isEmpty) {
+        false
+      } else if (parent.get.equals(dataCanonical)) {
+        true
+      } else {
+        insideDataFolder(parent.get)
+      }
     }
+    if (!insideDataFolder(fixedPath))
+      throw new SecurityException(s"file access is restricted to resource folder (${dataFolder.getCanonicalPath})")
     fixedPath
   }
 }

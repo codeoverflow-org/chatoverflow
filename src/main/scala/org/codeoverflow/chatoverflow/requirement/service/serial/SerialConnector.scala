@@ -13,13 +13,12 @@ import org.codeoverflow.chatoverflow.connector.Connector
   */
 class SerialConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
 
+  private val serialPortInputListener = new SerialPortInputListener
   override protected var optionalCredentialKeys: List[String] = List("baudRate")
   override protected var requiredCredentialKeys: List[String] = List("port")
-
   private var serialPort: Option[SerialPort] = None
   private var out: Option[PrintStream] = None
   private var in: Option[InputStream] = None
-  private val serialPortInputListener = new SerialPortInputListener
 
   /**
     * @throws java.lang.IllegalStateException if the serial port is not available yet
@@ -27,7 +26,7 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
     */
   @throws(classOf[IllegalStateException])
   def getPrintStream: PrintStream = {
-    if (serialPort.isEmpty)  throw new IllegalStateException("Serial port is not available yet")
+    if (serialPort.isEmpty) throw new IllegalStateException("Serial port is not available yet")
     out.get
   }
 
@@ -37,18 +36,19 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
     */
   @throws(classOf[IllegalStateException])
   def getInputStream: InputStream = {
-    if (serialPort.isEmpty)  throw new IllegalStateException("Serial port is not available yet")
+    if (serialPort.isEmpty) throw new IllegalStateException("Serial port is not available yet")
     in.get
   }
 
   /**
     * Adds a new input listener that receives all data
+    *
     * @param listener a listener that handles incoming data in a byte array
     * @throws java.lang.IllegalStateException if the serial port is not available yet
     */
   @throws(classOf[IllegalStateException])
   def addInputListener(listener: Array[Byte] => Unit): Unit = {
-    if (serialPort.isEmpty)  throw new IllegalStateException("Serial port is not available yet")
+    if (serialPort.isEmpty) throw new IllegalStateException("Serial port is not available yet")
     serialPortInputListener.addDataAvailableListener(_ => {
       val buffer = new Array[Byte](serialPort.get.bytesAvailable())
       serialPort.get.readBytes(buffer, buffer.length) //FIXME DOES IT CRASH?
@@ -72,7 +72,7 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
       }
       logger info s"Waiting for serial port to open..."
       if (serialPort.get.openPort(1000)) {
-        Thread.sleep(1500)//Sleep to wait for
+        Thread.sleep(1500) //Sleep to wait for
         serialPort.get.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0)
         out = Some(new PrintStream(serialPort.get.getOutputStream, true, "US-ASCII"))
         in = Some(serialPort.get.getInputStream)

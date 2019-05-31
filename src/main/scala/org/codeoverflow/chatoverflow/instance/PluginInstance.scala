@@ -164,12 +164,17 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                   if (plugin.get.getLoopInterval > 0) {
                     while (!threadStopAfterNextIteration) {
                       plugin.get.loop()
+                      // FIXME: This is not a loop interval. Should be responsive to the loop runtime
                       Thread.sleep(plugin.get.getLoopInterval)
                     }
                   }
 
+                  // TODO: Also connectors & input/output should be shutdown somewhere (if the plugin ends OR is ended)
+
                   // After the loop (or setup) the plugin should end
                   plugin.get.shutdown()
+
+                  logger info s"Stopped plugin instance '$instanceName'."
 
                 } catch {
                   case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
@@ -222,6 +227,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
     * Tells the plugin to stop its execution after the next iteration of the loop()-method and its sleeping-cycle.
     */
   def stopPlease(): Unit = {
+    logger info s"Requested stop of plugin instance '$instanceName'."
     threadStopAfterNextIteration = true
   }
 
@@ -229,8 +235,8 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
     * Creates a new plugin instance with the default manager implementation.
     * Note: This is instance-private, because non-instantiatable plugins should be not added in the registry
     */
-  private[instance] def createPluginInstanceWithDefaultManager: Boolean = {
-    createPluginInstance(new PluginManagerImpl(instanceName))
+  private[instance] def createPluginInstanceWithDefaultManager(logOutputOnConsole: Boolean): Boolean = {
+    createPluginInstance(new PluginManagerImpl(instanceName, logOutputOnConsole))
   }
 
   /**

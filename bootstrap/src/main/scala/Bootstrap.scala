@@ -38,7 +38,6 @@ object Bootstrap {
           if (!new File("config/").exists()) {
             new File("config/").mkdir()
           }
-          // TODO: Fix chat overflow config service to handle non existent config folder. I mean... what?
 
           // Start chat overflow!
           val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", s"bin/*${File.pathSeparator}lib/*", chatOverflowMainClass)

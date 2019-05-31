@@ -20,14 +20,24 @@ import org.codeoverflow.chatoverflow.registry.TypeRegistry
   */
 class ChatOverflow(val pluginFolderPath: String,
                    val configFolderPath: String,
-                   val requirementPackage: String)
+                   val requirementPackage: String,
+                   val requirePasswordOnStartup: Boolean,
+                   val logOutputOnConsole: Boolean)
   extends WithLogger {
 
   val pluginFramework = new PluginFramework(pluginFolderPath)
-  val pluginInstanceRegistry = new PluginInstanceRegistry
+  val pluginInstanceRegistry = new PluginInstanceRegistry(logOutputOnConsole)
   val typeRegistry = new TypeRegistry(requirementPackage)
   val credentialsService = new CredentialsService(s"$configFolderPath/credentials")
   val configService = new ConfigurationService(s"$configFolderPath/config.xml")
+  private var loaded = false
+
+  /**
+    * Returns if configs and credentials had been loaded.
+    *
+    * @return true, if has been called successfully in this run of the framework.
+    */
+  def isLoaded: Boolean = loaded
 
   /**
     * Initializes all parts of chat overflow. These can be accessed trough the public variables.
@@ -52,20 +62,44 @@ class ChatOverflow(val pluginFolderPath: String,
     ConnectorRegistry.setTypeRegistry(typeRegistry)
     logger debug "Finished updating type registry."
 
-    logger debug "Loading configs and credentials."
-    askForPassword()
-    load()
-    logger debug "Finished loading configs and credentials."
+    if (requirePasswordOnStartup && !loaded) {
+      logger debug "Loading configs and credentials."
+      askForPassword()
+      load()
+      logger debug "Finished loading configs and credentials."
+    }
 
     logger debug "Finished initialization."
   }
 
-  private def askForPassword(): Unit = {
-    val password = if (System.console() != null)
-        System.console().readPassword("Please enter password (Input hidden) > ")
-      else
-        scala.io.StdIn.readLine("Please enter password (Input NOT hidden) > ").toCharArray
-    credentialsService.setPassword(password)
+  /**
+    * Loads all config settings and credentials from the config folder.
+    * Note that its only possible once per run to load everything successfully.
+    */
+  def load(): Boolean = {
+    if (loaded) {
+      false
+    } else {
+      val currentTime = System.currentTimeMillis()
+      var success = true
+
+      // Start by loading connectors
+      if (!configService.loadConnectors())
+        success = false
+
+      // Then load credentials that can be put into the connectors
+      if (success && !credentialsService.load())
+        success = false
+
+      // Finish by loading plugin instances
+      if (success && !configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry))
+        success = false
+
+      logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
+
+      loaded = success
+      success
+    }
   }
 
   private def enableFrameworkSecurity(): Unit = {
@@ -73,22 +107,12 @@ class ChatOverflow(val pluginFolderPath: String,
     System.setSecurityManager(new SecurityManager)
   }
 
-  /**
-    * Loads all config settings and credentials from the config folder.
-    */
-  def load(): Unit = {
-    val currentTime = System.currentTimeMillis()
-
-    // Start by loading connectors
-    configService.loadConnectors()
-
-    // Then load credentials that can be put into the connectors
-    credentialsService.load()
-
-    // Finish by loading plugin instances
-    configService.loadPluginInstances(pluginInstanceRegistry, pluginFramework, typeRegistry)
-
-    logger info s"Loading took ${System.currentTimeMillis() - currentTime} ms."
+  private def askForPassword(): Unit = {
+    val password = if (System.console() != null)
+      System.console().readPassword("Please enter password (Input hidden) > ")
+    else
+      scala.io.StdIn.readLine("Please enter password (Input NOT hidden) > ").toCharArray
+    credentialsService.setPassword(password)
   }
 
   /**
