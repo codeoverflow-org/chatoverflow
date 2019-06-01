@@ -34,7 +34,7 @@ trait ConnectorControllerDefinition extends SwaggerSupport with TagSupport {
       parameter pathParam[String]("sourceIdentifier").description("The (connector unique) identifier of e.g. a account to connect to")
       parameter pathParam[String]("qualifiedConnectorType").description("The fully qualified type of the connector."))
   val getCredentials: OperationBuilder =
-    (apiOperation[ConnectorDetails]("getCredentials")
+    (apiOperation[CredentialsDetails]("getCredentials")
       summary "Shows all credentials for a specified connector."
       description "Shows required and optional credentials. Note, that the user has to be logged in and the values are encrypted using the auth key. "
       tags controllerTag
