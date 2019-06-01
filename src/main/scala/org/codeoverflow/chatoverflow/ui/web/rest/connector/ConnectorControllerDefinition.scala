@@ -9,7 +9,7 @@ import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 trait ConnectorControllerDefinition extends SwaggerSupport with TagSupport {
 
   val getConnectors: OperationBuilder =
-    (apiOperation[ConnectorKey]("getConnectors")
+    (apiOperation[List[ConnectorKey]]("getConnectors")
       summary "Shows all connector keys."
       description "Shows the unique keys (connector type and source Identifier) of all connectors."
       tags controllerTag)
