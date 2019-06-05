@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow.requirement.service.tipeeestream
 
+import java.util.Calendar
 import java.util.function.Consumer
 
 import io.socket.client.{IO, Socket}
@@ -21,22 +22,45 @@ class TipeeeStreamConnector(override val sourceIdentifier: String) extends Conne
   private val username = "username"
   override protected var requiredCredentialKeys: List[String] = List(apiKey, username)
   override protected var optionalCredentialKeys: List[String] = List()
-  private var socket: Socket = _
+  private var socket: Option[Socket] = None
+  private val TIMEOUT = 10000
 
   /**
     * Starts the connector, e.g. creates a connection with its platform.
     */
   override def start(): Boolean = {
-    socket = IO.socket("https://sso-cf.tipeeestream.com").connect()
-    socket.on("connect", (_: Any) => {
+    //TODO test error handling
+    var connected: Option[Boolean] = None
+    val thread = Thread.currentThread
+    socket.get.on(Socket.EVENT_CONNECT, (_: Any) => {
       logger info "Connected to TipeeStream Socket.io"
+      socket.get.emit("join-room", getAuthenticationObject)
+      logger info "emitted credentials to TipeeSetream Socket.io api"
+      socket.get.on("new-event", (objects: Array[AnyRef]) => {
+        serializeObjectToObject(objects)
+      })
+      connected = Some(true)
+      connected.notifyAll()
     })
-    socket.emit("join-room", getAuthenticationObject)
-    logger info "emitted credentials to TipeeSetream Socket.io api"
-    socket.on("new-event", (objects: Array[AnyRef]) => {
-      serializeObjectToObject(objects)
+    socket.get.on(Socket.EVENT_CONNECT_ERROR, (e: Any) => {
+      logger warn s"Could not connect to TipeeeStream socket:"
+      logger warn e.asInstanceOf[Array[Object]].mkString(",")
+      connected = Some(false)
+      connected.notifyAll()
     })
-    true
+    socket.get.on(Socket.EVENT_CONNECT_TIMEOUT, (_: Any) => {
+      logger warn s"$sourceIdentifier socket timed out"
+    })
+    socket.get.on(Socket.EVENT_ERROR, (e: Any) => {
+      logger warn s"$sourceIdentifier socket error:"
+      logger warn e.asInstanceOf[Array[Object]].mkString(",")
+    })
+    val start = Calendar.getInstance.getTimeInMillis
+    while (connected.isEmpty && start + TIMEOUT > Calendar.getInstance.getTimeInMillis) connected.wait(TIMEOUT)
+    connected.getOrElse({
+      logger warn "Could not connect to TipeeeStream socket: Timed out!"
+      false
+    })
   }
 
   def addIncomingEventHandler(handler: Consumer[TipeeeStreamEvent]): Unit = {
@@ -91,7 +115,7 @@ class TipeeeStreamConnector(override val sourceIdentifier: String) extends Conne
     * This stops the activity of the connector, e.g. by closing the platform connection.
     */
   override def stop(): Boolean = {
-    socket.close()
+    socket.foreach(_.close())
     true
   }
 
