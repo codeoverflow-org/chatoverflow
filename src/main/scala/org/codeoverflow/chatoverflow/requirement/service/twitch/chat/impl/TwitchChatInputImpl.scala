@@ -1,11 +1,13 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime, ZoneId, ZoneOffset}
 import java.util.Calendar
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
-import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, TextChannel}
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.InputImpl
@@ -47,7 +49,8 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
       val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
       val turbo = event.getV3Tags.get("badges").contains("turbo/1")
       val author = new TwitchChatMessageAuthor(event.getUser.getNick, color, broadcaster, moderator, subscriber, turbo)
-      val channel = new Channel(event.getChannelSource)
+      val time = OffsetDateTime.ofInstant(Instant.ofEpochMilli(event.getTimestamp), ZoneOffset.UTC)
+      val channel = new TextChannel(event.getChannelSource)
       val emoticons = new java.util.ArrayList[ChatEmoticon]()
       wholeEmoticonRegex.findAllMatchIn(event.getV3Tags.get("emotes")).foreach(matchedElement => {
         val id = matchedElement.group(1)
@@ -58,7 +61,7 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
           emoticons.add(emoticon)
         })
       })
-      val msg = new TwitchChatMessage(author, message, event.getTimestamp, channel, emoticons)
+      val msg = new TwitchChatMessage(author, message, time, channel, emoticons)
 
       messageHandler.foreach(consumer => consumer.accept(msg))
       messages += msg
@@ -71,8 +74,8 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
     if (matchedElement.isDefined) {
       val name = matchedElement.get.group(1)
       val message = matchedElement.get.group(2)
-      val timestamp = event.getTimestamp
-      val msg = new TwitchChatMessage(new TwitchChatMessageAuthor(name), message, timestamp, null)
+      val time = OffsetDateTime.ofInstant(Instant.ofEpochMilli(event.getTimestamp), ZoneOffset.UTC)
+      val msg = new TwitchChatMessage(new TwitchChatMessageAuthor(name), message, time, null)
 
       privateMessageHandler.foreach(consumer => consumer.accept(msg))
       privateMessages += msg
@@ -81,16 +84,16 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
     if (currentChannel.isEmpty) throw new IllegalStateException("first set the channel for this input")
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val until = OffsetDateTime.now.minus(lastMilliseconds, ChronoUnit.MILLIS)
 
-    messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
+    messages.filter(_.getTime.isAfter(until)).toList.asJava
   }
 
 
   override def getLastPrivateMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val until = OffsetDateTime.now.minus(lastMilliseconds, ChronoUnit.MILLIS)
 
-    privateMessages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
+    privateMessages.filter(_.getTime.isAfter(until)).toList.asJava
   }
 
   override def registerMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = {

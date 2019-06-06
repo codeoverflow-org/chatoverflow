@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.mockup
 import java.util.Calendar
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, ChatMessage, ChatMessageAuthor}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
 import org.codeoverflow.chatoverflow.connector.Connector
 
 import scala.collection.mutable.ListBuffer
@@ -15,16 +15,16 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
   private val defaultDelay = 100
 
   private val parser = new ChatMessageParser()
-  private val messageListener = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon] => Unit]()
-  private var messages: List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = _
+  private val messageListener = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon] => Unit]()
+  private var messages: List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = _
   private var elements: List[MockupElement] = _
   private var time: Long = 0
 
-  def addMessageEventListener(listener: ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon] => Unit): Unit = {
+  def addMessageEventListener(listener: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon] => Unit): Unit = {
     messageListener += listener
   }
 
-  def addPrivateMessageEventListener(listener: ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon] => Unit): Unit = {
+  def addPrivateMessageEventListener(listener: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon] => Unit): Unit = {
     // FIXME: Support private messages
   }
 
@@ -34,7 +34,7 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     while (running) {
       val currentTime = Calendar.getInstance.getTimeInMillis
 
-      val lastMessages = messages.filter(msg => (msg.getTimestamp > currentTime - step) && (msg.getTimestamp <= currentTime))
+      val lastMessages = messages.filter(msg => (msg.getTime > currentTime - step) && (msg.getTime <= currentTime))
 
       lastMessages.foreach(msg => messageListener.foreach(listener => listener(msg)))
 
@@ -61,7 +61,7 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     * @param elements all mockup elements from the mockup file parser
     * @return A list of chat messages, like in a real world chat
     */
-  private def createMessageList(elements: List[MockupElement]): List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = {
+  private def createMessageList(elements: List[MockupElement]): List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = {
 
     // FIXME: WHY (don't use a static offset you dumb brick)
     time = Calendar.getInstance().getTimeInMillis + 5000L
@@ -69,8 +69,8 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
 
     logger.info(s"Started Message Creation with %d elements: %s".format(elements.size, elements.mkString(", ")))
 
-    val messageList = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
-    var newElements = List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
+    val messageList = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
+    var newElements = List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
     var currentIndex = 0
 
     do {
@@ -99,9 +99,9 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     *                    the final list.
     * @return A list of chat elements and the index of the next empty element or end of array
     */
-  private def createMessagesUntilEmptyElement(allElements: Array[MockupElement], startIndex: Int): (List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]], Int) = {
+  private def createMessagesUntilEmptyElement(allElements: Array[MockupElement], startIndex: Int): (List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]], Int) = {
 
-    val messageList = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
+    val messageList = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
 
     var isEmptyElement = false
 
@@ -115,7 +115,7 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
           logger.info(s"Read ChatElement($user,$msg,$isPremium).")
           //FIXME isTrubo is not supported by the new api implementation.
           //      Remove it or create MockupChatMessageAuthor that has field isTrubo
-          messageList += new ChatMessage(new ChatMessageAuthor(user), msg, time, new Channel("default"))
+          messageList += new ChatMessage(new ChatMessageAuthor(user), msg, time, new TextChannel("default"))
           time += defaultDelay
         case DelayElement(delay) =>
           logger.info(s"Read DelayElement($delay).")

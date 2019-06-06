@@ -1,5 +1,7 @@
 package org.codeoverflow.chatoverflow.requirement.service.discord.impl
 
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util
 import java.util.concurrent.{CompletableFuture, Future, TimeUnit}
 import java.util.function.{BiConsumer, Consumer}
@@ -9,6 +11,7 @@ import net.dv8tion.jda.core.entities._
 import net.dv8tion.jda.core.events.message.react.{GenericMessageReactionEvent, MessageReactionAddEvent, MessageReactionRemoveEvent}
 import net.dv8tion.jda.core.events.message.{GenericMessageEvent, MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
 import org.codeoverflow.chatoverflow.WithLogger
+import org.codeoverflow.chatoverflow.api.io.dto.chat.ChatMessageAuthor
 import org.codeoverflow.chatoverflow.api.io.dto.chat.discord._
 import org.codeoverflow.chatoverflow.api.io.input.chat.DiscordChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
@@ -47,15 +50,15 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
   }
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[DiscordChatMessage] = {
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val until = OffsetDateTime.now.minus(lastMilliseconds, ChronoUnit.MILLIS)
 
-    messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
+    messages.filter(_.getTime.isAfter(until)).toList.asJava
   }
 
   override def getLastPrivateMessages(lastMilliseconds: Long): util.List[DiscordChatMessage] = {
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val until = OffsetDateTime.now.minus(lastMilliseconds, ChronoUnit.MILLIS)
 
-    privateMessages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
+    privateMessages.filter(_.getTime.isAfter(until)).toList.asJava
   }
 
   override def registerMessageHandler(handler: Consumer[DiscordChatMessage]): Unit = {
@@ -98,7 +101,7 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
   override def setChannel(channelId: String): Unit = {
     sourceConnector.get.getTextChannel(channelId) match {
       case Some(_) => this.channelId = Some(channelId.trim)
-      case None => throw new IllegalArgumentException("Channel with that id doesn't exist")
+      case None => throw new IllegalArgumentException("TextChannel with that id doesn't exist")
     }
   }
 
@@ -255,20 +258,20 @@ object DiscordChatInputImpl {
       case Some(member) =>
         Option(message.getMember.getColor) match {
           case Some(c) =>
-            new DiscordChatMessageAuthor(member.getEffectiveName, member.getUser.getId, "#%02X%02X%02X".format(c.getRed, c.getBlue, c.getGreen))
+            new ChatMessageAuthor(member.getEffectiveName, member.getUser.getId, "#%02X%02X%02X".format(c.getRed, c.getBlue, c.getGreen))
           case None =>
-            new DiscordChatMessageAuthor(member.getEffectiveName, member.getUser.getId)
+            new ChatMessageAuthor(member.getEffectiveName, member.getUser.getId)
         }
       case None =>
-        new DiscordChatMessageAuthor(message.getAuthor.getName, message.getAuthor.getId)
+        new ChatMessageAuthor(message.getAuthor.getName, message.getAuthor.getId)
     }
     val channel = message.getChannel match {
-      case c: TextChannel => new DiscordChannel(c.getName, c.getId, Option(c.getTopic).getOrElse(""))
-      case c: PrivateChannel => new DiscordChannel(c.getName, c.getId)
+      case c: TextChannel => new DiscordTextChannel(c.getName, c.getId, Option(c.getTopic).getOrElse(""))
+      case c: PrivateChannel => new DiscordTextChannel(c.getName, c.getId)
     }
     val embed = parseEmbed(message.getEmbeds)
     val attachments = message.getAttachments.asScala.map(_.getUrl).asJava
-    val timestamp = message.getCreationTime.toInstant.toEpochMilli
+    val timestamp = message.getCreationTime
     val emotes = DiscordChatInputImpl.listEmotes(message).asJava
     val reactions = message.getReactions.asScala.map(parseReaction).asJava
     new DiscordChatMessage(author, msg, timestamp, channel, emotes, embed, attachments, reactions, id)
@@ -289,7 +292,7 @@ object DiscordChatInputImpl {
       val description = e.getDescription
       val url = e.getUrl
       val color = Option(e.getColor).map(c => "#%02X%02X%02X".format(c.getRed, c.getBlue, c.getGreen)).orNull
-      val timestamp = Option(e.getTimestamp).map(t => t.toInstant.toEpochMilli).getOrElse(Long.MinValue)
+      val timestamp = Option(e.getTimestamp).orNull
       val (footerText, footerIconUrl) = Option(e.getFooter).map(f => (f.getText, f.getIconUrl)).getOrElse((null, null))
       val thumbnailUrl = Option(e.getThumbnail).map(_.getUrl).orNull
       val imageUrl = Option(e.getImage).map(_.getUrl).orNull
