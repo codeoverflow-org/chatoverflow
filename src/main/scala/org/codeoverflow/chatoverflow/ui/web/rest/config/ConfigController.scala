@@ -4,7 +4,7 @@ import org.codeoverflow.chatoverflow.Launcher
 import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow.configuration.CryptoUtil
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{AuthKey, ConfigInfo, Password, ResultMessage}
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConfigInfo, Password, ResultMessage}
 import org.scalatra.swagger._
 
 class ConfigController(implicit val swagger: Swagger) extends JsonServlet with ConfigControllerDefinition {
@@ -16,29 +16,25 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
   }
 
   post("/save", operation(postSave)) {
-    if (!chatOverflow.isLoaded) {
-      false
-    } else {
-      chatOverflow.save()
-      true
+    authKeyRequired {
+      if (!chatOverflow.isLoaded) {
+        false
+      } else {
+        chatOverflow.save()
+        true
+      }
     }
   }
 
   // Is this even a thing?
   post("/exit", operation(postExit)) {
-    parsedAs[AuthKey] {
-      case AuthKey(authKey) =>
-        if (authKey != chatOverflow.credentialsService.generateAuthKey()) {
-          ResultMessage(success = false, "Wrong auth key.")
-
-        } else {
-          // Give enough time to return success. Then bye bye
-          new Thread(() => {
-            Thread.sleep(500)
-            Launcher.exit()
-          }).start()
-          ResultMessage(success = true)
-        }
+    authKeyRequired {
+      // Give enough time to return success. Then bye bye
+      new Thread(() => {
+        Thread.sleep(500)
+        Launcher.exit()
+      }).start()
+      ResultMessage(success = true)
     }
   }
 

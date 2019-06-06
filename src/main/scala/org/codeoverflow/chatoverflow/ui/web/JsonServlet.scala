@@ -5,7 +5,7 @@ import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.ResultMessage
 import org.codeoverflow.chatoverflow.{ChatOverflow, Launcher}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.JacksonJsonSupport
-import org.scalatra.{CorsSupport, ScalatraServlet}
+import org.scalatra.{BadRequest, CorsSupport, ScalatraServlet, Unauthorized}
 
 /**
   * A Json Servlet enables implicit json conversion for servlet output.
@@ -17,6 +17,14 @@ abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport with 
   // Sets the return format to json only
   before() {
     contentType = formats("json")
+  }
+
+  // CORS support (preflight requests)
+  options("/*") {
+    response.setHeader(
+      "Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
+    response.setHeader(
+      "Access-Control-Allow-Methods", request.getHeader("Access-Control-Allow-Methods"))
   }
 
   /**
@@ -43,6 +51,25 @@ abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport with 
       } else {
         func(data.get)
       }
+    }
+  }
+
+  /**
+    * Utility function to test the authKey-existence in header first.
+    *
+    * @param func    the function to execute, if the authorization was successful
+    * @param request the request, implicitly provided by the scalatra environment
+    * @return the result of the provided func or an http error if the auth key is wrong
+    */
+  protected def authKeyRequired(func: => Any)(implicit request: HttpServletRequest): Any = {
+    val authKeyKey = "authKey"
+
+    if (request.header(authKeyKey).isEmpty) {
+      BadRequest()
+    } else if (request.header(authKeyKey).get != chatOverflow.credentialsService.generateAuthKey()) {
+      Unauthorized()
+    } else {
+      func
     }
   }
 }
