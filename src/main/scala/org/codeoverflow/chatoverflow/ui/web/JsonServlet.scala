@@ -24,7 +24,7 @@ abstract class JsonServlet extends ScalatraServlet with JacksonJsonSupport with 
     response.setHeader(
       "Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
     response.setHeader(
-      "Access-Control-Allow-Methods", request.getHeader("Access-Control-Allow-Methods"))
+      "Access-Control-Allow-Methods", request.getHeader("Access-Control-Request-Method"))
   }
 
   /**
