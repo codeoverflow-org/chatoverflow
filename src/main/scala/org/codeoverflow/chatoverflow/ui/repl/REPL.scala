@@ -9,6 +9,7 @@ import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
   *
   * @param chatOverflow the chat overflow object to operate on
   */
+@Deprecated
 class REPL(chatOverflow: ChatOverflow) {
 
   private val commands = Map(

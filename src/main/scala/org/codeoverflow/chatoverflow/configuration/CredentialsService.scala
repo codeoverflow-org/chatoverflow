@@ -13,7 +13,16 @@ import scala.collection.mutable
   * @param credentialsFilePath the file path of the credentials file
   */
 class CredentialsService(val credentialsFilePath: String) extends WithLogger {
-  private var password = Array[Char]()
+  private[this] var password = Array[Char]()
+
+  /**
+    * Generates a authentication key using the password of the framework.
+    *
+    * @return an auth key based the password an an random array
+    */
+  def generateAuthKey(): String = {
+    CryptoUtil.generateAuthKey(this.password.mkString)
+  }
 
   /**
     * Sets the password. Needed to load or save credentials.
@@ -21,6 +30,30 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
     * @param password an array of chars, representing the users password
     */
   def setPassword(password: Array[Char]): Unit = this.password = password
+
+  /**
+    * Checks if the specified password is correct by trying to decrypt the saved credentials.
+    *
+    * @param password the password to test
+    * @return true, if the credentials file exists and could be decrypted
+    */
+  def checkPasswordCorrectness(password: Array[Char]): Boolean = {
+    try {
+      val encrypted = scala.io.Source.fromFile(credentialsFilePath)
+      val decrypted = CryptoUtil.decrypt(password, encrypted.getLines().mkString)
+      encrypted.close
+      decrypted.isDefined
+    } catch {
+      case _: Exception => false
+    }
+  }
+
+  /**
+    * Returns if the credentials file exists. Can be used to determine if login or register is the right method.
+    *
+    * @return true, if the file was previously created
+    */
+  def credentialsFileExists(): Boolean = new File(credentialsFilePath).exists()
 
   /**
     * Loads the credentials form the credentials file and decrypts them.
@@ -45,7 +78,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
         encrypted.close
 
         if (decrypted.isEmpty) {
-          logger error "Wrong password. Unable to load credentials."
+          logger warn "Wrong password. Unable to load credentials."
           false
         } else {
           logger info "Password correct."
@@ -93,7 +126,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
       val credentials = mutable.Map[(String, String), Credentials]()
 
       for (key <- ConnectorRegistry.getConnectorKeys) {
-        val connector = ConnectorRegistry.getConnector(key.sourceIdentifier, key.qualifiedConnectorName)
+        val connector = ConnectorRegistry.getConnector(key.sourceIdentifier, key.qualifiedConnectorType)
 
         if (connector.isEmpty) {
           // This should never happen
@@ -104,7 +137,7 @@ class CredentialsService(val credentialsFilePath: String) extends WithLogger {
           if (retrievedCredentials.isEmpty) {
             logger warn s"Credentials object for connector '${key.sourceIdentifier}' was empty."
           } else {
-            credentials += (key.qualifiedConnectorName, key.sourceIdentifier) -> retrievedCredentials.get
+            credentials += (key.qualifiedConnectorType, key.sourceIdentifier) -> retrievedCredentials.get
           }
         }
       }

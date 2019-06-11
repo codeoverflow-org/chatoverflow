@@ -36,6 +36,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-webapp" % "9.4.7.v20170914" % "provided",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scalatra" %% "scalatra-json" % "2.6.3",
+  "org.scalatra" %% "scalatra-swagger" % "2.6.5",
 )
 
 // JSON Lib (Jackson)
@@ -53,9 +54,12 @@ libraryDependencies ++= Seq(
   //"com.typesafe.akka" %% "akka-testkit" % "2.5.18" % Test
 )
 
+// Google GSON
+libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
+
 // JDA
 resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
-libraryDependencies += "net.dv8tion" % "JDA" % "4.ALPHA.0_82"
+libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 
 //Serial Communication
 libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
@@ -86,5 +90,21 @@ create := BuildUtility(streams.value.log).createPluginTask(pluginFolderNames.val
 fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
-bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion")
+bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// UTIL
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Util task for bs, gets a dependency list kinda like "sbt dependencyList", but only includes deps required for runtime
+lazy val getDependencyList = Def.task[List[ModuleID]] {
+  // only get deps required for runtime and not for anything else like testing
+  val updateReport = update.value.configuration(ConfigRef("runtime"))
+
+  if (updateReport.isEmpty) {
+    List()
+  } else {
+    updateReport.get.modules.map(m => m.module).toList
+  }
+}

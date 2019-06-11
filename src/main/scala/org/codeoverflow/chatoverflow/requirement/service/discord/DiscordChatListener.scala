@@ -1,8 +1,9 @@
 package org.codeoverflow.chatoverflow.requirement.service.discord
 
-import net.dv8tion.jda.api.events.GenericEvent
-import net.dv8tion.jda.api.events.message.{MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
-import net.dv8tion.jda.api.hooks.EventListener
+import net.dv8tion.jda.core.events.Event
+import net.dv8tion.jda.core.events.message.react.{MessageReactionAddEvent, MessageReactionRemoveEvent}
+import net.dv8tion.jda.core.events.message.{MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
+import net.dv8tion.jda.core.hooks.EventListener
 
 import scala.collection.mutable.ListBuffer
 
@@ -17,17 +18,27 @@ class DiscordChatListener extends EventListener {
 
   private val messageDeleteEventListener = ListBuffer[MessageDeleteEvent => Unit]()
 
+  private val reactionAddEventListener = ListBuffer[MessageReactionAddEvent => Unit]()
+
+  private val reactionDelEventListener = ListBuffer[MessageReactionRemoveEvent => Unit]()
+
   def addMessageReceivedListener(listener: MessageReceivedEvent => Unit): Unit = messageEventListener += listener
 
   def addMessageUpdateEventListener(listener: MessageUpdateEvent => Unit): Unit = messageUpdateEventListener += listener
 
   def addMessageDeleteEventListener(listener: MessageDeleteEvent => Unit): Unit = messageDeleteEventListener += listener
 
-  override def onEvent(event: GenericEvent): Unit = {
+  def addReactionAddEventListener(listener: MessageReactionAddEvent => Unit): Unit = reactionAddEventListener += listener
+
+  def addReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit = reactionDelEventListener += listener
+
+  override def onEvent(event: Event): Unit = {
     event match {
       case receivedEvent: MessageReceivedEvent => messageEventListener.foreach(listener => listener(receivedEvent))
       case updateEvent: MessageUpdateEvent => messageUpdateEventListener.foreach(listener => listener(updateEvent))
       case deleteEvent: MessageDeleteEvent => messageDeleteEventListener.foreach(listener => listener(deleteEvent))
+      case reactionAddEvent: MessageReactionAddEvent => reactionAddEventListener.foreach(listener => listener(reactionAddEvent))
+      case reactionDelEvent: MessageReactionRemoveEvent => reactionDelEventListener.foreach(listener => listener(reactionDelEvent))
       case _ => //Any other event, do nothing
     }
   }

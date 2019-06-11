@@ -34,6 +34,11 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     */
   def setCredentials(credentials: Credentials): Unit = this.credentials = Some(credentials)
 
+  /**
+    * Removes the entire credentials object from the connector.
+    */
+  def removeCredentials(): Unit = this.credentials = None
+
   def setCredentialsValue(key: String, value: String): Boolean = {
     if (credentials.isEmpty) false else {
       if (credentials.get.exists(key)) {

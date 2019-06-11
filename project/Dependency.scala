@@ -1,5 +1,3 @@
-import java.net.{HttpURLConnection, URL}
-
 import sbt.internal.util.ManagedLogger
 
 import scala.xml.Node
@@ -46,7 +44,6 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
     */
   private def create(): Unit = {
     val DependencyRegex = "([^:]+):([^:_]+)(_[^:]+)?:([^:]+)".r
-    val mavenCentralFormat = "http://central.maven.org/maven2/%s/%s/%s/%s.jar"
 
     dependencyString match {
       case DependencyRegex(depAuthor, depName, scalaVersion, depVersion) =>
@@ -54,44 +51,16 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
         this.version = depVersion
 
         val combinedName = if (scalaVersion != null) depName + scalaVersion else depName
+        val depTuple = (depAuthor, combinedName, depVersion)
 
-        // Create URL for maven central
-        url = mavenCentralFormat.format(depAuthor.replaceAll("\\.", "/"), s"$combinedName",
-          depVersion, s"$combinedName-$depVersion")
+        val status = DependencyResolver.resolve(depTuple, logger)
 
-        available = testURL(0, 3)
+        // Provide the url of the default repo if the dependency couldn't be resolved
+        url = status.getOrElse(DependencyResolver.getDefaultUrl(depTuple))
+        available = status.isDefined
 
       case _ =>
         logger warn s"Invalid dependency format: '$dependencyString'."
-    }
-  }
-
-  /**
-    * Tests, if the dependency url is available. Uses recursion to handle connection faults.
-    */
-  private def testURL(recursionCount: Int, recursionLimit: Int): Boolean = {
-
-    var status = -1
-
-    try {
-
-      // Test if the url exists
-      val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
-      connection.setRequestMethod("HEAD")
-      connection.setConnectTimeout(200)
-      connection.setReadTimeout(200)
-      status = connection.getResponseCode
-      connection.disconnect()
-
-    } catch {
-      case e: Exception => logger warn s"Error while testing dependency (attempt $recursionCount of $recursionLimit)" +
-        s" availability of ${this}: ${e.getMessage}"
-    }
-
-    if (status != 200 && recursionCount + 1 <= recursionLimit) {
-      testURL(recursionCount + 1, recursionLimit)
-    } else {
-      status == 200
     }
   }
 

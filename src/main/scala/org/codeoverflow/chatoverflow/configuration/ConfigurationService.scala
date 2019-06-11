@@ -154,7 +154,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     */
   private def saveXML(xmlContent: Node): Unit = {
     val writer = new PrintWriter(configFilePath)
-    writer.print(new PrettyPrinter(120,2).format(xmlContent))
+    writer.print(new PrettyPrinter(120, 2).format(xmlContent))
     writer.close()
     logger info "Saved config file."
   }
@@ -212,7 +212,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     for (connectorKey <- ConnectorRegistry.getConnectorKeys) yield {
       <connectorInstance>
         <connectorType>
-          {connectorKey.qualifiedConnectorName}
+          {connectorKey.qualifiedConnectorType}
         </connectorType>
         <sourceIdentifier>
           {connectorKey.sourceIdentifier}
