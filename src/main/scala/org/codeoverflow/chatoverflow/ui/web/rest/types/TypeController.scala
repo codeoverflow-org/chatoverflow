@@ -12,32 +12,44 @@ import scala.collection.mutable.ListBuffer
 class TypeController(implicit val swagger: Swagger) extends JsonServlet with TypesControllerDefinition {
 
   get("/plugin/", operation(getPluginType)) {
-    getPluginTypes
+    authKeyRequired {
+      getPluginTypes
+    }
   }
 
   get("/requirement/", operation(getRequirementType)) {
-    getRequirementTypes
+    authKeyRequired {
+      getRequirementTypes
+    }
   }
 
   get("/connector/", operation(getConnectorType)) {
-    getConnectorTypes
+    authKeyRequired {
+      getConnectorTypes
+    }
   }
 
   get("/", operation(getTypes)) {
-    Types(getPluginTypes, getRequirementTypes, getConnectorTypes)
+    authKeyRequired {
+      Types(getPluginTypes, getRequirementTypes, getConnectorTypes)
+    }
   }
 
   get("/requirement/getRequirementImplementation", operation(getReqImpl)) {
-    val apiType = params("api")
-    val specificType = chatOverflow.typeRegistry.getRequirementImplementation(apiType)
-    val connector = chatOverflow.typeRegistry.getRequirementConnectorLink(apiType)
-    APIAndSpecificType(apiType, if (specificType.isDefined) specificType.get.getName else "",
-      connector.getOrElse(""), specificType.isDefined)
+    authKeyRequired {
+      val apiType = params("api")
+      val specificType = chatOverflow.typeRegistry.getRequirementImplementation(apiType)
+      val connector = chatOverflow.typeRegistry.getRequirementConnectorLink(apiType)
+      APIAndSpecificType(apiType, if (specificType.isDefined) specificType.get.getName else "",
+        connector.getOrElse(""), specificType.isDefined)
+    }
   }
 
   get("/requirement/getSubTypes", operation(getSubTypes)) {
-    val apiType = params("api")
-    SubTypes(apiType, chatOverflow.typeRegistry.getAllSubTypeInterfaces(apiType))
+    authKeyRequired {
+      val apiType = params("api")
+      SubTypes(apiType, chatOverflow.typeRegistry.getAllSubTypeInterfaces(apiType))
+    }
   }
 
   private def getPluginTypes = chatOverflow.pluginFramework.getPlugins.map(pluginType => PluginType(pluginType.getName, pluginType.getAuthor,

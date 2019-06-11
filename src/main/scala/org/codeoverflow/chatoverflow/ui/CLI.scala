@@ -75,7 +75,7 @@ object CLI {
   case class Config(pluginFolderPath: String = "plugins/",
                     configFolderPath: String = "config/",
                     requirementPackage: String = "org.codeoverflow.chatoverflow.requirement",
-                    ui: UI = UI.BOTH,
+                    ui: UI = UI.GUI,
                     requirePasswordOnStartup: Boolean = true,
                     pluginDataPath: String = "data",
                     webServerPort: Int = 2400,

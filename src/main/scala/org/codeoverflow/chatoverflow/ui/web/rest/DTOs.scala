@@ -43,6 +43,4 @@ object DTOs {
 
   case class Password(password: String)
 
-  case class AuthKey(authKey: String)
-
 }

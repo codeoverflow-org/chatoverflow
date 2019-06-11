@@ -1,11 +1,11 @@
 package org.codeoverflow.chatoverflow.ui.web.rest.config
 
-import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{AuthKey, ConfigInfo, Password, ResultMessage}
-import org.codeoverflow.chatoverflow.ui.web.rest.TagSupport
+import org.codeoverflow.chatoverflow.ui.web.rest.DTOs.{ConfigInfo, Password, ResultMessage}
+import org.codeoverflow.chatoverflow.ui.web.rest.{AuthSupport, TagSupport}
 import org.scalatra.swagger.SwaggerSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
-trait ConfigControllerDefinition extends SwaggerSupport with TagSupport {
+trait ConfigControllerDefinition extends SwaggerSupport with TagSupport with AuthSupport {
 
   val getConfig: OperationBuilder =
     (apiOperation[ConfigInfo]("getConfig")
@@ -16,13 +16,14 @@ trait ConfigControllerDefinition extends SwaggerSupport with TagSupport {
     (apiOperation[Boolean]("postSave")
       summary "Triggers the saving process of the framework manually (if loaded previously)."
       description "Triggers saving of credentials and configuration. Should not be needed manually."
+      parameter authHeader
       tags controllerTag)
   val postExit: OperationBuilder =
     (apiOperation[ResultMessage]("postExit")
       summary "Shuts the framework down."
       description "Shutdown the framework in the next second if a correct auth key is supplied."
-      tags controllerTag
-      parameter bodyParam[AuthKey]("body").description("Requires the run specific auth key."))
+      parameter authHeader
+      tags controllerTag)
   val getLogin: OperationBuilder =
     (apiOperation[Boolean]("getLogin")
       summary "Returns if the framework is already loaded."

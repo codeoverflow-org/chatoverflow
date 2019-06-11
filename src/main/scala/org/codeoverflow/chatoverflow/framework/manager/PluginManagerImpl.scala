@@ -15,6 +15,7 @@ import scala.collection.mutable.ListBuffer
   */
 class PluginManagerImpl(pluginInstanceName: String, logOutputOnConsole: Boolean) extends PluginManager with WithLogger {
 
+  // TODO: Add log datetime
   private val logMessages = new ListBuffer[String]
 
   /**
