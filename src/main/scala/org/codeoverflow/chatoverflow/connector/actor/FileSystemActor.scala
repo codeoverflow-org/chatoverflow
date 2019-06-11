@@ -40,7 +40,7 @@ class FileSystemActor extends Actor {
       try {
         sender ! Some(Files.readAllBytes(fixPath(pathInResources).toPath))
       } catch {
-        case e: Exception => None
+        case _: Exception => None
       }
     case SaveFile(pathInResources, content) =>
       try {
