@@ -11,16 +11,18 @@ class FileConnector(override val sourceIdentifier: String) extends Connector(sou
   private val fileActor = createActor[FileSystemActor]()
 
   def getFile(pathInResources: String): Option[String] = {
-    if (fileActor.??[Some[String]](5) {LoadFile(pathInResources)}.isDefined) {
-      fileActor.??[Some[String]](5) {LoadFile(pathInResources)}.get
+    val file: Option[Option[String]] = fileActor.??[Some[String]](5) {LoadFile(pathInResources)}
+    if (file.isDefined) {
+      file.get
     }else{
       None
     }
   }
 
   def getBinaryFile(pathInResources: String): Option[Array[Byte]] = {
-    if(fileActor.??[Some[Array[Byte]]](5){LoadBinaryFile(pathInResources)}.isDefined){
-      fileActor.??[Some[Array[Byte]]](5){LoadBinaryFile(pathInResources)}.get
+    val binaryFile: Option[Option[Array[Byte]]] = fileActor.??[Some[Array[Byte]]](5){LoadBinaryFile(pathInResources)}
+    if(binaryFile.isDefined){
+      binaryFile.get
     }else{
       None
     }
