@@ -34,11 +34,6 @@ object Bootstrap {
         if (javaPath.isDefined) {
           println("Found java installation. Starting ChatOverflow...")
 
-          // Create config folder, if not existent
-          if (!new File("config/").exists()) {
-            new File("config/").mkdir()
-          }
-
           // Start chat overflow!
           val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", s"bin/*${File.pathSeparator}lib/*", chatOverflowMainClass)
             .inheritIO().start()
