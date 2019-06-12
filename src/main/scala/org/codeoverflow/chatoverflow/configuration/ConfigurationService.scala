@@ -153,6 +153,12 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     * Saves the xml content to the config xml.
     */
   private def saveXML(xmlContent: Node): Unit = {
+    // Create config folder, if not existent
+    val dir = new File(configFilePath).getParentFile
+    if(!dir.exists()) {
+      dir.mkdir()
+    }
+
     val writer = new PrintWriter(configFilePath)
     writer.print(new PrettyPrinter(120, 2).format(xmlContent))
     writer.close()
