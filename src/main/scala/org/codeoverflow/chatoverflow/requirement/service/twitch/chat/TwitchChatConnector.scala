@@ -30,18 +30,27 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   }
 
   def joinChannel(channel: String): Unit = {
-    bot.send().joinChannel(channel)
-    channels += channel
+    val formattedChan = formatChannel(channel)
+    bot.send().joinChannel(formattedChan)
+    channels += formattedChan
   }
 
   def sendChatMessage(channel: String, chatMessage: String): Unit = {
-    if (!isJoined(channel)) throw new IllegalArgumentException(s"you must join the '$channel' channel, before you can send messages to it")
-    bot.send().message(channel, chatMessage)
+    val formattedChan = formatChannel(channel)
+    if (!isJoined(formattedChan)) throw new IllegalArgumentException(s"you must join the '$channel' channel, before you can send messages to it")
+    bot.send().message(formattedChan, chatMessage)
   }
 
   override def getUniqueTypeString: String = this.getClass.getName
 
-  def isJoined(channel: String): Boolean = channels.contains(channel)
+  def isJoined(channel: String): Boolean = channels.contains(formatChannel(channel))
+
+  /**
+    * Ensures that the channel is in following format: "#lowercasename"
+    * @param chan the unmodified channel
+    * @return the channel in the correct format, changes nothing if already correct
+    */
+  private def formatChannel(chan: String): String = s"#${chan.stripPrefix("#").toLowerCase}"
 
   private def getConfig: Configuration = {
 
