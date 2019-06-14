@@ -11,6 +11,7 @@
     <method v="2">
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Clean (sbt clean)" run_configuration_type="SbtRunConfiguration" />
       <option name="Make" enabled="true" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Build GUI (sbt gui)" run_configuration_type="SbtRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Fetch plugins (sbt fetch)" run_configuration_type="SbtRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Reload (sbt reload)" run_configuration_type="SbtRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="List plugin versions (sbt version)" run_configuration_type="SbtRunConfiguration" />
