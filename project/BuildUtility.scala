@@ -2,6 +2,7 @@ import java.io.{File, IOException}
 import java.nio.file.Files
 
 import sbt.internal.util.ManagedLogger
+import sbt.util.{FileFunction, FilesInfo}
 
 /**
   * A build utility instance handles build tasks and prints debug information using the managed logger.
@@ -20,6 +21,7 @@ import sbt.internal.util.ManagedLogger
   *       |  -> -> -> build.sbt
   *       |  -> -> -> source etc.
   *       |  -> another plugin source directory (optional)
+  *       |  -> gui project
   *
   */
 class BuildUtility(logger: ManagedLogger) {
@@ -217,6 +219,114 @@ class BuildUtility(logger: ManagedLogger) {
         }
 
       }
+    }
+  }
+
+  def guiTask(guiProjectPath: String, cacheDir: File): Unit = {
+    withTaskInfo("BUILD GUI") {
+      val guiDir = new File(guiProjectPath)
+      if (!guiDir.exists()) {
+        logger warn s"GUI not found at $guiProjectPath, ignoring GUI build."
+        return
+      }
+
+      if (installGuiDeps(guiDir, cacheDir).isEmpty)
+        return // Early return on failure, error has already been displayed
+
+      val outDir = buildGui(guiDir, cacheDir)
+      if (outDir.isEmpty)
+        return // Again early return on failure
+
+      // Copy built gui into resources, will be included in the classpath on execution of the framework
+      sbt.IO.copyDirectory(outDir.get, new File("src/main/resources/chatoverflow-gui"))
+    }
+  }
+
+  /**
+    * Download the dependencies of the gui using npm.
+    *
+    * @param guiDir the directory of the gui.
+    * @param cacheDir a dir, where sbt can store files for caching in the "install" sub-dir.
+    * @return None, if a error occurs which will be displayed, otherwise the output directory with the built gui.
+    */
+  private def installGuiDeps(guiDir: File, cacheDir: File): Option[File] = {
+    // Check buildGui for a explanation, it's almost the same.
+    
+    val install = FileFunction.cached(new File(cacheDir, "install"), FilesInfo.hash)(_ => {
+
+      logger info "Installing GUI dependencies."
+
+      val exitCode = new ProcessBuilder("npm", "install")
+        .inheritIO()
+        .directory(guiDir)
+        .start()
+        .waitFor()
+
+      if (exitCode != 0) {
+        logger error "GUI dependencies couldn't be installed, please check above log for further details."
+        return None
+      } else {
+        logger info "GUI dependencies successfully installed."
+        Set(new File(guiDir, "node_modules"))
+      }
+    })
+
+    val input = new File(guiDir, "package.json")
+    install(Set(input)).headOption
+  }
+
+  /**
+    * Builds the gui using npm.
+    * 
+    * @param guiDir the directory of the gui.
+    * @param cacheDir a dir, where sbt can store files for caching in the "build" sub-dir.
+    * @return None, if a error occurs which will be displayed, otherwise the output directory with the built gui.
+    */
+  private def buildGui(guiDir: File, cacheDir: File): Option[File] = {
+    // sbt allows easily to cache our external build using FileFunction.cached
+    // sbt will only invoke the passed function when at least one of the input files (passed in the last line of this method)
+    // has been modified. For the gui these input files are all files in the src directory of the gui and the package.json.
+    // sbt passes these input files to the passed function, but they aren't used, we just instruct npm to build the gui.
+    // sbt invalidates the cache as well if any of the output files (returned by the passed function) doesn't exist anymore.
+
+    val build = FileFunction.cached(new File(cacheDir, "build"), FilesInfo.hash)(_ => {
+
+      logger info "Building GUI."
+
+      val buildExitCode = new ProcessBuilder("npm", "run", "build")
+        .inheritIO()
+        .directory(guiDir)
+        .start()
+        .waitFor()
+
+      if (buildExitCode != 0) {
+        logger error "GUI couldn't be built, please check above log for further details."
+        return None
+      } else {
+        logger info "GUI successfully built."
+        Set(new File(guiDir, "dist"))
+      }
+    })
+
+
+    val srcDir = new File(guiDir, "src")
+    val packageJson = new File(guiDir, "package.json")
+    val inputs = recursiveFileListing(srcDir) + packageJson
+
+    build(inputs).headOption
+  }
+
+  /**
+    * Creates a file listing with all files including files in any sub-dir.
+    *
+    * @param f the directory for which the file listing needs to be created.
+    * @return the file listing as a set of files.
+    */
+  private def recursiveFileListing(f: File): Set[File] = {
+    if (f.isDirectory) {
+      f.listFiles().flatMap(recursiveFileListing).toSet
+    } else {
+      Set(f)
     }
   }
 }
