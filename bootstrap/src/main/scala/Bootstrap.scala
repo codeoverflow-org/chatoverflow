@@ -64,7 +64,8 @@ object Bootstrap {
     } else {
 
       // Check for windows and unix java versions
-      // TODO: How to handle JDK versions? Only JRE supported?
+      // This should work on current and older java JRE/JDK installations,
+      // see: https://stackoverflow.com/questions/52584888/how-to-use-jdk-without-jre-in-java-11
       val javaExePath = s"$javaHomePath/bin/java.exe"
       val javaPath = s"$javaHomePath/bin/java"
 

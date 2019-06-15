@@ -116,7 +116,7 @@ class BuildUtility(logger: ManagedLogger) {
     }
 
     // Clean first
-    // TODO: Should this be cleaned? How to handle external plugins? Separate folder?
+    // TODO: Should not be cleaned. Existent files should be overwritten.
     for (jarFile <- pluginTargetFolder.listFiles().filter(_.getName.endsWith(".jar"))) {
       try {
         jarFile.delete()

@@ -142,9 +142,6 @@ object BootstrapUtility {
           logger info s"Finished copying additional deployment file '${deploymentFile.getName}'."
         }
       }
-
-      // TODO: Deployment readme file html
-      // TODO: Deployment unix launch file (...?)
     }
   }
 
