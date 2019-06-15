@@ -126,18 +126,30 @@ object Bootstrap {
     * @return false, if there is a serious problem
     */
   private def downloadMissingLibraries(dependencies: List[(String, String)]): Boolean = {
+    val pb = new ProgressBar(dependencies.length)
+
     // using par here to make multiple http requests in parallel, otherwise its awfully slow on internet connections with high RTTs
-    val missing = dependencies.par.filterNot(dep => isLibraryDownloaded(dep._2)).toList
+    val missing = dependencies.par.filterNot(dep => {
+      val (name, url) = dep
+      pb.countUp()
+      pb.updateDescription(s"$name@$url")
+
+      isLibraryDownloaded(url)
+    }).toList
+
+    pb.finish()
 
     if (missing.isEmpty) {
       println("All required libraries are already downloaded.")
     } else {
       println(s"Downloading ${missing.length} missing libraries...")
 
-      for (i <- missing.indices) {
-        val (name, url) = missing(i)
+      val pb = new ProgressBar(missing.length)
 
-        println(s"[${i + 1}/${missing.length}] $name ($url)")
+      for ((name, url) <- missing) {
+        pb.countUp()
+        pb.updateDescription(s"$name@$url")
+
         if (!downloadLibrary(name, url)) {
           // Second try, just in case
           if (!downloadLibrary(name, url)) {
@@ -145,6 +157,8 @@ object Bootstrap {
           }
         }
       }
+
+      pb.finish()
     }
     true // everything went fine
   }
