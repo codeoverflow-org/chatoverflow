@@ -35,6 +35,10 @@ class FileOutputImpl extends OutputImpl[FileConnector] with FileOutput with With
     sourceConnector.get.createDirectory(folderName)
   }
 
+  override def exists(pathInResources: String): Boolean = {
+    sourceConnector.get.exists(pathInResources)
+  }
+
   override def start() = true
 
 }

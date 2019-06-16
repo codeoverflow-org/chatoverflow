@@ -64,6 +64,13 @@ class FileSystemActor extends Actor {
       } catch {
         case _: Exception => sender ! false
       }
+    case Exists(pathInResources) =>
+      try {
+        Source.fromFile(fixPath(pathInResources)).close()
+        sender ! true
+      } catch {
+        case _: Exception => sender ! false
+      }
   }
 
   private def fixPath(path: String): File = {
@@ -123,5 +130,12 @@ object FileSystemActor {
     * @param folderName the folder name. Note: Parent folder has to exist!
     */
   case class CreateDirectory(folderName: String) extends ActorMessage
+
+  /**
+    * Send a Exists-Object to the FileSystemActor to check if a file exists
+    *
+    * @param pathInResources the relative Path in the resource folder
+    */
+  case class Exists(pathInResources: String) extends ActorMessage
 
 }
