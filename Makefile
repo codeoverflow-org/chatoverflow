@@ -11,7 +11,6 @@ advanced_run:
 
 simple_run:
 	sbt compile
-	sbt gui
 	sbt package copy
 
 bootstrap_deploy:
