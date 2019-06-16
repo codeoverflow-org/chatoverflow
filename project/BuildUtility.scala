@@ -256,7 +256,7 @@ class BuildUtility(logger: ManagedLogger) {
 
       logger info "Installing GUI dependencies."
 
-      val exitCode = new ProcessBuilder("npm", "install")
+      val exitCode = new ProcessBuilder(getNpmCommand :+ "install": _*)
         .inheritIO()
         .directory(guiDir)
         .start()
@@ -293,7 +293,7 @@ class BuildUtility(logger: ManagedLogger) {
 
       logger info "Building GUI."
 
-      val buildExitCode = new ProcessBuilder("npm", "run", "build")
+      val buildExitCode = new ProcessBuilder(getNpmCommand :+ "run" :+ "build": _*)
         .inheritIO()
         .directory(guiDir)
         .start()
@@ -314,6 +314,14 @@ class BuildUtility(logger: ManagedLogger) {
     val inputs = recursiveFileListing(srcDir) + packageJson
 
     build(inputs).headOption
+  }
+
+  private def getNpmCommand: List[String] = {
+    if (System.getProperty("os.name").toLowerCase().contains("win")) {
+      List("cmd.exe", "/C", "npm")
+    } else {
+      List("npm")
+    }
   }
 
   /**
