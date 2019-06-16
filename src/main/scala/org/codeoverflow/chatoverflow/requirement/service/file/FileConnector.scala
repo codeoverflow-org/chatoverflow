@@ -36,6 +36,8 @@ class FileConnector(override val sourceIdentifier: String) extends Connector(sou
 
   def exists(pathInResources: String): Boolean = fileActor.??[Boolean](5){Exists(pathInResources)}.get
 
+  def delete(pathInResources: String): Boolean = fileActor.??[Boolean](5){Delete(pathInResources)}.get
+
   override def start(): Boolean = {
     logger info s"Started file connector! Source identifier is: '$sourceIdentifier'."
     true
