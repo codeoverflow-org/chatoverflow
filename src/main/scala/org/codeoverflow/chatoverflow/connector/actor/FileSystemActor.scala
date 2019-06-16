@@ -60,7 +60,7 @@ class FileSystemActor extends Actor {
       }
     case CreateDirectory(folderName) =>
       try {
-        sender ! fixPath(folderName).mkdir()
+        sender ! fixPath(folderName).mkdirs()
       } catch {
         case _: Exception => sender ! false
       }
