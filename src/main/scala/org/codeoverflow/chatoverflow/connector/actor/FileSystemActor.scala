@@ -66,8 +66,7 @@ class FileSystemActor extends Actor {
       }
     case Exists(pathInResources) =>
       try {
-        Source.fromFile(fixPath(pathInResources)).close()
-        sender ! true
+        sender ! fixPath(pathInResources).exists
       } catch {
         case _: Exception => sender ! false
       }
