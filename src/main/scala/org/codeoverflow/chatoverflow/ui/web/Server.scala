@@ -30,7 +30,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
     new Thread(() => startServer()).start()
 
     println(s"You may open now: http://petstore.swagger.io/?url=http://localhost:$port/api-docs/swagger.json")
-    println("Or try out the new gui: http://localhost:4200")
+    println(s"Or try out the new gui: http://localhost:$port")
   }
 
   private def startServer(): Unit = {
