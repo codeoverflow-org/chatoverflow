@@ -3,6 +3,7 @@
 advanced_run:
 	sbt clean
 	sbt compile
+	sbt gui
 	sbt fetch
 	sbt reload
 	sbt version
@@ -13,8 +14,9 @@ simple_run:
 	sbt package copy
 
 bootstrap_deploy:
-	sbt compile
 	sbt clean
+	sbt compile
+	sbt gui
 	sbt package copy
 	sbt bs "project bootstrapProject" assembly
 	sbt deploy

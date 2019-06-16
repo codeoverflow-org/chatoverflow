@@ -73,6 +73,7 @@ lazy val pluginBuildFileName = settingKey[String]("The filename of the plugin bu
 lazy val pluginFolderNames = settingKey[List[String]]("The folder names of all plugin source directories.")
 lazy val pluginTargetFolderNames = settingKey[List[String]]("The folder names of compiled and packaged plugins. Remember to gitignore these!")
 lazy val apiProjectPath = settingKey[String]("The path to the api sub project. Remember to gitignore it!")
+lazy val guiProjectPath = settingKey[String]("The path of the Angular gui.")
 
 // Plugin framework tasks
 lazy val create = TaskKey[Unit]("create", "Creates a new plugin. Interactive command using the console.")
@@ -80,11 +81,13 @@ lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin director
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
 lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
+lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
 
 pluginBuildFileName := "plugins.sbt"
 pluginFolderNames := List("plugins-public")
 pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plugins")
 apiProjectPath := "api"
+guiProjectPath := "gui"
 
 create := BuildUtility(streams.value.log).createPluginTask(pluginFolderNames.value)
 fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
@@ -92,6 +95,7 @@ fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.valu
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 // ---------------------------------------------------------------------------------------------------------------------
 // UTIL
@@ -108,3 +112,7 @@ lazy val getDependencyList = Def.task[List[ModuleID]] {
     updateReport.get.modules.map(m => m.module).toList
   }
 }
+
+// Clears the built GUI dirs on clean
+cleanFiles += baseDirectory.value / guiProjectPath.value / "dist"
+cleanFiles += baseDirectory.value / "src" / "main" / "resources" / "chatoverflow-gui"

@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow.ui.web
 
 import org.codeoverflow.chatoverflow.{ChatOverflow, WithLogger}
-import org.eclipse.jetty.servlet.ServletHandler.Default404Servlet
+import org.eclipse.jetty.util.resource.Resource
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -17,9 +17,8 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
   private val context = new WebAppContext()
   context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
   context setContextPath "/"
-  context.setResourceBase("/")
+  context.setBaseResource(Resource.newClassPathResource("/chatoverflow-gui/"))
   context.addEventListener(new ScalatraListener)
-  context.addServlet(classOf[Default404Servlet], "/")
 
   server.setHandler(context)
 
