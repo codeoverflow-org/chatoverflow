@@ -15,7 +15,6 @@ import scala.io.Source
   */
 class FileSystemActor extends Actor {
 
-  // TODO: Should be tested
   private val dataFilePath = Launcher.pluginDataPath
 
   // Create data folder if non existent

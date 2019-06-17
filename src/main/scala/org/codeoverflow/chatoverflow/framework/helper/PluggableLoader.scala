@@ -25,7 +25,6 @@ class PluggableLoader(classLoader: ClassLoader) extends WithLogger {
     // Now: Try to instantiate the pluggable class
     val pluggableObjects = createPluggableObjects(pluggableClasses)
 
-    // TODO: Are more than 1 implementation of pluggable allowed / possible / useful
     pluggableObjects.length match {
       case 0 => logger warn "No pluggable classes found."
       case 1 =>

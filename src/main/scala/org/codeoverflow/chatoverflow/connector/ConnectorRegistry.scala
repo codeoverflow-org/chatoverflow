@@ -41,7 +41,6 @@ object ConnectorRegistry extends WithLogger {
         logger warn "Unable to remove connector. Connector is running."
         false
       } else {
-        // TODO: Check if this might crash anything
         connectors -= connectorKey
         true
       }
