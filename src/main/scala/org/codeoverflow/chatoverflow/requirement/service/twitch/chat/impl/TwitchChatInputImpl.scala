@@ -10,6 +10,7 @@ import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
+import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
 import scala.collection.JavaConverters._
@@ -101,7 +102,7 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
   override def registerPrivateMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = privateMessageHandler += handler
 
   override def setChannel(channel: String): Unit = {
-    currentChannel = Some(channel.trim)
-    if (!sourceConnector.get.isJoined(channel.trim)) sourceConnector.get.joinChannel(channel.trim)
+    currentChannel = Some(TwitchChatConnector.formatChannel(channel.trim))
+    if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
   }
 }

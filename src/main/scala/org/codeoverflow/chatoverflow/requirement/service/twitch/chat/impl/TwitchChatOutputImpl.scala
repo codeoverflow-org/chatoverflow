@@ -5,6 +5,7 @@ import org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
+import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 
 /**
   * This is the implementation of the twitch chat output, using the twitch connector.
@@ -24,7 +25,7 @@ class TwitchChatOutputImpl extends OutputImpl[chat.TwitchChatConnector] with Twi
   override def start(): Boolean = true
 
   override def setChannel(channel: String): Unit = {
-    currentChannel = Some(channel.trim)
-    if (!sourceConnector.get.isJoined(channel.trim)) sourceConnector.get.joinChannel(channel.trim)
+    currentChannel = Some(TwitchChatConnector.formatChannel(channel.trim))
+    if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
   }
 }
