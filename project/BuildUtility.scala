@@ -1,5 +1,5 @@
 import java.io.{File, IOException}
-import java.nio.file.Files
+import java.nio.file.{Files, StandardCopyOption}
 
 import sbt.internal.util.ManagedLogger
 import sbt.util.{FileFunction, FilesInfo}
@@ -117,21 +117,11 @@ class BuildUtility(logger: ManagedLogger) {
       logger info s"Found plugin folder '${pluginTargetFolder.getPath}'."
     }
 
-    // Clean first
-    for (jarFile <- pluginTargetFolder.listFiles().filter(_.getName.endsWith(".jar"))) {
-      try {
-        jarFile.delete()
-        logger info s"Deleted plugin '${jarFile.getName}' from target."
-      } catch {
-        case e: IOException => logger warn s"Unable to delete plugin '${jarFile.getAbsolutePath}' from target. Error: ${e.getMessage}."
-      }
-    }
-
     // Copy jars
     var successCounter = 0
     for (jarFile <- allJarFiles) {
       try {
-        Files.copy(jarFile.toPath, new File(pluginTargetFolder, jarFile.getName).toPath)
+        Files.copy(jarFile.toPath, new File(pluginTargetFolder, jarFile.getName).toPath, StandardCopyOption.REPLACE_EXISTING)
         logger info s"Copied plugin '${jarFile.getName}'."
         successCounter = successCounter + 1
       } catch {
