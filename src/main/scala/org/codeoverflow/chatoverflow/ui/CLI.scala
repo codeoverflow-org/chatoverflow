@@ -85,7 +85,6 @@ object CLI {
                     startupPlugins: Seq[String] = Seq[String]())
 
   // TODO: Fix path layout
-  // TODO: Remove UI flag, remove REPL
 
   object UI extends Enumeration {
     type UI = Value

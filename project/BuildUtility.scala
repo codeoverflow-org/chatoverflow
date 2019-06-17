@@ -150,6 +150,9 @@ class BuildUtility(logger: ManagedLogger) {
   def createPluginTask(pluginFolderNames: List[String]): Unit = {
     withTaskInfo("CREATE PLUGIN") {
 
+      // TODO: Generated plugin structure should contain ready-to-implement files
+      // TODO: BuildUtility / Build Environment should be refactored to enable separate plugin dev environments with a subset of sbt functionality
+
       // Plugin folders have to be defined in the build.sbt file first
       if (pluginFolderNames.isEmpty) {
         println("Before creating a new plugin, please define at least one plugin source folder in the build.sbt file.")

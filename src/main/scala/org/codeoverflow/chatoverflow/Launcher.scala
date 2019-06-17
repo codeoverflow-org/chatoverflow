@@ -49,6 +49,8 @@ object Launcher extends WithLogger {
         }
       }
 
+      // TODO: Delete REPL, update CLI, update wiki
+
       // Launch UI
       config.ui match {
         case UI.GUI =>

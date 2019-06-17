@@ -51,8 +51,8 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
   def createSbtFile(version: String): Boolean = {
     val sbtFile = new SbtFile(name, version)
 
-    // TODO: Check if build.sbt can be named $pluginName.sbt
-    sbtFile.save(s"$pluginDirectoryPath/build.sbt")
+    // The name of the sbt file is the plugin name. This worked in first tests
+    sbtFile.save(s"$pluginDirectoryPath/$name.sbt")
   }
 
   /**

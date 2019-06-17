@@ -135,10 +135,6 @@ class REPL(chatOverflow: ChatOverflow) {
       .map(inst => inst.instanceName).mkString(", "))
   }
 
-  // TODO: Enable shutting down everything correctly by function call
-  // TODO: Proper repl ask function... i mean... why?
-  // TODO: Add more functionality
-
   private def help(): Unit = {
     println("Available commands:\n")
     commands.foreach(cmd => println(s"${cmd._1}:\t${cmd._2.description}"))
