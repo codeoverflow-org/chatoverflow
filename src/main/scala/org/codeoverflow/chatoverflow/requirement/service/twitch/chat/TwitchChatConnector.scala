@@ -103,8 +103,6 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
       errorCount += 1
     }
 
-    // TODO: Enable detection for wrong credentials / bot disconnect
-
     if (errorCount >= 30) {
       logger error "Fatal. Unable to start bot."
     }

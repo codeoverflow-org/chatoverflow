@@ -107,7 +107,6 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     * Loads the config xml file and return its content.
     */
   private def loadXML(): Node = {
-    // TODO: Add some XML caching here
     if (!new File(configFilePath).exists()) {
       logger debug s"Config file '$configFilePath' not found. Initialising with default values."
       saveXML(defaultContent)
@@ -247,7 +246,6 @@ object ConfigurationService extends WithLogger {
                                         targetType: String, content: String,
                                         pluginInstanceRegistry: PluginInstanceRegistry,
                                         typeRegistry: TypeRegistry): Boolean = {
-    // FIXME: Better handling of empty content (not set in the first place, then read from XML)
 
     logger info s"Loading requirement '$requirementId' of type '$targetType'."
     val instance = pluginInstanceRegistry.getPluginInstance(instanceName)

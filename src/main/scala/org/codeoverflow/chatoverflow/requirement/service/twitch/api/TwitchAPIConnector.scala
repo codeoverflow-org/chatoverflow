@@ -14,8 +14,6 @@ import org.codeoverflow.chatoverflow.framework.actors.HttpClientActor
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-// FIXME: Chery picked from Class Library Rework, should be reworked, lol
-
 /**
   * The twitch api connector
   *
@@ -89,7 +87,6 @@ class TwitchAPIConnector(override val sourceIdentifier: String) extends Connecto
     * This stops the activity of the connector, e.g. by closing the platform connection.
     */
   override def stop(): Boolean = {
-    // TODO: Implement STOP
     false
   }
 

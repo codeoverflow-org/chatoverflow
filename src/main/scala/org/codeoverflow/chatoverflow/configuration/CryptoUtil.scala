@@ -17,8 +17,6 @@ import javax.crypto.{Cipher, SecretKeyFactory}
   */
 object CryptoUtil {
 
-  // TODO: This code should be reviewed by an expert to find potential security issues.
-
   // Used for the run-unique auth key
   private val runSpecificRandom = generateIV
 

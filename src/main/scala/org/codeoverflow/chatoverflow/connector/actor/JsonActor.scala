@@ -10,9 +10,6 @@ import org.json4s.jackson.JsonMethods._
   */
 class JsonActor extends Actor {
 
-  // TODO: Implement proper functionality with json4s. This is not more than a proof of concept
-  // TODO: Test, when reflection kicks in to allow the most functionality without an actor call
-
   /**
     * Receives a ParseJSON Object to start parsing.
     *

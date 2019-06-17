@@ -36,7 +36,6 @@ object Launcher extends WithLogger {
       }
 
       // Start plugins if specified
-      // TODO: Move this down after server start when the REPL is history
       if (chatOverflow.isLoaded && config.startupPlugins.nonEmpty) {
         for (instanceName <- config.startupPlugins) {
           val instance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
@@ -48,8 +47,6 @@ object Launcher extends WithLogger {
           }
         }
       }
-
-      // TODO: Delete REPL, update CLI, update wiki
 
       // Launch UI
       config.ui match {
@@ -80,7 +77,6 @@ object Launcher extends WithLogger {
     */
   def exit(): Unit = {
     logger info "Shutting down Chat Overflow."
-    // TODO: Deal with running plugins, connectors, ...
     System.exit(0)
   }
 }

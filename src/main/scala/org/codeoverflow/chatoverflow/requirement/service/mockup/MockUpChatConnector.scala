@@ -9,6 +9,7 @@ import org.codeoverflow.chatoverflow.connector.Connector
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
+@Deprecated
 class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
 
   private val mockUpFolder = "src/main/resources/mockup"
@@ -25,11 +26,9 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
   }
 
   def addPrivateMessageEventListener(listener: ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon] => Unit): Unit = {
-    // FIXME: Support private messages
   }
 
   def simulateChat(): Unit = {
-    // FIXME: Should be invoked every x milliseconds using actors not using sleep
     val step = 100
     while (running) {
       val currentTime = Calendar.getInstance.getTimeInMillis
@@ -43,7 +42,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
   }
 
   def loadMockUpFile(): Boolean = {
-    // TODO: Handle exceptions
     val input = Source.fromFile(s"$mockUpFolder/$sourceIdentifier.chat")
     val lines = input.getLines()
 
@@ -52,7 +50,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     messages = createMessageList(elements)
     input.close()
     true
-    // TODO: Do not always return true
   }
 
   /**
@@ -63,7 +60,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
     */
   private def createMessageList(elements: List[MockupElement]): List[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = {
 
-    // FIXME: WHY (don't use a static offset you dumb brick)
     time = Calendar.getInstance().getTimeInMillis + 5000L
     logger.info(s"Started MockupChat Construction with timestamp: $time")
 
@@ -82,7 +78,6 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
       currentIndex = returnValue._2
       messageList ++= newElements
 
-      // FIXME: There might be cases where this ends up in while(true). Should be tested!
     } while (currentIndex < elements.size)
 
     logger.info("Finally returning %d messages.".format(messageList.size))
@@ -113,8 +108,7 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
       allElements(index) match {
         case ChatElement(user, msg, isPremium) =>
           logger.info(s"Read ChatElement($user,$msg,$isPremium).")
-          //FIXME isTrubo is not supported by the new api implementation.
-          //      Remove it or create MockupChatMessageAuthor that has field isTrubo
+
           messageList += new ChatMessage(new ChatMessageAuthor(user), msg, time, new Channel("default"))
           time += defaultDelay
         case DelayElement(delay) =>

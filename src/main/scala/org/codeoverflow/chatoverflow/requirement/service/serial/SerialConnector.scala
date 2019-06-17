@@ -51,7 +51,7 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
     if (serialPort.isEmpty) throw new IllegalStateException("Serial port is not available yet")
     serialPortInputListener.addDataAvailableListener(_ => {
       val buffer = new Array[Byte](serialPort.get.bytesAvailable())
-      serialPort.get.readBytes(buffer, buffer.length) //FIXME DOES IT CRASH?
+      serialPort.get.readBytes(buffer, buffer.length)
       listener(buffer)
     })
   }
@@ -60,7 +60,6 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
     * Opens a connection with the serial port
     */
   override def start(): Boolean = {
-    //TODO Test if connector is working this way or if it requires an actor
     try {
       serialPort = Some(SerialPort.getCommPort(credentials.get.getValue("port").get))
       credentials.get.getValue("baudRate") match {

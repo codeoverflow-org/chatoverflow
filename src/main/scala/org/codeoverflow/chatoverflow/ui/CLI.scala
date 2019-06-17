@@ -30,7 +30,6 @@ object CLI {
     opt[String]('r', "requirementPackage").action((x, c) =>
       c.copy(requirementPackage = x)).text("path to the package where all requirements are defined")
 
-    // TODO: Update
     // Subject of change. After GUI will be -l (for login)
     opt[Unit]('n', "noPassword").action((_, c) =>
       c.copy(requirePasswordOnStartup = false)).text("set this flag to disable password checking on framework startup")
@@ -83,8 +82,6 @@ object CLI {
                     pluginLogOutputOnConsole: Boolean = true,
                     loginPassword: Array[Char] = Array[Char](),
                     startupPlugins: Seq[String] = Seq[String]())
-
-  // TODO: Fix path layout
 
   object UI extends Enumeration {
     type UI = Value

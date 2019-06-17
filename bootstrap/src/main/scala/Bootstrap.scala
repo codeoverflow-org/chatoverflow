@@ -115,7 +115,6 @@ object Bootstrap {
     val dependencies = getDependencies
 
     // Download all libraries
-    // TODO: Check validity if everything is downloaded
     // try downloading libs and only if it succeeded (returned true) then try to delete older libs
     downloadMissingLibraries(dependencies) && deleteUndesiredLibraries(dependencies)
   }

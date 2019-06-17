@@ -26,7 +26,6 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
     * Starts the server in a new thread.
     */
   def startAsync(): Unit = {
-    // TODO: Enable shutting down the server
     new Thread(() => startServer()).start()
 
     println(s"You may open now: http://petstore.swagger.io/?url=http://localhost:$port/api-docs/swagger.json")

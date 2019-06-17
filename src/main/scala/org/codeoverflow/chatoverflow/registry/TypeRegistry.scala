@@ -53,7 +53,6 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
     connectorTypes.clear()
 
     // Use reflection magic to get all impl-annotated classes
-    // FIXME: Does also find definitions not in the exact package - not intended should be filtered afterwards
     val reflections: Reflections = new Reflections(new ConfigurationBuilder()
       .setUrls(ClasspathHelper.forPackage(requirementPackage))
       .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()))

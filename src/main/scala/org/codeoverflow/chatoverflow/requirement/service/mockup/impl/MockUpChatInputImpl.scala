@@ -13,10 +13,9 @@ import org.codeoverflow.chatoverflow.requirement.service.mockup.MockUpChatConnec
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
+@Deprecated
 @Impl(impl = classOf[MockUpChatInput], connector = classOf[MockUpChatConnector])
 class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpChatInput with WithLogger {
-
-  // TODO: Rewrite code to fit to the new framework style using actors, a new parser, extend InputImpl etc.
 
   private val messages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
   private val privateMessages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
@@ -44,7 +43,6 @@ class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpCha
   override def init(): Boolean = {
     if (sourceConnector.isDefined) {
       sourceConnector.get.addMessageEventListener(onMessage)
-      // FIXME: Work with private messages
       sourceConnector.get.init()
     } else {
       logger warn "Source connector not set."

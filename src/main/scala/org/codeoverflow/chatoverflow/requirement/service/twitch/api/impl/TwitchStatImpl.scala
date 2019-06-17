@@ -13,8 +13,6 @@ import org.codeoverflow.chatoverflow.requirement.service.twitch.api.TwitchAPICon
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-// FIXME: Chery picked from Class Library Rework, should be reworked, lol
-
 case class UserResult(data: Seq[UserEntity])
 
 case class UserEntity(id: String, login: String, display_name: String, `type`: String, broadcaster_type: String, description: String, profile_image_url: String, offline_image_url: String, view_count: Int)
@@ -47,7 +45,6 @@ class TwitchStatInputImpl extends Connection[TwitchAPIConnector] with TwitchStat
     else null
   }
 
-  // FIXME: Kicked jackson mapping (deprecated?!), different way needed
   def map[T: Manifest](content: String): Any = {
     //val mapper = new ObjectMapper() with ScalaObjectMapper
     // mapper.registerModule(DefaultScalaModule)

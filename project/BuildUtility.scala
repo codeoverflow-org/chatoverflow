@@ -118,7 +118,6 @@ class BuildUtility(logger: ManagedLogger) {
     }
 
     // Clean first
-    // TODO: Should not be cleaned. Existent files should be overwritten.
     for (jarFile <- pluginTargetFolder.listFiles().filter(_.getName.endsWith(".jar"))) {
       try {
         jarFile.delete()
@@ -149,9 +148,6 @@ class BuildUtility(logger: ManagedLogger) {
     */
   def createPluginTask(pluginFolderNames: List[String]): Unit = {
     withTaskInfo("CREATE PLUGIN") {
-
-      // TODO: Generated plugin structure should contain ready-to-implement files
-      // TODO: BuildUtility / Build Environment should be refactored to enable separate plugin dev environments with a subset of sbt functionality
 
       // Plugin folders have to be defined in the build.sbt file first
       if (pluginFolderNames.isEmpty) {
