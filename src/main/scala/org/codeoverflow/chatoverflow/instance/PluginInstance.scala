@@ -163,8 +163,14 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                   // Execute loop, if an interval is set
                   if (plugin.get.getLoopInterval > 0) {
                     while (!threadStopAfterNextIteration) {
+                      val startTime = System.currentTimeMillis()
+
                       plugin.get.loop()
-                      Thread.sleep(plugin.get.getLoopInterval)
+
+                      val execTime = System.currentTimeMillis() - startTime
+                      val sleepTime = plugin.get.getLoopInterval - execTime
+                      if (sleepTime > 0)
+                        Thread.sleep(sleepTime)
                     }
                   }
 
