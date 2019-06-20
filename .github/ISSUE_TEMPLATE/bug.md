@@ -1,8 +1,10 @@
----------------
-name: Bug  
-about: If something is not working properly
-labels: bug
----------------
+---
+name: 'Bug'
+about: 'If something is not working properly'
+labels: 'bug'
+
+---
+
 <!-- If you don't need any of these sections, just remove them...-->
 
 ### Description

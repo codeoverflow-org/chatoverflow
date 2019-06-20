@@ -1,8 +1,10 @@
----------------
-name: Enhancement  
-about: If you have an idea for a new feature or want something to be improved  
-labels: enhancement
----------------
+---
+name: 'Enhancement'
+about: 'If you have an idea for a new feature or want something to be improved'
+labels: 'enhancement'
+
+---
+
 <!-- If you don't need any of these sections, just remove them...-->
 
 ### Description
