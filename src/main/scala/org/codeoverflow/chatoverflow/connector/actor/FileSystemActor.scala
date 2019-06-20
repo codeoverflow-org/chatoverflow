@@ -59,7 +59,19 @@ class FileSystemActor extends Actor {
       }
     case CreateDirectory(folderName) =>
       try {
-        sender ! fixPath(folderName).mkdir()
+        sender ! fixPath(folderName).mkdirs()
+      } catch {
+        case _: Exception => sender ! false
+      }
+    case Exists(pathInResources) =>
+      try {
+        sender ! fixPath(pathInResources).exists
+      } catch {
+        case _: Exception => sender ! false
+      }
+    case Delete(pathInResources) =>
+      try{
+        sender ! fixPath(pathInResources).delete
       } catch {
         case _: Exception => sender ! false
       }
@@ -122,5 +134,19 @@ object FileSystemActor {
     * @param folderName the folder name. Note: Parent folder has to exist!
     */
   case class CreateDirectory(folderName: String) extends ActorMessage
+
+  /**
+    * Send a Exists-Object to the FileSystemActor to check if a file or folder exists
+    *
+    * @param pathInResources the relative Path in the resource folder
+    */
+  case class Exists(pathInResources: String) extends ActorMessage
+
+  /**
+    * Send a Delete-Object to the FileSystemActor to remove a file or folder
+    *
+    * @param pathInResources the relative Path in the resource folder
+    */
+  case class Delete(pathInResources: String) extends ActorMessage
 
 }
