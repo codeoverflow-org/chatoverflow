@@ -58,5 +58,5 @@ git_pull:
 	cd ..
 	cd gui
 	git stash
-    git pull
-    git stash pop
+	git pull
+	git stash pop
