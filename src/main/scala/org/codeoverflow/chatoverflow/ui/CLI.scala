@@ -1,25 +1,17 @@
 package org.codeoverflow.chatoverflow.ui
 
 import org.codeoverflow.chatoverflow.api.APIVersion
-import org.codeoverflow.chatoverflow.ui.CLI.UI.UI
 
 /**
   * The command line interface provides all methods needed to configure the framework and run plugins.
   */
 object CLI {
-  val modeAddInstance = "addInstance"
-
-  implicit val UIRead: scopt.Read[UI.Value] =
-    scopt.Read.reads(UI withName)
 
   /**
     * Creating a big parser with all inputs and commands using the SCOPT framework.
     */
   private val argsParser = new scopt.OptionParser[Config]("Chat Overflow") {
     head(s"Chat Overflow ${APIVersion.MAJOR_VERSION}.${APIVersion.MINOR_VERSION}")
-
-    opt[UI]('u', "userInterface").action((x, c) =>
-      c.copy(ui = x)).text(s"select the ui to launch after initialization. Possible values are: ${UI.values.mkString(", ")}.")
 
     opt[String]('p', "pluginFolder").action((x, c) =>
       c.copy(pluginFolderPath = x)).text("path to a folder with packaged plugin jar files")
@@ -75,18 +67,12 @@ object CLI {
   case class Config(pluginFolderPath: String = "plugins/",
                     configFolderPath: String = "config/",
                     requirementPackage: String = "org.codeoverflow.chatoverflow.requirement",
-                    ui: UI = UI.GUI,
                     requirePasswordOnStartup: Boolean = true,
                     pluginDataPath: String = "data",
                     webServerPort: Int = 2400,
                     pluginLogOutputOnConsole: Boolean = true,
                     loginPassword: Array[Char] = Array[Char](),
                     startupPlugins: Seq[String] = Seq[String]())
-
-  object UI extends Enumeration {
-    type UI = Value
-    val GUI, REPL, BOTH = Value
-  }
 
 }
 

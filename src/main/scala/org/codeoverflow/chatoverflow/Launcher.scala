@@ -1,7 +1,6 @@
 package org.codeoverflow.chatoverflow
 
-import org.codeoverflow.chatoverflow.ui.CLI.{UI, parse}
-import org.codeoverflow.chatoverflow.ui.repl.REPL
+import org.codeoverflow.chatoverflow.ui.CLI.parse
 import org.codeoverflow.chatoverflow.ui.web.Server
 
 /**
@@ -35,6 +34,9 @@ object Launcher extends WithLogger {
         chatOverflow.load()
       }
 
+      // Launch server (UI backend)
+      startServer(chatOverflow, config.webServerPort)
+
       // Start plugins if specified
       if (chatOverflow.isLoaded && config.startupPlugins.nonEmpty) {
         for (instanceName <- config.startupPlugins) {
@@ -47,17 +49,6 @@ object Launcher extends WithLogger {
           }
         }
       }
-
-      // Launch UI
-      config.ui match {
-        case UI.GUI =>
-          startServer(chatOverflow, config.webServerPort)
-        case UI.REPL =>
-          startREPL(chatOverflow)
-        case UI.BOTH =>
-          startServer(chatOverflow, config.webServerPort)
-          startREPL(chatOverflow)
-      }
     }
   }
 
@@ -66,10 +57,6 @@ object Launcher extends WithLogger {
       server = Some(new Server(chatOverflow, port))
       server.get.startAsync()
     }
-  }
-
-  private def startREPL(chatOverflow: ChatOverflow): Unit = {
-    new REPL(chatOverflow).run()
   }
 
   /**
