@@ -24,6 +24,9 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
       <connectorInstances></connectorInstances>
     </config>
 
+  // Note: Right now, its not supported to reload the framework / load the config more than once. So, caching is easy!
+  private var cachedXML: Option[Node] = None
+
   /**
     * Reads the config xml file and creates plugin instances, saved in the instance registry.
     *
@@ -74,17 +77,19 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
   }
 
   /**
-    * Loads the config xml file and return its content.
+    * Loads the config xml file and return its content. Supports caching of the xml file.
     */
   private def loadXML(): Node = {
-    if (!new File(configFilePath).exists()) {
-      logger debug s"Config file '$configFilePath' not found. Initialising with default values."
-      saveXML(defaultContent)
-    }
+    if (cachedXML.isEmpty) {
+      if (!new File(configFilePath).exists()) {
+        logger debug s"Config file '$configFilePath' not found. Initialising with default values."
+        saveXML(defaultContent)
+      }
 
-    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFilePath))
-    logger info "Loaded config file."
-    xmlContent
+      cachedXML = Some(xml.Utility.trim(xml.XML.loadFile(configFilePath)))
+      logger info "Loaded config file."
+    }
+    cachedXML.get
   }
 
   /**
