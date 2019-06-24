@@ -59,8 +59,8 @@ object CLI {
   /**
     * This case class holds all information that can be set when starting the framework from command line.
     */
-  case class Config(pluginFolderPath: String = "plugins/",
-                    configFolderPath: String = "config/",
+  case class Config(pluginFolderPath: String = "plugins",
+                    configFolderPath: String = "config",
                     requirementPackage: String = "org.codeoverflow.chatoverflow.requirement",
                     pluginDataPath: String = "data",
                     webServerPort: Int = 2400,
