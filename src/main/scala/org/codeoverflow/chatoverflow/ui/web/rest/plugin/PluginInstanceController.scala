@@ -150,7 +150,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
               if (!ConfigurationService.fulfillRequirementByDeserializing(instanceName, requirementID, targetType,
                 value, chatOverflow.pluginInstanceRegistry, chatOverflow.typeRegistry)) {
 
-                ResultMessage(success = false, "Unable to set requirement.")
+                ResultMessage(success = false, "Unable to set the requirement.")
               } else {
                 chatOverflow.save()
                 ResultMessage(success = true)
@@ -158,6 +158,40 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
             }
           }
       }
+    }
+  }
+
+  delete("/:instanceName/requirements/:requirementID", operation(deleteRequirement)) {
+    authKeyRequired {
+      val instanceName = params("instanceName")
+      val requirementID = params("requirementID")
+
+      if (!chatOverflow.isLoaded) {
+        ResultMessage(success = false, "Framework not loaded.")
+
+      } else {
+        val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+
+        if (pluginInstance.isEmpty) {
+          ResultMessage(success = false, "Plugin instance not found.")
+
+        } else if (pluginInstance.get.isRunning) {
+          ResultMessage(success = false, "Plugin is running.")
+
+        } else if (!pluginInstance.get.getRequirements.getRequirementById(requirementID).isPresent) {
+          ResultMessage(success = false, "Requirement not found.")
+        } else {
+
+          if (!pluginInstance.get.getRequirements.unsetRequirementById(requirementID)) {
+
+            ResultMessage(success = false, "Unable to remove the requirement. Already removed.")
+          } else {
+            chatOverflow.save()
+            ResultMessage(success = true)
+          }
+        }
+      }
+
     }
   }
 

@@ -44,6 +44,14 @@ trait PluginInstanceControllerDefinition extends SwaggerSupport with TagSupport 
       parameter pathParam[String]("instanceName").description("The name of the plugin instance.")
       parameter pathParam[String]("requirementID").description("The unique id of the requirement.")
       parameter bodyParam[RequirementInfo]("body").description("Requires target type and serialized content."))
+  val deleteRequirement: OperationBuilder =
+    (apiOperation[ResultMessage]("deleteRequirement")
+      summary "Removes a specific requirement."
+      description "Removes a specific requirement by unseting its value."
+      tags controllerTag
+      parameter authHeader
+      parameter pathParam[String]("instanceName").description("The name of the plugin instance.")
+      parameter pathParam[String]("requirementID").description("The unique id of the requirement."))
   val getLog: OperationBuilder =
     (apiOperation[List[String]]("getLog")
       summary "Shows the log of a plugin instance."
