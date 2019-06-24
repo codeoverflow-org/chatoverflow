@@ -74,6 +74,20 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
   }
 
   /**
+    * Loads the config xml file and return its content.
+    */
+  private def loadXML(): Node = {
+    if (!new File(configFilePath).exists()) {
+      logger debug s"Config file '$configFilePath' not found. Initialising with default values."
+      saveXML(defaultContent)
+    }
+
+    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFilePath))
+    logger info "Loaded config file."
+    xmlContent
+  }
+
+  /**
     * Load all connector instances from the config xml and save them to the connector registry.
     *
     * @return false if a general failure happened, true if there were only minor or no errors
@@ -101,20 +115,6 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
         logger error s"Unable to load Connectors. An error occurred: ${e.getMessage}"
         false
     }
-  }
-
-  /**
-    * Loads the config xml file and return its content.
-    */
-  private def loadXML(): Node = {
-    if (!new File(configFilePath).exists()) {
-      logger debug s"Config file '$configFilePath' not found. Initialising with default values."
-      saveXML(defaultContent)
-    }
-
-    val xmlContent = xml.Utility.trim(xml.XML.loadFile(configFilePath))
-    logger info "Loaded config file."
-    xmlContent
   }
 
   /**
@@ -154,7 +154,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
   private def saveXML(xmlContent: Node): Unit = {
     // Create config folder, if not existent
     val dir = new File(configFilePath).getParentFile
-    if(!dir.exists()) {
+    if (!dir.exists()) {
       dir.mkdir()
     }
 
@@ -195,7 +195,10 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     val requirementMap = requirements.getRequirementMap
     val keys = requirementMap.keySet().toArray
 
-    for (key <- keys) yield {
+    for {
+      key <- keys
+      if requirementMap.get(key).isSet
+    } yield {
       <requirement>
         <uniqueRequirementId>
           {key}
@@ -204,7 +207,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
           {requirementMap.get(key).getTargetType.getName}
         </targetType>
         <content>
-          {if (requirementMap.get(key).isSet) requirementMap.get(key).get().serialize()}
+          {requirementMap.get(key).get().serialize()}
         </content>
       </requirement>
     }
