@@ -21,7 +21,6 @@ import org.codeoverflow.chatoverflow.registry.TypeRegistry
 class ChatOverflow(val pluginFolderPath: String,
                    val configFolderPath: String,
                    val requirementPackage: String,
-                   val requirePasswordOnStartup: Boolean,
                    val logOutputOnConsole: Boolean)
   extends WithLogger {
 
@@ -62,13 +61,6 @@ class ChatOverflow(val pluginFolderPath: String,
     ConnectorRegistry.setTypeRegistry(typeRegistry)
     logger debug "Finished updating type registry."
 
-    if (requirePasswordOnStartup && !loaded) {
-      logger debug "Loading configs and credentials."
-      askForPassword()
-      load()
-      logger debug "Finished loading configs and credentials."
-    }
-
     logger debug "Finished initialization."
   }
 
@@ -105,14 +97,6 @@ class ChatOverflow(val pluginFolderPath: String,
   private def enableFrameworkSecurity(): Unit = {
     Policy.setPolicy(new SandboxSecurityPolicy)
     System.setSecurityManager(new SecurityManager)
-  }
-
-  private def askForPassword(): Unit = {
-    val password = if (System.console() != null)
-      System.console().readPassword("Please enter password (Input hidden) > ")
-    else
-      scala.io.StdIn.readLine("Please enter password (Input NOT hidden) > ").toCharArray
-    credentialsService.setPassword(password)
   }
 
   /**

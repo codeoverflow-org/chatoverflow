@@ -22,25 +22,20 @@ object CLI {
     opt[String]('r', "requirementPackage").action((x, c) =>
       c.copy(requirementPackage = x)).text("path to the package where all requirements are defined")
 
-    // Subject of change. After GUI will be -l (for login)
-    opt[Unit]('n', "noPassword").action((_, c) =>
-      c.copy(requirePasswordOnStartup = false)).text("set this flag to disable password checking on framework startup")
-
     opt[String]('l', "login").action((x, c) =>
-      c.copy(loginPassword = x.toCharArray)).text("the password to login to chat overflow (not recommended, has to be combined with -n)")
+      c.copy(loginPassword = x.toCharArray)).text("the password to login to chat overflow on framework startup")
 
     opt[Seq[String]]('s', "start").action((x, c) =>
-      c.copy(startupPlugins = x)).text("a comma-separated list of plugin instances to start after login (has to be combined with -n and -l)")
+      c.copy(startupPlugins = x)).text("a comma-separated list of plugin instances to start after login (has to be combined with -l)")
 
     opt[String]('d', "pluginDataFolder").action((x, c) =>
       c.copy(pluginDataPath = x)).text("path to the data folder, accessible from within plugins")
 
     opt[Int]('w', "webServerPort").action((x, c) =>
-      c.copy(webServerPort = x)).text("default web server port, used eg. for the rest api")
+      c.copy(webServerPort = x)).text("default web server port, used eg. for the rest api and web gui")
 
-    // Subject of change. After GUI will be -o (enablePluginOutput)
-    opt[Unit]('z', "disableLogOutputOnConsole").action((_, c) =>
-      c.copy(pluginLogOutputOnConsole = false)).text("set this flag to disable plugin log output on console")
+    opt[Unit]('o', "enablePluginOutput").action((_, c) =>
+      c.copy(pluginLogOutputOnConsole = true)).text("set this flag to enable plugin log output on console")
 
     help("help").hidden().text("prints this usage text")
 
@@ -67,10 +62,9 @@ object CLI {
   case class Config(pluginFolderPath: String = "plugins/",
                     configFolderPath: String = "config/",
                     requirementPackage: String = "org.codeoverflow.chatoverflow.requirement",
-                    requirePasswordOnStartup: Boolean = true,
                     pluginDataPath: String = "data",
                     webServerPort: Int = 2400,
-                    pluginLogOutputOnConsole: Boolean = true,
+                    pluginLogOutputOnConsole: Boolean = false,
                     loginPassword: Array[Char] = Array[Char](),
                     startupPlugins: Seq[String] = Seq[String]())
 

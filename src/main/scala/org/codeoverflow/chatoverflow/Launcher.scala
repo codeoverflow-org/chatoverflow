@@ -23,7 +23,7 @@ object Launcher extends WithLogger {
 
       // The complete project visible trough one single instance
       val chatOverflow = new ChatOverflow(config.pluginFolderPath,
-        config.configFolderPath, config.requirementPackage, config.requirePasswordOnStartup, config.pluginLogOutputOnConsole)
+        config.configFolderPath, config.requirementPackage, config.pluginLogOutputOnConsole)
 
       // Initialize chat overflow
       chatOverflow.init()
@@ -38,15 +38,20 @@ object Launcher extends WithLogger {
       startServer(chatOverflow, config.webServerPort)
 
       // Start plugins if specified
-      if (chatOverflow.isLoaded && config.startupPlugins.nonEmpty) {
-        for (instanceName <- config.startupPlugins) {
-          val instance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
+      if (config.startupPlugins.nonEmpty) {
+        if (chatOverflow.isLoaded) {
+          logger info "Starting startup plugins."
+          for (instanceName <- config.startupPlugins) {
+            val instance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
 
-          if (instance.isEmpty) {
-            println(s"No plugin instance named '$instanceName' was registered.")
-          } else {
-            instance.get.start()
+            if (instance.isEmpty) {
+              logger warn s"No plugin instance named '$instanceName' was registered."
+            } else {
+              instance.get.start()
+            }
           }
+        } else {
+          logger warn "Unable to run startup plugins. No/wrong password supplied."
         }
       }
     }
