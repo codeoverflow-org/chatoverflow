@@ -53,7 +53,7 @@ trait PluginInstanceControllerDefinition extends SwaggerSupport with TagSupport 
       parameter pathParam[String]("instanceName").description("The name of the plugin instance.")
       parameter pathParam[String]("requirementID").description("The unique id of the requirement."))
   val getLog: OperationBuilder =
-    (apiOperation[List[String]]("getLog")
+    (apiOperation[List[PluginLogMessageDTO]]("getLog")
       summary "Shows the log of a plugin instance."
       description "Shows all (or the newest) log messages of a specified plugin instance."
       tags controllerTag

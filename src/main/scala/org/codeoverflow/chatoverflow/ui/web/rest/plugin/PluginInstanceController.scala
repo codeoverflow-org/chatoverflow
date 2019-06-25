@@ -201,6 +201,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
       val startIndex = if (params.isDefinedAt("startIndex")) Some(params("startIndex")) else None
       val pluginInstance = chatOverflow.pluginInstanceRegistry.getPluginInstance(instanceName)
       val logMessages = pluginInstance.get.getPluginManager.getLogMessages
+        .asScala.map(logMessage => PluginLogMessageDTO(logMessage.getMessage, logMessage.getTimestamp.toString))
 
       val index = startIndex.getOrElse("0")
       val msg = logMessages.toArray.drop(Integer.parseInt(index))
