@@ -24,6 +24,12 @@ trait ConfigControllerDefinition extends SwaggerSupport with TagSupport with Aut
       description "Shutdown the framework in the next second if a correct auth key is supplied."
       parameter authHeader
       tags controllerTag)
+  val postPing: OperationBuilder =
+    (apiOperation[ResultMessage]("postPing")
+      summary "Used to check if the framework is still alive."
+      description "Retrieves a empty ping message (with auth key required) and returns pong."
+      parameter authHeader
+      tags controllerTag)
   val getLogin: OperationBuilder =
     (apiOperation[Boolean]("getLogin")
       summary "Returns if the framework is already loaded."

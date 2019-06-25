@@ -26,6 +26,12 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
     }
   }
 
+  post("/ping", operation(postPing)) {
+    authKeyRequired {
+      ResultMessage(success = true, "pong")
+    }
+  }
+
   // Is this even a thing?
   post("/exit", operation(postExit)) {
     authKeyRequired {
