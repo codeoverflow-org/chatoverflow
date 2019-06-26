@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow.requirement.service.rcon
 
 import java.io.{InputStream, OutputStream}
-import java.net.Socket
+import java.net.{Socket, SocketException}
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Random
 
@@ -38,9 +38,11 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
       }
     }
     socket = new Socket(credentials.get.getValue("address").get, port)
+    socket.setKeepAlive(true)
     outputStream = socket.getOutputStream
     inputStream = socket.getInputStream
     login()
+    Thread.sleep(5000)
     true
   }
 
@@ -53,19 +55,30 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
   }
 
   private def write(packageType: Int, payload: Array[Byte]): Boolean = {
-    val length = 4 + 4 + payload.length + 1 + 1
-    var byteBuffer: ByteBuffer = ByteBuffer.allocate(length + 4)
-    byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
+    try  {
+      val length = 4 + 4 + payload.length + 1 + 1
+      var byteBuffer: ByteBuffer = ByteBuffer.allocate(length + 4)
+      byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
 
-    byteBuffer.putInt(length)
-    byteBuffer.putInt(requestId)
-    byteBuffer.putInt(packageType)
-    byteBuffer.put(payload)
-    byteBuffer.put(0x00.toByte)
-    byteBuffer.put(0x00.toByte)
+      byteBuffer.putInt(length)
+      byteBuffer.putInt(requestId)
+      byteBuffer.putInt(packageType)
+      byteBuffer.put(payload)
+      byteBuffer.put(0x00.toByte)
+      byteBuffer.put(0x00.toByte)
 
-    outputStream.write(byteBuffer.array())
-    outputStream.flush()
+      outputStream.write(byteBuffer.array())
+      outputStream.flush()
+    } catch {
+      case e: NullPointerException => {
+        logger error "There was and is no Connection to the RCON Server, please try restarting."
+        return false
+      }
+      case e: SocketException => {
+        logger error "Connection Error to RCON Server. This request will not be sended!"
+        return false
+      }
+    }
     true
   }
 
