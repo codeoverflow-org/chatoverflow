@@ -71,7 +71,16 @@ object Launcher extends WithLogger {
     */
   def exit(): Unit = {
     logger debug "Shutting down Chat Overflow."
+
+    if (server.isDefined) {
+      logger info "Stopping the server."
+      server.get.stop()
+    }
+
     if (chatOverflow.isDefined) {
+      logger info "Saving all settings."
+      chatOverflow.get.save()
+
       logger debug "Trying to stop all running instances..."
       chatOverflow.get.pluginInstanceRegistry.getAllPluginInstances.
         filter(_.isRunning).foreach(_.stopPlease())

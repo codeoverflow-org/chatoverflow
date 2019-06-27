@@ -37,4 +37,11 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
     server.join()
   }
 
+  /**
+    * Stops the server.
+    */
+  def stop(): Unit = {
+    server.stop()
+  }
+
 }
