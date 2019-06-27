@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.requirement.service.rcon
 
-import java.io.{InputStream, OutputStream}
+import java.io.{DataInputStream, InputStream, OutputStream}
 import java.net.{Socket, SocketException}
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Random
@@ -16,12 +16,19 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
   private var outputStream: OutputStream = _
   private var inputStream: InputStream = _
   private var requestId: Int = 0
+  private var loggedIn = false
 
   def sendCommand(command: String): String = {
+    if (!loggedIn) {
+      logger error "Could not execute RCON Command due to wrong password or no connection"
+      return null
+    }
     logger debug s"Sending $command to RCON"
     requestId += 1
-    write(2, command.getBytes("ASCII"))
-    ""
+    if (write(2, command.getBytes("ASCII"))) {
+      return read()
+    }
+    null
   }
 
 
@@ -50,8 +57,14 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
     requestId = new Random().nextInt(Integer.MAX_VALUE)
     logger info "Logging RCON in..."
     val password = credentials.get.getValue("password").get
-    write(3, password.getBytes("ASCII"))
-    logger debug "RCON Login sent"
+    if (write(3, password.getBytes("ASCII"))) {
+      if (read() == null) {
+        logger error "Could not log in to RCON Server. Password is Wrong!"
+      } else {
+        logger debug "Login to RCON was successful"
+        loggedIn = true
+      }
+    }
   }
 
   private def write(packageType: Int, payload: Array[Byte]): Boolean = {
@@ -81,6 +94,29 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
     }
     true
   }
+
+  private def read(): String = {
+    try {
+      val header: Array[Byte] = Array.ofDim[Byte](4*3)
+      inputStream.read(header)
+      val headerBuffer: ByteBuffer = ByteBuffer.wrap(header)
+      headerBuffer.order(ByteOrder.LITTLE_ENDIAN)
+      val length = headerBuffer.getInt()
+      val packageType = headerBuffer.getInt
+      val payload: Array[Byte] = Array.ofDim[Byte](length - 4 - 4 - 2)
+      val dataInputStream: DataInputStream = new DataInputStream(inputStream)
+      dataInputStream.readFully(payload)
+      dataInputStream.read(Array.ofDim[Byte](2))
+      if (packageType == -1) {
+        return null
+      }
+      new String(payload, "ASCII")
+    } catch {
+      case e: NegativeArraySizeException => null;
+    }
+  }
+
+  private[rcon] def isLoggedIn: Boolean = loggedIn
 
   /**
     * This stops the activity of the connector, e.g. by closing the platform connection.
