@@ -52,4 +52,11 @@ class DiscordChatOutputImpl extends OutputImpl[DiscordChatConnector] with Discor
   override def sendFile(file: String): Unit = sourceConnector.get.sendFile(getChannelId, file)
 
   override def sendFile(file: String, message: String): Unit = sourceConnector.get.sendFile(getChannelId, file, Some(message))
+
+  /**
+    * Stops the output, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

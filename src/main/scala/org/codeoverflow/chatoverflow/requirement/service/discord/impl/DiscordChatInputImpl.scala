@@ -238,6 +238,13 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
       }
     }
   }
+
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }
 
 object DiscordChatInputImpl {

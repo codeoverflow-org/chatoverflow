@@ -9,9 +9,9 @@ import scala.reflect.ClassTag
 abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Connection[C] with Output with WithLogger {
 
   /**
-    * Inits this connection, checks if teh source connector is defined, and can be inited, then calls start
+    * Init this connection, checks if teh source connector is defined, and can be inited, then calls start
     *
-    * @return if this input could be successfully inited
+    * @return if this input could be successfully initialized
     */
   override def init(): Boolean = {
     if (sourceConnector.isDefined) {
@@ -24,6 +24,19 @@ abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Conn
     }
   }
 
+  /**
+    * Shuts down the connection by calling stop on the output and requesting shutdown on the connector.
+    *
+    * @return true if both parties tried to shut down
+    */
+  override def shutdown(): Boolean = {
+    if (sourceConnector.isDefined) {
+      stop() & sourceConnector.get.shutdown()
+    } else {
+      logger warn "Source connector not set."
+      false
+    }
+  }
 
   /**
     * Start the input, called after source connector did init
@@ -31,6 +44,13 @@ abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Conn
     * @return true if starting the input was successful, false if some problems occurred
     */
   def start(): Boolean
+
+  /**
+    * Stops the output, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  def stop(): Boolean
 
 
   /**

@@ -33,4 +33,11 @@ class SerialInputImpl extends InputImpl[SerialConnector] with SerialInput with W
   override def registerDataListener(consumer: Consumer[Array[Byte]]): Unit = byteListeners += consumer
 
   override def getInputStream: InputStream = sourceConnector.get.getInputStream
+
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

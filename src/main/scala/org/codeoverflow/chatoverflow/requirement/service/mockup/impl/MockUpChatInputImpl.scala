@@ -7,7 +7,7 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, ChatMessage, ChatMessageAuthor}
 import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.Connection
+import org.codeoverflow.chatoverflow.requirement.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.mockup.MockUpChatConnector
 
 import scala.collection.JavaConverters._
@@ -15,7 +15,7 @@ import scala.collection.mutable.ListBuffer
 
 @Deprecated
 @Impl(impl = classOf[MockUpChatInput], connector = classOf[MockUpChatConnector])
-class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpChatInput with WithLogger {
+class MockUpChatInputImpl extends InputImpl[MockUpChatConnector] with MockUpChatInput with WithLogger {
 
   private val messages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
   private val privateMessages: ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]()
@@ -40,22 +40,26 @@ class MockUpChatInputImpl extends Connection[MockUpChatConnector] with MockUpCha
 
   override def registerPrivateMessageHandler(handler: Consumer[ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]]): Unit = privateMessageHandler += handler
 
-  override def init(): Boolean = {
-    if (sourceConnector.isDefined) {
-      sourceConnector.get.addMessageEventListener(onMessage)
-      sourceConnector.get.init()
-    } else {
-      logger warn "Source connector not set."
-      false
-    }
-  }
+  override def serialize(): String = getSourceIdentifier
+
+  override def deserialize(value: String): Unit = setSourceConnector(value)
+
+  /**
+    * Start the input, called after source connector did init
+    *
+    * @return true if starting the input was successful, false if some problems occurred
+    */
+  override def start(): Boolean = true
 
   private def onMessage(msg: ChatMessage[ChatMessageAuthor, Channel, ChatEmoticon]): Unit = {
     messageHandler.foreach(consumer => consumer.accept(msg))
     messages += msg
   }
 
-  override def serialize(): String = getSourceIdentifier
-
-  override def deserialize(value: String): Unit = setSourceConnector(value)
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

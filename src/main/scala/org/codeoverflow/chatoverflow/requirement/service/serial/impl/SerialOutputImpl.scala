@@ -14,4 +14,11 @@ class SerialOutputImpl extends OutputImpl[SerialConnector] with SerialOutput wit
   override def start(): Boolean = true
 
   override def getPrintStream: PrintStream = sourceConnector.get.getPrintStream
+
+  /**
+    * Stops the output, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

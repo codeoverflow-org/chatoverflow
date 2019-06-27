@@ -11,6 +11,7 @@ object Launcher extends WithLogger {
 
   var server: Option[Server] = None
   var pluginDataPath: String = "data"
+  private var chatOverflow: Option[ChatOverflow] = None
 
   /**
     * Software entry point.
@@ -24,6 +25,7 @@ object Launcher extends WithLogger {
       // The complete project visible trough one single instance
       val chatOverflow = new ChatOverflow(config.pluginFolderPath,
         config.configFolderPath, config.requirementPackage, config.pluginLogOutputOnConsole)
+      this.chatOverflow = Some(chatOverflow)
 
       // Initialize chat overflow
       chatOverflow.init()
@@ -68,7 +70,25 @@ object Launcher extends WithLogger {
     * Shuts down the framework.
     */
   def exit(): Unit = {
-    logger info "Shutting down Chat Overflow."
+    logger debug "Shutting down Chat Overflow."
+    if (chatOverflow.isDefined) {
+      logger debug "Trying to stop all running instances..."
+      chatOverflow.get.pluginInstanceRegistry.getAllPluginInstances.
+        filter(_.isRunning).foreach(_.stopPlease())
+
+      for (i <- 1 to 5) {
+        if (chatOverflow.get.pluginInstanceRegistry.getAllPluginInstances.
+          exists(_.isRunning)) {
+          logger info s"Check $i of 5. Still waiting on: ${
+            chatOverflow.get.pluginInstanceRegistry.getAllPluginInstances.
+              filter(_.isRunning).map(_.instanceName).mkString(", ")
+          }"
+          Thread.sleep(1000)
+        }
+      }
+    }
+
+    logger info "Bye Bye. Stay minzig!"
     System.exit(0)
   }
 }

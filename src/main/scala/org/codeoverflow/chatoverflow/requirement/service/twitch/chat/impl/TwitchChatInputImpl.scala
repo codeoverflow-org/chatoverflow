@@ -105,4 +105,11 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
     currentChannel = Some(TwitchChatConnector.formatChannel(channel.trim))
     if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
   }
+
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

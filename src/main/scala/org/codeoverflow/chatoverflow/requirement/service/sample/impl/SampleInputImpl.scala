@@ -10,4 +10,11 @@ import org.codeoverflow.chatoverflow.requirement.service.sample.SampleConnector
 class SampleInputImpl extends InputImpl[SampleConnector] with SampleInput with WithLogger {
 
   override def start(): Boolean = true
+
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

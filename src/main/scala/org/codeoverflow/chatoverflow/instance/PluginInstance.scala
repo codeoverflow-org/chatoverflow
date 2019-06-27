@@ -74,12 +74,6 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
   }
 
   /**
-    * Returns, if the plugin instance is created. This should be always the case when a plugin instance
-    * is added to the registry.
-    */
-  private def isCreated: Boolean = plugin.isDefined
-
-  /**
     * Creates a new thread and tries to start the plugin.
     * Make sure to set the requirements first!
     *
@@ -183,6 +177,20 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                   case e: AbstractMethodError => logger.error(s"Plugin '$instanceName' just crashed. Looks like a plugin version error.", e)
                   case e: Exception => logger.error(s"Plugin '$instanceName' just had an exception. Might be a plugin implementation fault.", e)
                   case e: Throwable => logger.error(s"Plugin '$instanceName' just crashed. We don't know whats going up here!", e)
+
+                } finally {
+
+                  // If the plugin ended or crashed, try to shut down the connectors
+                  val inputRequirements = getRequirements.getInputRequirements.toArray
+                  inputRequirements.foreach(requirement => {
+                    requirement.asInstanceOf[Requirement[Input]].get().shutdown()
+                  })
+
+                  val outputRequirements = getRequirements.getOutputRequirements.toArray
+                  outputRequirements.foreach(requirement => {
+                    requirement.asInstanceOf[Requirement[Output]].get().shutdown()
+                  })
+
                 }
               })
               instanceThread.start()
@@ -197,6 +205,12 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
       }
     }
   }
+
+  /**
+    * Returns, if the plugin instance is created. This should be always the case when a plugin instance
+    * is added to the registry.
+    */
+  private def isCreated: Boolean = plugin.isDefined
 
   /**
     * Returns the requirements object of the specific plugin instance.
