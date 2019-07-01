@@ -1,13 +1,12 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, OffsetDateTime, ZoneId, ZoneOffset}
-import java.util.Calendar
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
-import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, TextChannel}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, TextChannel}
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.InputImpl
