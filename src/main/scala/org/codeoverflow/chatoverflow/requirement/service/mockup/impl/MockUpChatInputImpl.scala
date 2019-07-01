@@ -1,10 +1,11 @@
 package org.codeoverflow.chatoverflow.requirement.service.mockup.impl
 
-import java.util.Calendar
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
 import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.InputImpl
@@ -24,16 +25,16 @@ class MockUpChatInputImpl extends InputImpl[MockUpChatConnector] with MockUpChat
   private val privateMessageHandler = ListBuffer[Consumer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]]()
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = {
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val currentTime = OffsetDateTime.now
 
-    messages.filter(_.getTime > currentTime - lastMilliseconds).toList.asJava
+    messages.filter(_.getTime.isAfter(currentTime.minus(lastMilliseconds, ChronoUnit.MILLIS))).toList.asJava
   }
 
 
   override def getLastPrivateMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = {
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val currentTime = OffsetDateTime.now
 
-    privateMessages.filter(_.getTime > currentTime - lastMilliseconds).toList.asJava
+    privateMessages.filter(_.getTime.isAfter(currentTime.minus(lastMilliseconds, ChronoUnit.MILLIS))).toList.asJava
   }
 
   override def registerMessageHandler(handler: Consumer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]): Unit = messageHandler += handler
@@ -51,15 +52,15 @@ class MockUpChatInputImpl extends InputImpl[MockUpChatConnector] with MockUpChat
     */
   override def start(): Boolean = true
 
-  private def onMessage(msg: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]): Unit = {
-    messageHandler.foreach(consumer => consumer.accept(msg))
-    messages += msg
-  }
-
   /**
     * Stops the input, called before source connector will shutdown
     *
     * @return true if stopping was successful
     */
   override def stop(): Boolean = true
+
+  private def onMessage(msg: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]): Unit = {
+    messageHandler.foreach(consumer => consumer.accept(msg))
+    messages += msg
+  }
 }
