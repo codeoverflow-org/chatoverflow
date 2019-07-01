@@ -1,12 +1,13 @@
 package org.codeoverflow.chatoverflow.configuration
 
 import java.nio.charset.StandardCharsets
-import java.security.{DigestException, MessageDigest, SecureRandom}
+import java.security.{DigestException, InvalidKeyException, MessageDigest, SecureRandom}
 import java.util
 import java.util.Base64
 
 import javax.crypto.spec.{IvParameterSpec, PBEKeySpec, SecretKeySpec}
 import javax.crypto.{Cipher, SecretKeyFactory}
+import org.codeoverflow.chatoverflow.WithLogger
 
 /**
   * Provides methods to de- and encrypt using the AES-CBC algorithm.
@@ -15,7 +16,7 @@ import javax.crypto.{Cipher, SecretKeyFactory}
   * The SSL compliant / crypto-js compliant code is based on
   * https://stackoverflow.com/questions/41432896/cryptojs-aes-encryption-and-java-aes-decryption
   */
-object CryptoUtil {
+object CryptoUtil extends WithLogger {
 
   // Used for the run-unique auth key
   private val runSpecificRandom = generateIV
@@ -65,6 +66,9 @@ object CryptoUtil {
         Some(decrString.substring(5))
       }
     } catch {
+      case e: InvalidKeyException => logger.error("Your environment does not work with AES256." +
+        "Please update your java runtime version to at least: 1.8.0_161", e)
+        None
       case _: Exception => None
     }
   }
@@ -143,6 +147,13 @@ object CryptoUtil {
     new String(Base64.getEncoder.encode(message), StandardCharsets.UTF_8)
   }
 
+  private def generateSalt: Array[Byte] = {
+    val random = new SecureRandom()
+    val salt = new Array[Byte](8)
+    random.nextBytes(salt)
+    salt
+  }
+
   /**
     * Encrypts the provided plaintext using AES.
     *
@@ -171,13 +182,6 @@ object CryptoUtil {
     ciphertext.append(":")
     ciphertext.append(org.apache.commons.codec.binary.Base64.encodeBase64String(encrypted))
     ciphertext.toString
-  }
-
-  private def generateSalt: Array[Byte] = {
-    val random = new SecureRandom()
-    val salt = new Array[Byte](8)
-    random.nextBytes(salt)
-    salt
   }
 
   private def generateIV: Array[Byte] = {
