@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.api.impl
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import org.codeoverflow.chatoverflow.api.io.dto.User
+import org.codeoverflow.chatoverflow.api.io.dto.stat.twitch.TwitchUserStats
 import org.codeoverflow.chatoverflow.api.io.input.stat.TwitchStatInput
 import org.codeoverflow.chatoverflow.framework.actors.{Mapping, StringMappingActor}
 import org.codeoverflow.chatoverflow.registry.Impl
@@ -23,7 +23,7 @@ class TwitchStatInputImpl extends InputImpl[TwitchAPIConnector] with TwitchStatI
   private val actor: ActorRef = actorSystem.actorOf(Props[StringMappingActor])
   implicit val timeout: Timeout = Timeout(5 seconds)
 
-  override def getFollowers(userName: String): java.util.List[User] = {
+  override def getFollowers(userName: String): java.util.List[TwitchUserStats] = {
     val userID = getUser(userName).getId
     val response = sourceConnector.get.getFollowers(userID)
     println(response)
@@ -35,13 +35,13 @@ class TwitchStatInputImpl extends InputImpl[TwitchAPIConnector] with TwitchStatI
     sourceConnector.get.getSubscriptions(userID)
   }
 
-  override def getUser(userName: String): User = {
+  override def getUser(userName: String): TwitchUserStats = {
     val response = sourceConnector.get.getUser(userName)
     println(response)
     val result = Await.result(actor ? Mapping(map[UserResult], response), timeout.duration).asInstanceOf[UserResult]
     if (result.data.nonEmpty) {
       val user = result.data.head
-      new User(user.id, user.display_name, user.description, user.profile_image_url, user.view_count)
+      new TwitchUserStats(user.id, user.display_name, user.description, user.profile_image_url, user.view_count)
     }
     else null
   }
