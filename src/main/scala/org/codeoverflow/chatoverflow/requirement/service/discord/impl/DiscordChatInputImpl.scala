@@ -237,12 +237,12 @@ object DiscordChatInputImpl {
       case Some(member) =>
         Option(message.getMember.getColor) match {
           case Some(c) =>
-            new ChatMessageAuthor(member.getEffectiveName, member.getUser.getId, "#%02X%02X%02X".format(c.getRed, c.getBlue, c.getGreen))
+            new ChatMessageAuthor(member.getUser.getId, member.getEffectiveName, "#%02X%02X%02X".format(c.getRed, c.getBlue, c.getGreen))
           case None =>
-            new ChatMessageAuthor(member.getEffectiveName, member.getUser.getId)
+            new ChatMessageAuthor(member.getUser.getId, member.getEffectiveName)
         }
       case None =>
-        new ChatMessageAuthor(message.getAuthor.getName, message.getAuthor.getId)
+        new ChatMessageAuthor(message.getAuthor.getId, message.getAuthor.getName)
     }
     val channel = message.getChannel match {
       case c: TextChannel => new DiscordTextChannel(c.getName, c.getId, Option(c.getTopic).getOrElse(""))
