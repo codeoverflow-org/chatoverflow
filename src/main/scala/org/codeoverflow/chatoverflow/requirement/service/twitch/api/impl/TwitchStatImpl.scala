@@ -7,7 +7,7 @@ import org.codeoverflow.chatoverflow.api.io.dto.stat.twitch.TwitchUserStats
 import org.codeoverflow.chatoverflow.api.io.input.stat.TwitchStatInput
 import org.codeoverflow.chatoverflow.framework.actors.{Mapping, StringMappingActor}
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.api.TwitchAPIConnector
 
 import scala.concurrent.Await

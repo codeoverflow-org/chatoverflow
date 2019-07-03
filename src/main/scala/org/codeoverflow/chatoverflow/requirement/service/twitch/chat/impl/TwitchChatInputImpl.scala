@@ -2,14 +2,14 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
-import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, TextChannel}
+import org.codeoverflow.chatoverflow.api.io.event.chat.twitch.{TwitchChatMessageSendEvent, TwitchEvent, TwitchPrivateChatMessageSendEvent}
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.{EventInputImpl, InputImpl}
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
@@ -21,16 +21,13 @@ import scala.collection.mutable.ListBuffer
   * This is the implementation of the twitch chat input, using the twitch connector.
   */
 @Impl(impl = classOf[TwitchChatInput], connector = classOf[chat.TwitchChatConnector])
-class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with TwitchChatInput with WithLogger {
+class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatConnector] with TwitchChatInput with WithLogger {
 
   private val messages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val privateMessages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val whisperRegex = """^:([^!]+?)!.*?:(.*)$""".r
   private val wholeEmoticonRegex = """(\d+):([\d,-]+)""".r
   private val emoticonRegex = """(\d+)-(\d+)""".r
-
-  private val messageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
-  private val privateMessageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
 
   private var currentChannel: Option[String] = None
 
@@ -63,8 +60,9 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
       })
       val msg = new TwitchChatMessage(author, message, time, channel, emoticons)
 
-      messageHandler.foreach(consumer => consumer.accept(msg))
+
       messages += msg
+      call(new TwitchChatMessageSendEvent(msg))
     }
   }
 
@@ -77,8 +75,8 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
       val time = OffsetDateTime.ofInstant(Instant.ofEpochMilli(event.getTimestamp), ZoneOffset.UTC)
       val msg = new TwitchChatMessage(new TwitchChatMessageAuthor(name), message, time, null)
 
-      privateMessageHandler.foreach(consumer => consumer.accept(msg))
       privateMessages += msg
+      call(new TwitchPrivateChatMessageSendEvent(msg))
     }
   }
 
@@ -95,13 +93,6 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
 
     privateMessages.filter(_.getTime.isAfter(until)).toList.asJava
   }
-
-  override def registerMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = {
-    if (currentChannel.isEmpty) throw new IllegalStateException("first set the channel for this input")
-    messageHandler += handler
-  }
-
-  override def registerPrivateMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = privateMessageHandler += handler
 
   override def setChannel(channel: String): Unit = {
     currentChannel = Some(TwitchChatConnector.formatChannel(channel.trim))

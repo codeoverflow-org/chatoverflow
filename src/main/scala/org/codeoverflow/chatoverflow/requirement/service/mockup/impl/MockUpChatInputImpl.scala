@@ -2,13 +2,13 @@ package org.codeoverflow.chatoverflow.requirement.service.mockup.impl
 
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
-import java.util.function.Consumer
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
+import org.codeoverflow.chatoverflow.api.io.event.chat.mockup.{MockupChatMessageSendEvent, MockupEvent}
 import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.mockup.MockUpChatConnector
 
 import scala.collection.JavaConverters._
@@ -16,13 +16,10 @@ import scala.collection.mutable.ListBuffer
 
 @Deprecated
 @Impl(impl = classOf[MockUpChatInput], connector = classOf[MockUpChatConnector])
-class MockUpChatInputImpl extends InputImpl[MockUpChatConnector] with MockUpChatInput with WithLogger {
+class MockUpChatInputImpl extends EventInputImpl[MockupEvent, MockUpChatConnector] with MockUpChatInput with WithLogger {
 
   private val messages: ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
   private val privateMessages: ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
-
-  private val messageHandler = ListBuffer[Consumer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]]()
-  private val privateMessageHandler = ListBuffer[Consumer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]]()
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = {
     val currentTime = OffsetDateTime.now
@@ -36,10 +33,6 @@ class MockUpChatInputImpl extends InputImpl[MockUpChatConnector] with MockUpChat
 
     privateMessages.filter(_.getTime.isAfter(currentTime.minus(lastMilliseconds, ChronoUnit.MILLIS))).toList.asJava
   }
-
-  override def registerMessageHandler(handler: Consumer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]): Unit = messageHandler += handler
-
-  override def registerPrivateMessageHandler(handler: Consumer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]): Unit = privateMessageHandler += handler
 
   override def serialize(): String = getSourceIdentifier
 
@@ -60,7 +53,7 @@ class MockUpChatInputImpl extends InputImpl[MockUpChatConnector] with MockUpChat
   override def stop(): Boolean = true
 
   private def onMessage(msg: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]): Unit = {
-    messageHandler.foreach(consumer => consumer.accept(msg))
+    call(new MockupChatMessageSendEvent(msg))
     messages += msg
   }
 }

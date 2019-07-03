@@ -8,7 +8,7 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.discord.DiscordEmbed
 import org.codeoverflow.chatoverflow.api.io.output.chat.DiscordChatOutput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.OutputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.discord.DiscordChatConnector
 
 import scala.compat.java8.OptionConverters._

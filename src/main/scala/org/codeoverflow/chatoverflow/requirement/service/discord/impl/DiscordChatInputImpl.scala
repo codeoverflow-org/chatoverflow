@@ -3,41 +3,35 @@ package org.codeoverflow.chatoverflow.requirement.service.discord.impl
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util
+import java.util.Optional
 import java.util.concurrent.{CompletableFuture, Future, TimeUnit}
-import java.util.function.{BiConsumer, Consumer}
-import java.util.{Calendar, Optional}
+import java.util.function.Consumer
 
 import net.dv8tion.jda.core.entities._
 import net.dv8tion.jda.core.events.message.react.{GenericMessageReactionEvent, MessageReactionAddEvent, MessageReactionRemoveEvent}
-import net.dv8tion.jda.core.events.message.{GenericMessageEvent, MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
+import net.dv8tion.jda.core.events.message.{MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.ChatMessageAuthor
 import org.codeoverflow.chatoverflow.api.io.dto.chat.discord._
+import org.codeoverflow.chatoverflow.api.io.event.chat.discord._
 import org.codeoverflow.chatoverflow.api.io.input.chat.DiscordChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.discord.DiscordChatConnector
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.compat.java8.OptionConverters._
+import scala.reflect.ClassTag
 
 /**
   * This is the implementation of the discord chat input, using the discord connector.
   */
 @Impl(impl = classOf[DiscordChatInput], connector = classOf[DiscordChatConnector])
-class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordChatInput with WithLogger {
+class DiscordChatInputImpl extends EventInputImpl[DiscordEvent, DiscordChatConnector] with DiscordChatInput with WithLogger {
 
   private val messages = ListBuffer[DiscordChatMessage]()
   private val privateMessages = ListBuffer[DiscordChatMessage]()
-  private val messageHandler = ListBuffer[Consumer[DiscordChatMessage]]()
-  private val privateMessageHandler = ListBuffer[Consumer[DiscordChatMessage]]()
-  private val messageEditHandler = ListBuffer[BiConsumer[DiscordChatMessage, DiscordChatMessage]]()
-  private val messageDeleteHandler = ListBuffer[Consumer[DiscordChatMessage]]()
-  private val privateMessageEditHandler = ListBuffer[BiConsumer[DiscordChatMessage, DiscordChatMessage]]()
-  private val privateMessageDeleteHandler = ListBuffer[Consumer[DiscordChatMessage]]()
-  private val reactionAddHandler = ListBuffer[BiConsumer[DiscordReaction, DiscordChatMessage]]()
-  private val reactionDelHandler = ListBuffer[BiConsumer[DiscordReaction, DiscordChatMessage]]()
   private var channelId: Option[String] = None
 
   override def start(): Boolean = {
@@ -47,6 +41,14 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     sourceConnector.get.addReactionAddEventListener(onReactionAdded)
     sourceConnector.get.addReactionDelEventListener(onReactionRemoved)
     true
+  }
+
+  override def retrieveMessage(messageId: String): Future[Optional[DiscordChatMessage]] = {
+    val future = new CompletableFuture[Optional[DiscordChatMessage]]()
+    val cM: Consumer[Message] = message => future.complete(Option(message).map(DiscordChatInputImpl.parse).asJava)
+    val cT: Consumer[Throwable] = exception => future.completeExceptionally(exception)
+    sourceConnector.get.retrieveMessage(channelId.get, messageId).queue(cM, cT)
+    future
   }
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[DiscordChatMessage] = {
@@ -61,42 +63,8 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     privateMessages.filter(_.getTime.isAfter(until)).toList.asJava
   }
 
-  override def registerMessageHandler(handler: Consumer[DiscordChatMessage]): Unit = {
-    getChannelId
-    messageHandler += handler
-  }
-
-  override def registerPrivateMessageHandler(handler: Consumer[DiscordChatMessage]): Unit = privateMessageHandler += handler
-
-  override def registerMessageEditHandler(handler: BiConsumer[DiscordChatMessage, DiscordChatMessage]): Unit = {
-    getChannelId
-    messageEditHandler += handler
-  }
-
-  override def registerPrivateMessageEditHandler(handler: BiConsumer[DiscordChatMessage, DiscordChatMessage]): Unit = privateMessageEditHandler += handler
-
-  override def registerMessageDeleteHandler(handler: Consumer[DiscordChatMessage]): Unit = {
-    getChannelId
-    messageDeleteHandler += handler
-  }
-
   override def getChannelId: String =
     channelId.getOrElse(throw new IllegalStateException("first set the channel for this input"))
-
-  override def registerPrivateMessageDeleteHandler(handler: Consumer[DiscordChatMessage]): Unit = {
-    getChannelId
-    privateMessageDeleteHandler += handler
-  }
-
-  override def registerReactionAddHandler(handler: BiConsumer[DiscordReaction, DiscordChatMessage]): Unit = {
-    getChannelId
-    reactionAddHandler += handler
-  }
-
-  override def registerReactionRemoveHandler(handler: BiConsumer[DiscordReaction, DiscordChatMessage]): Unit = {
-    getChannelId
-    reactionDelHandler += handler
-  }
 
   override def setChannel(channelId: String): Unit = {
     sourceConnector.get.getTextChannel(channelId) match {
@@ -108,13 +76,12 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
   override def getMessage(messageId: String): Optional[DiscordChatMessage] =
     messages.find(_.getId == messageId).orElse(privateMessages.find(_.getId == messageId)).asJava
 
-  override def retrieveMessage(messageId: String): Future[Optional[DiscordChatMessage]] = {
-    val future = new CompletableFuture[Optional[DiscordChatMessage]]()
-    val cM: Consumer[Message] = message => future.complete(Option(message).map(DiscordChatInputImpl.parse).asJava)
-    val cT: Consumer[Throwable] = exception => future.completeExceptionally(exception)
-    sourceConnector.get.retrieveMessage(channelId.get, messageId).queue(cM, cT)
-    future
-  }
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 
   /**
     * Listens for received messages, parses the data, adds them to the buffer and handles them over to the correct handler
@@ -122,12 +89,20 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     * @param event a event with an new message
     */
   private def onMessage(event: MessageReceivedEvent): Unit = {
-    if (event.getMessage.getType == MessageType.DEFAULT) {
-      smartHandler(event)(messages, messageHandler)(privateMessages, privateMessageHandler)((buffer, handler) => {
-        val message = DiscordChatInputImpl.parse(event.getMessage)
-        handler.foreach(_.accept(message))
-        buffer += message
-      })
+    if (channelId.isDefined) {
+      if (event.getMessage.getType == MessageType.DEFAULT) {
+        event.getChannelType match {
+          case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+            val message = DiscordChatInputImpl.parse(event.getMessage)
+            messages += message
+            call(new DiscordChatMessageSendEvent(message))
+          case ChannelType.PRIVATE =>
+            val message = DiscordChatInputImpl.parse(event.getMessage)
+            privateMessages += message
+            call(new DiscordPrivateChatMessageSendEvent(message))
+          case _ => //Unknown channel, do nothing
+        }
+      }
     }
   }
 
@@ -137,16 +112,28 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     * @param event a event with an edited message
     */
   private def onMessageUpdate(event: MessageUpdateEvent): Unit = {
-    if (event.getMessage.getType == MessageType.DEFAULT) {
-      smartHandler(event)(messages, messageEditHandler)(privateMessages, privateMessageEditHandler)((buffer, handler) => {
-        val newMessage = DiscordChatInputImpl.parse(event.getMessage)
-        val i = buffer.indexWhere(_.getId == newMessage.getId)
-        if (i != -1) {
-          val oldMessage = buffer(i)
-          buffer.update(i, newMessage)
-          handler.foreach(_.accept(oldMessage, newMessage))
+    if (channelId.isDefined) {
+      if (event.getMessage.getType == MessageType.DEFAULT) {
+        event.getChannelType match {
+          case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+            val newMessage = DiscordChatInputImpl.parse(event.getMessage)
+            val i = messages.indexWhere(_.getId == newMessage.getId)
+            if (i != -1) {
+              val oldMessage = messages(i)
+              messages.update(i, newMessage)
+              call(new DiscordChatMessageEditEvent(newMessage, oldMessage))
+            }
+          case ChannelType.PRIVATE =>
+            val newMessage = DiscordChatInputImpl.parse(event.getMessage)
+            val i = privateMessages.indexWhere(_.getId == newMessage.getId)
+            if (i != -1) {
+              val oldMessage = privateMessages(i)
+              privateMessages.update(i, newMessage)
+              call(new DiscordPrivateChatMessageEditEvent(newMessage, oldMessage))
+            }
+          case _ => //Unknown channel, do nothing
         }
-      })
+      }
     }
   }
 
@@ -156,13 +143,23 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     * @param event a event with an deleted message
     */
   private def onMessageDelete(event: MessageDeleteEvent): Unit = {
-    smartHandler(event)(messages, messageDeleteHandler)(privateMessages, privateMessageDeleteHandler)((buffer, handler) => {
-      val i = buffer.indexWhere(_.getId == event.getMessageId)
-      if (i != -1) {
-        val oldMessage = buffer.remove(i)
-        handler.foreach(_.accept(oldMessage))
+    if (channelId.isDefined) {
+      event.getChannelType match {
+        case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+          val i = messages.indexWhere(_.getId == event.getMessageId)
+          if (i != -1) {
+            val oldMessage = messages.remove(i)
+            call(new DiscordChatMessageDeleteEvent(oldMessage))
+          }
+        case ChannelType.PRIVATE =>
+          val i = privateMessages.indexWhere(_.getId == event.getMessageId)
+          if (i != -1) {
+            val oldMessage = privateMessages.remove(i)
+            call(new DiscordPrivateChatMessageDeleteEvent(oldMessage))
+          }
+        case _ => //Unknown channel, do nothing
       }
-    })
+    }
   }
 
   /**
@@ -171,7 +168,15 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     * @param event a event with the added reaction and the message
     */
   private def onReactionAdded(event: MessageReactionAddEvent): Unit = {
-    smartHandler(event)(messages, reactionAddHandler)(privateMessages, reactionAddHandler)(onReaction(event))
+    if (channelId.isDefined) {
+      event.getChannelType match {
+        case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+          onReaction(event)(messages)((m, r) => new DiscordReactionAddEvent(m, r))
+        case ChannelType.PRIVATE =>
+          onReaction(event)(privateMessages)((m, r) => new DiscordReactionAddEvent(m, r))
+        case _ => //Unknown channel, do nothing
+      }
+    }
   }
 
   /**
@@ -180,19 +185,28 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     * @param event a event with the removed reaction and the message
     */
   private def onReactionRemoved(event: MessageReactionRemoveEvent): Unit = {
-    smartHandler(event)(messages, reactionDelHandler)(privateMessages, reactionDelHandler)(onReaction(event))
+    if (channelId.isDefined) {
+      event.getChannelType match {
+        case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
+          onReaction(event)(messages)((m, r) => new DiscordReactionRemoveEvent(m, r))
+        case ChannelType.PRIVATE =>
+          onReaction(event)(privateMessages)((m, r) => new DiscordReactionRemoveEvent(m, r))
+        case _ => //Unknown channel, do nothing
+      }
+    }
   }
 
   /**
     * Helper function for handling reaction events. Helps to reduce the amount of duplicated code
     *
-    * @param event   a event with the reaction and the message
-    * @param buffer  which buffer should be used for handling this event
-    * @param handler which handler should be used for handling this event
+    * @param event        a event with the reaction and the message
+    * @param buffer       which buffer should be used for handling this event
+    * @param eventCreator function that returns the reaction event that should be called
     */
-  private def onReaction(event: GenericMessageReactionEvent)
-                        (buffer: ListBuffer[DiscordChatMessage],
-                         handler: ListBuffer[BiConsumer[DiscordReaction, DiscordChatMessage]]): Unit = {
+  private def onReaction[T <: DiscordReactionEvent](event: GenericMessageReactionEvent)
+                                                   (buffer: ListBuffer[DiscordChatMessage])
+                                                   (eventCreator: (DiscordChatMessage, DiscordReaction) => T)
+                                                   (implicit ct: ClassTag[T]): Unit = {
     val i = buffer.indexWhere(_.getId == event.getMessageId)
     val message =
       if (i != -1) {
@@ -203,51 +217,9 @@ class DiscordChatInputImpl extends InputImpl[DiscordChatConnector] with DiscordC
     if (message.isDefined) {
       if (i == -1) buffer += message.get else buffer.update(i, message.get)
       val reaction = DiscordChatInputImpl.parseReaction(event.getReaction)
-      handler.foreach(_.accept(reaction, message.get))
+      call(eventCreator(message.get, reaction))
     }
   }
-
-  /**
-    * Helper function for handling events. Helps to reduce duplicated code.<br>
-    * Determines which of the provided handlers and buffers should be used and performs the action with them
-    *
-    * @param event          the event that provides tha data
-    * @param textBuffer     the buffer that should be used for normal text messages
-    * @param textHandler    the handler that should be used for normal text messages
-    * @param privateBuffer  the buffer that should be used for private text messages
-    * @param privateHandler the handler that should be used for private text messages
-    * @param action         action that should be performed with the given buffer and handler
-    * @tparam B type of the buffer, should be ListBuffer[DiscordChatMessage]
-    * @tparam H type of the handler, depends on the event that is handled
-    */
-  private def smartHandler[B, H](event: GenericMessageEvent)
-                                (textBuffer: B, textHandler: H)
-                                (privateBuffer: B, privateHandler: H)
-                                (action: (B, H) => Unit): Unit = {
-    if (channelId.isDefined) {
-      var buffer: Option[B] = None
-      var handler: Option[H] = None
-      event.getChannelType match {
-        case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
-          buffer = Some(textBuffer)
-          handler = Some(textHandler)
-        case ChannelType.PRIVATE =>
-          buffer = Some(privateBuffer)
-          handler = Some(privateHandler)
-        case _ => //Unknown channel, do nothing
-      }
-      if (buffer.isDefined && handler.isDefined) {
-        action(buffer.get, handler.get)
-      }
-    }
-  }
-
-  /**
-    * Stops the input, called before source connector will shutdown
-    *
-    * @return true if stopping was successful
-    */
-  override def stop(): Boolean = true
 }
 
 object DiscordChatInputImpl {

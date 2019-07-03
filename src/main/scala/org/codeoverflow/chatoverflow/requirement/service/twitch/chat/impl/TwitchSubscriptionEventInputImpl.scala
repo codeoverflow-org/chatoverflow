@@ -1,10 +1,11 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 
+import org.codeoverflow.chatoverflow.api.io.event.chat.twitch.TwitchEvent
 import org.codeoverflow.chatoverflow.api.io.input.event.TwitchSubscriptionEventInput
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 
-class TwitchSubscriptionEventInputImpl extends InputImpl[chat.TwitchChatConnector] with TwitchSubscriptionEventInput {
+class TwitchSubscriptionEventInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatConnector] with TwitchSubscriptionEventInput {
 
   override def serialize(): String = ???
 
