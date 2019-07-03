@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
-import org.codeoverflow.chatoverflow.api.io.event.chat.mockup.{MockupChatMessageSendEvent, MockupEvent}
+import org.codeoverflow.chatoverflow.api.io.event.chat.mockup.{MockupChatMessageReceiveEvent, MockupEvent}
 import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
@@ -53,7 +53,7 @@ class MockUpChatInputImpl extends EventInputImpl[MockupEvent, MockUpChatConnecto
   override def stop(): Boolean = true
 
   private def onMessage(msg: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]): Unit = {
-    call(new MockupChatMessageSendEvent(msg))
+    call(new MockupChatMessageReceiveEvent(msg))
     messages += msg
   }
 }

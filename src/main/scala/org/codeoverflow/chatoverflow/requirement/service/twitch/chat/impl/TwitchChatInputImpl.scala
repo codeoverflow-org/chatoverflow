@@ -6,7 +6,7 @@ import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, TextChannel}
-import org.codeoverflow.chatoverflow.api.io.event.chat.twitch.{TwitchChatMessageSendEvent, TwitchEvent, TwitchPrivateChatMessageSendEvent}
+import org.codeoverflow.chatoverflow.api.io.event.chat.twitch.{TwitchChatMessageReceiveEvent, TwitchEvent, TwitchPrivateChatMessageReceiveEvent}
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.{EventInputImpl, InputImpl}
@@ -62,7 +62,7 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
 
 
       messages += msg
-      call(new TwitchChatMessageSendEvent(msg))
+      call(new TwitchChatMessageReceiveEvent(msg))
     }
   }
 
@@ -76,7 +76,7 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
       val msg = new TwitchChatMessage(new TwitchChatMessageAuthor(name), message, time, null)
 
       privateMessages += msg
-      call(new TwitchPrivateChatMessageSendEvent(msg))
+      call(new TwitchPrivateChatMessageReceiveEvent(msg))
     }
   }
 

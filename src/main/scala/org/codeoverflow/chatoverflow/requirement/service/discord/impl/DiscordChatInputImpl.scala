@@ -95,11 +95,11 @@ class DiscordChatInputImpl extends EventInputImpl[DiscordEvent, DiscordChatConne
           case ChannelType.TEXT if event.getTextChannel.getId == channelId.get =>
             val message = DiscordChatInputImpl.parse(event.getMessage)
             messages += message
-            call(new DiscordChatMessageSendEvent(message))
+            call(new DiscordChatMessageReceiveEvent(message))
           case ChannelType.PRIVATE =>
             val message = DiscordChatInputImpl.parse(event.getMessage)
             privateMessages += message
-            call(new DiscordPrivateChatMessageSendEvent(message))
+            call(new DiscordPrivateChatMessageReceiveEvent(message))
           case _ => //Unknown channel, do nothing
         }
       }
