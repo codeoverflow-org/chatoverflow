@@ -8,7 +8,7 @@ import javax.imageio.ImageIO
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.input.FileInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.file.FileConnector
 
 @Impl(impl = classOf[FileInput], connector = classOf[FileConnector])

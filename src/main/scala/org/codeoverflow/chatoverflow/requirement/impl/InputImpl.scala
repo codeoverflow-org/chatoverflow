@@ -1,15 +1,16 @@
-package org.codeoverflow.chatoverflow.requirement
+package org.codeoverflow.chatoverflow.requirement.impl
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.io.output.Output
+import org.codeoverflow.chatoverflow.api.io.input.Input
 import org.codeoverflow.chatoverflow.connector.Connector
+import org.codeoverflow.chatoverflow.requirement.Connection
 
 import scala.reflect.ClassTag
 
-abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Connection[C] with Output with WithLogger {
+abstract class InputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Connection[C] with Input with WithLogger {
 
   /**
-    * Init this connection, checks if teh source connector is defined, and can be inited, then calls start
+    * Init this connection, checks if the source connector is defined, and can be inited, then calls start
     *
     * @return if this input could be successfully initialized
     */
@@ -25,7 +26,7 @@ abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Conn
   }
 
   /**
-    * Shuts down the connection by calling stop on the output and requesting shutdown on the connector.
+    * Shuts down the connection by calling stop on the input and requesting shutdown on the connector.
     *
     * @return true if both parties tried to shut down
     */
@@ -38,6 +39,7 @@ abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Conn
     }
   }
 
+
   /**
     * Start the input, called after source connector did init
     *
@@ -46,7 +48,7 @@ abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Conn
   def start(): Boolean
 
   /**
-    * Stops the output, called before source connector will shutdown
+    * Stops the input, called before source connector will shutdown
     *
     * @return true if stopping was successful
     */
