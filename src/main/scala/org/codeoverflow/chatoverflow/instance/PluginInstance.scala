@@ -182,12 +182,12 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
 
                   // If the plugin ended or crashed, try to shut down the connectors
                   val inputRequirements = getRequirements.getInputRequirements.toArray
-                  inputRequirements.foreach(requirement => {
+                  inputRequirements.filter(_.asInstanceOf[Requirement[_]].isSet).foreach(requirement => {
                     requirement.asInstanceOf[Requirement[Input]].get().shutdown()
                   })
 
                   val outputRequirements = getRequirements.getOutputRequirements.toArray
-                  outputRequirements.foreach(requirement => {
+                  outputRequirements.filter(_.asInstanceOf[Requirement[_]].isSet).foreach(requirement => {
                     requirement.asInstanceOf[Requirement[Output]].get().shutdown()
                   })
 
