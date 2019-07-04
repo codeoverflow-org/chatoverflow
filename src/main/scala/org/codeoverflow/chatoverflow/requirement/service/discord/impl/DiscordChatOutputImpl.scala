@@ -8,7 +8,7 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.discord.DiscordEmbed
 import org.codeoverflow.chatoverflow.api.io.output.chat.DiscordChatOutput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.OutputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.discord.DiscordChatConnector
 
 import scala.compat.java8.OptionConverters._
@@ -26,7 +26,7 @@ class DiscordChatOutputImpl extends OutputImpl[DiscordChatConnector] with Discor
   override def setChannel(channelId: String): Unit = {
     sourceConnector.get.getTextChannel(channelId) match {
       case Some(_) => this.channelId = Some(channelId.trim)
-      case None => throw new IllegalArgumentException("Channel with that id doesn't exist")
+      case None => throw new IllegalArgumentException("TextChannel with that id doesn't exist")
     }
   }
 
@@ -40,7 +40,7 @@ class DiscordChatOutputImpl extends OutputImpl[DiscordChatConnector] with Discor
       .setTitle(embed.getTitle.orElse(null), embed.getUrl.orElse(null))
       .setDescription(embed.getDescription.orElse(null))
       .setColor(embed.getColor.asScala.map(Color.decode).orNull)
-      .setTimestamp(embed.getTimestamp.asScala.map(Instant.ofEpochMilli).orNull)
+      .setTimestamp(embed.getTime.orElse(null))
       .setFooter(embed.getFooterText.orElse(null), embed.getFooterIconUrl.orElse(null))
       .setThumbnail(embed.getThumbnailUrl.orElse(null))
       .setImage(embed.getImageUrl.orElse(null))

@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.OutputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 

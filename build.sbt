@@ -64,6 +64,8 @@ libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 //Serial Communication
 libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 
+// Socket.io
+libraryDependencies += "io.socket" % "socket.io-client"% "1.0.0"
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
@@ -84,7 +86,7 @@ lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployme
 lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
 
 pluginBuildFileName := "plugins.sbt"
-pluginFolderNames := List("plugins-public")
+pluginFolderNames := List("plugins-public", "plugins-private")
 pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plugins")
 apiProjectPath := "api"
 guiProjectPath := "gui"
