@@ -28,7 +28,7 @@ It's getting even better: The **Chat Overflow** license allows you to sell your 
 
 And it's so easy. Here is all the code to get started with a simple twitch chat bot:
 
-```
+```java
  twitchChat = require.input.twitchChat()
  twitchChat.get.registerMessageHandler(msg => ...)
 ```
@@ -37,8 +37,9 @@ And it's so easy. Here is all the code to get started with a simple twitch chat 
 
 *Current development state: **Pre-Alpha***
 
-* There are still missing platforms. This is a open-source project. You can [help](https://github.com/codeoverflow-org/chatoverflow/issues), too!
-** The API is written in java. So, every JVM-compatible language is possible. Java, Scala, Kotlin, ...
+\* There are still missing platforms. This is a open-source project. You can [help](https://github.com/codeoverflow-org/chatoverflow/issues), too!
+
+\** The API is written in java. So, every JVM-compatible language is possible. Java, Scala, Kotlin, ...
 
 ### Installation / Releases
 Head over to [releases](https://github.com/codeoverflow-org/chatoverflow/releases). 
