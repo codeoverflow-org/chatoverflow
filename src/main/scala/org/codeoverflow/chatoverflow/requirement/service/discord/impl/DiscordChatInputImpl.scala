@@ -314,7 +314,7 @@ object DiscordChatInputImpl {
       val content = message.getContentRaw
       var index = content.indexOf(emote.getAsMention)
       while (index != -1) {
-        index = content.indexOf(emote.getAsMention)
+        index = content.indexOf(emote.getAsMention, index + 1)
         emotes += new DiscordChatCustomEmoticon(emote.getName, index, emote.isAnimated, emote.getId)
       }
     }
