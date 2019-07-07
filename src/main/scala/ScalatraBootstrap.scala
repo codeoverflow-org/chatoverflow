@@ -10,7 +10,7 @@ import org.scalatra._
   * This class provides all runtime information for Scalatra. Servlets are mounted here.
   */
 class ScalatraBootstrap extends LifeCycle {
-  val apiVersion = "1.0"
+  val apiVersion = "0.2"
   implicit val swagger: CodeOverflowSwagger = new CodeOverflowSwagger(apiVersion)
 
   override def init(context: ServletContext) {
