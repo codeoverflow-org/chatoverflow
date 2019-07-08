@@ -4,6 +4,9 @@ import java.util
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.plugin.{PluginLogMessage, PluginManager}
+import org.codeoverflow.chatoverflow.ui.web.rest.events.EventsDispatcher
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -23,11 +26,16 @@ class PluginManagerImpl(pluginInstanceName: String, logOutputOnConsole: Boolean)
     * @param message the message to show
     */
   override def log(message: String): Unit = {
-    logMessages += new PluginLogMessage(message)
+    val logMessage = new PluginLogMessage(message)
+    logMessages += logMessage
 
     if (logOutputOnConsole) {
       logger info s"[$pluginInstanceName] $message"
     }
+
+    implicit val formats: DefaultFormats.type = DefaultFormats
+    val data = Map(("message", message), ("timestamp", logMessage.getTimestamp.toString))
+    EventsDispatcher.broadcast("instance", Serialization.write(Map(("name", pluginInstanceName), ("action", "log"), ("data", data))))
   }
 
   /**
