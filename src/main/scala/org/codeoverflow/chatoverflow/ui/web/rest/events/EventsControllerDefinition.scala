@@ -8,7 +8,7 @@ trait EventsControllerDefinition extends SwaggerSupport with TagSupport with Aut
   val getEvents: OperationBuilder =
     (apiOperation[Object]("getEvents")
       summary "Get events"
-      description "Get events from chatoverflow using the EventSource API. Requires the authKey as a cookie and an Accept-header with the value text/event-stream."
+      description "Get events from chatoverflow using the EventSource API. Requires an Accept-header with the value text/event-stream."
       parameter authQuery
       tags controllerTag)
 
