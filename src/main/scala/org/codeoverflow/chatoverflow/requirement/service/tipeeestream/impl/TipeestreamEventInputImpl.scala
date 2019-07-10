@@ -57,10 +57,10 @@ class TipeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipeee
       call(new TipeeestreamSubscriptionEvent(sub))
     } catch {
       case e: JSONException =>
-        logger warn "Error while parsing donation json:"
+        logger warn "Error while parsing subscription json:"
         logger warn s"${e.getClass.getName} - ${e.getMessage}"
       case e: IllegalArgumentException =>
-        logger warn "Error while parsing donation json:"
+        logger warn "Error while parsing subscription json:"
         logger warn s"${e.getClass.getName} - ${e.getMessage}"
     }
   }
@@ -75,10 +75,10 @@ class TipeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipeee
       call(new TipeeestramFollowEvent(follow))
     } catch {
       case e: JSONException =>
-        logger warn "Error while parsing donation json:"
+        logger warn "Error while parsing follow json:"
         logger warn s"${e.getClass.getName} - ${e.getMessage}"
       case e: IllegalArgumentException =>
-        logger warn "Error while parsing donation json:"
+        logger warn "Error while parsing follow json:"
         logger warn s"${e.getClass.getName} - ${e.getMessage}"
     }
   }
