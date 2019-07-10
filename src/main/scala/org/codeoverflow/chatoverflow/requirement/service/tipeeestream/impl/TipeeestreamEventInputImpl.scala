@@ -7,7 +7,7 @@ import java.util.Currency
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.User
 import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.tipeeestream.{TipeeestreamDonation, TipeeestreamFollow, TipeeestreamProvider, TipeeestreamSubscription}
-import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream.{TipeeestramFollowEvent, TipeeestreamDonationEvent, TipeeestreamEvent, TipeeestreamSubscriptionEvent}
+import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream.{TipeeestreamFollowEvent, TipeeestreamDonationEvent, TipeeestreamEvent, TipeeestreamSubscriptionEvent}
 import org.codeoverflow.chatoverflow.api.io.input.event.TipeeestreamEventInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
@@ -15,7 +15,7 @@ import org.codeoverflow.chatoverflow.requirement.service.tipeeestream.Tipeeestre
 import org.json.{JSONException, JSONObject}
 
 @Impl(impl = classOf[TipeeestreamEventInput], connector = classOf[TipeeestreamConnector])
-class TipeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, TipeeestreamConnector] with TipeeestreamEventInput with WithLogger {
+class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, TipeeestreamConnector] with TipeeestreamEventInput with WithLogger {
   private val DATE_FORMATTER = new DateTimeFormatterBuilder()
     .parseCaseInsensitive().append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).appendOffset("+HHMM", "Z").toFormatter
 
@@ -72,7 +72,7 @@ class TipeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipeee
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
       val provider = TipeeestreamProvider.parse(event.getString("origin"))
       val follow = new TipeeestreamFollow(user, time, provider)
-      call(new TipeeestramFollowEvent(follow))
+      call(new TipeeestreamFollowEvent(follow))
     } catch {
       case e: JSONException =>
         logger warn "Error while parsing donation json:"
