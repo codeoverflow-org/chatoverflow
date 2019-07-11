@@ -45,7 +45,8 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
       val moderator = event.getV3Tags.get("mod") == "1"
       val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
       val turbo = event.getV3Tags.get("badges").contains("turbo/1")
-      val author = new TwitchChatMessageAuthor(event.getUser.getNick, color, broadcaster, moderator, subscriber, turbo)
+      val vip = event.getV3Tags.get("badges").contains("vip/1")
+      val author = new TwitchChatMessageAuthor(event.getUser.getNick, color, broadcaster, moderator, subscriber, turbo, vip)
       val time = OffsetDateTime.ofInstant(Instant.ofEpochMilli(event.getTimestamp), ZoneOffset.UTC)
       val channel = new TextChannel(event.getChannelSource)
       val emoticons = new java.util.ArrayList[ChatEmoticon]()
