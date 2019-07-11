@@ -124,6 +124,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     bot.sendIRC().quitServer()
     bot.close()
     status = None
+    channels.clear()
     true
   }
 }
