@@ -4,7 +4,7 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
 import org.reflections.Reflections
 import org.reflections.scanners.{SubTypesScanner, TypeAnnotationsScanner}
-import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
+import org.reflections.util.{ClasspathHelper, ConfigurationBuilder, FilterBuilder}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -55,6 +55,8 @@ class TypeRegistry(requirementPackage: String) extends WithLogger {
     // Use reflection magic to get all impl-annotated classes
     val reflections: Reflections = new Reflections(new ConfigurationBuilder()
       .setUrls(ClasspathHelper.forPackage(requirementPackage))
+      .filterInputsBy(new FilterBuilder()
+        .includePackage(requirementPackage))
       .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()))
     val classes = reflections.getTypesAnnotatedWith(classOf[Impl])
 
