@@ -36,6 +36,16 @@ class EventsController(implicit val swagger: Swagger) extends JsonServlet with S
   }
 
   private def sendMessage(writer: PrintWriter, messageType: String, message: String): Unit = {
+    /*
+      Every message has the following format and ends with two line feeds (\n):
+      event: [name of event]
+      data: [first line]
+      data: [second line]
+      ...
+
+      See also: https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Examples
+     */
+
     var msg = "event: " + messageType.replace("\n", "") + "\n"
     if (message != null)
       msg += "data: " + message.replace("\n", "\ndata: ") + "\n\n"
