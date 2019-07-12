@@ -35,9 +35,9 @@ class TipeeestreamConnector(override val sourceIdentifier: String) extends Conne
     val thread = Thread.currentThread
     socket = Some(IO.socket(SOCKET_URL).connect())
     socket.get.on(Socket.EVENT_CONNECT, (_: Any) => {
-      logger info "Connected to TipeeStream Socket.io"
+      logger info "Connected to TipeeeStream Socket.io"
       socket.get.emit("join-room", AUTH_OBJECT)
-      logger info "emitted credentials to TipeeSetream Socket.io api"
+      logger info "emitted credentials to TipeeeStream Socket.io api"
       socket.get.on("new-event", (objects: Array[AnyRef]) => {
         tipeeeStreamListener.onSocketEvent(objects)
       })
