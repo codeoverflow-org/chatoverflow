@@ -39,4 +39,15 @@ abstract class EventInputImpl[T <: Event, C <: Connector](implicit ctc: ClassTag
     handlers.filter(handler => handler.clazz == cts.runtimeClass)
       .foreach(handler => handler.consumer.asInstanceOf[Consumer[S]].accept(event))
   }
+
+  override def shutdown(): Boolean = {
+    if (sourceConnector.isDefined) {
+      val stopped = stop()
+      handlers.clear()
+      stopped & sourceConnector.get.shutdown()
+    } else {
+      logger warn "Source connector not set."
+      false
+    }
+  }
 }
