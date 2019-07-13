@@ -8,6 +8,7 @@ import org.codeoverflow.chatoverflow.api.plugin.{Plugin, PluginManager}
 import org.codeoverflow.chatoverflow.framework.PluginCompatibilityState.PluginCompatibilityState
 import org.codeoverflow.chatoverflow.framework.manager.{PluginManagerImpl, PluginManagerStub}
 import org.codeoverflow.chatoverflow.framework.{PluginCompatibilityState, PluginType}
+import org.codeoverflow.chatoverflow.ui.web.rest.events.{EventMessage, EventsDispatcher}
 
 /**
   * A plugin instance holds all the general information of the plugin type and specific information of
@@ -149,6 +150,8 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
             logger info s"Starting plugin '$instanceName' in new thread!"
             try {
               instanceThread = new Thread(() => {
+                EventsDispatcher.broadcast("instance", EventMessage("start", Map(("name", instanceName))))
+
                 try {
 
                   // Execute plugin setup
@@ -191,6 +194,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                     requirement.asInstanceOf[Requirement[Output]].get().shutdown()
                   })
 
+                  EventsDispatcher.broadcast("instance", EventMessage("stop", Map(("name", instanceName))))
                 }
               })
               instanceThread.start()
