@@ -81,7 +81,14 @@ class DiscordChatInputImpl extends EventInputImpl[DiscordEvent, DiscordChatConne
     *
     * @return true if stopping was successful
     */
-  override def stop(): Boolean = true
+  override def stop(): Boolean = {
+    sourceConnector.get.removeMessageReceivedListener(onMessage)
+    sourceConnector.get.removeMessageUpdateListener(onMessageUpdate)
+    sourceConnector.get.removeMessageDeleteListener(onMessageDelete)
+    sourceConnector.get.removeReactionAddEventListener(onReactionAdded)
+    sourceConnector.get.removeReactionDelEventListener(onReactionRemoved)
+    true
+  }
 
   /**
     * Listens for received messages, parses the data, adds them to the buffer and handles them over to the correct handler

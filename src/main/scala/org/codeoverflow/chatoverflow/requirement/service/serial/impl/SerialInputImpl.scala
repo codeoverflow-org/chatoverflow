@@ -13,9 +13,11 @@ import org.codeoverflow.chatoverflow.requirement.service.serial.SerialConnector
 class SerialInputImpl extends EventInputImpl[SerialEvent, SerialConnector] with SerialInput with WithLogger {
 
   override def start(): Boolean = {
-    sourceConnector.get.addInputListener(bytes => call(new SerialDataAvailableEvent(bytes)))
+    sourceConnector.get.addInputListener(onInput)
     true
   }
+
+  private def onInput(bytes: Array[Byte]): Unit = call(new SerialDataAvailableEvent(bytes))
 
   override def getInputStream: InputStream = sourceConnector.get.getInputStream
 
@@ -24,5 +26,8 @@ class SerialInputImpl extends EventInputImpl[SerialEvent, SerialConnector] with 
     *
     * @return true if stopping was successful
     */
-  override def stop(): Boolean = true
+  override def stop(): Boolean = {
+    sourceConnector.get.removeInputListener(onInput)
+    true
+  }
 }

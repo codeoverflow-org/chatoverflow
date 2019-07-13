@@ -105,5 +105,9 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
     *
     * @return true if stopping was successful
     */
-  override def stop(): Boolean = true
+  override def stop(): Boolean = {
+    sourceConnector.get.removeMessageEventListener(onMessage)
+    sourceConnector.get.removeUnknownEventListener(onUnknown)
+    true
+  }
 }

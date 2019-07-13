@@ -47,6 +47,21 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
   def addReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit =
     discordChatListener.addReactionDelEventListener(listener)
 
+  def removeMessageReceivedListener(listener: MessageReceivedEvent => Unit): Unit =
+    discordChatListener.removeMessageReceivedListener(listener)
+
+  def removeMessageUpdateListener(listener: MessageUpdateEvent => Unit): Unit =
+    discordChatListener.removeMessageUpdateEventListener(listener)
+
+  def removeMessageDeleteListener(listener: MessageDeleteEvent => Unit): Unit =
+    discordChatListener.removeMessageDeleteEventListener(listener)
+
+  def removeReactionAddEventListener(listener: MessageReactionAddEvent => Unit): Unit =
+    discordChatListener.removeReactionAddEventListener(listener)
+
+  def removeReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit =
+    discordChatListener.removeReactionDelEventListener(listener)
+
   /**
     * Connects to discord
     */
