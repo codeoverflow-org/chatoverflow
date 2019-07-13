@@ -9,7 +9,7 @@ import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, TextChannel}
 import org.codeoverflow.chatoverflow.api.io.event.chat.twitch.{TwitchChatMessageReceiveEvent, TwitchEvent, TwitchPrivateChatMessageReceiveEvent}
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.impl.{EventInputImpl, InputImpl}
+import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
@@ -31,9 +31,12 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
 
   private var currentChannel: Option[String] = None
 
+  private val onMessageFn = onMessage _
+  private val onUnknownFn = onUnknown _
+
   override def start(): Boolean = {
-    sourceConnector.get.addMessageEventListener(onMessage)
-    sourceConnector.get.addUnknownEventListener(onUnknown)
+    sourceConnector.get.addMessageEventListener(onMessageFn)
+    sourceConnector.get.addUnknownEventListener(onUnknownFn)
     true
   }
 
@@ -105,8 +108,8 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
     * @return true if stopping was successful
     */
   override def stop(): Boolean = {
-    sourceConnector.get.removeMessageEventListener(onMessage)
-    sourceConnector.get.removeUnknownEventListener(onUnknown)
+    sourceConnector.get.removeMessageEventListener(onMessageFn)
+    sourceConnector.get.removeUnknownEventListener(onUnknownFn)
     true
   }
 }
