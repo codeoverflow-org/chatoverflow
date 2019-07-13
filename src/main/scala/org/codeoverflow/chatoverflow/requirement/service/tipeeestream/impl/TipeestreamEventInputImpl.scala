@@ -83,5 +83,10 @@ class TipeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipeee
     }
   }
 
-  override def stop(): Boolean = true
+  override def stop(): Boolean = {
+    sourceConnector.get.removeFollowEventListener(onFollow)
+    sourceConnector.get.removeSubscriptionEventListener(onSubscription)
+    sourceConnector.get.removeDonationEventListener(onDonation)
+    true
+  }
 }

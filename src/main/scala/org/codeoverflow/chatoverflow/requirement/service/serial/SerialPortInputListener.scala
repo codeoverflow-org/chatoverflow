@@ -17,4 +17,6 @@ class SerialPortInputListener extends SerialPortDataListener {
   }
 
   def addDataAvailableListener(listener: SerialPortEvent => Unit): Unit = listeners += listener
+
+  def removeDataAvailableListener(listener: SerialPortEvent => Unit): Unit = listeners += listener
 }
