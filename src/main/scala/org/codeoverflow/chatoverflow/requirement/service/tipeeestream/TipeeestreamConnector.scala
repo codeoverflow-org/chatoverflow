@@ -86,6 +86,12 @@ class TipeeestreamConnector(override val sourceIdentifier: String) extends Conne
 
   def addFollowEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.addFollowEventListener(listener)
 
+  def removeSubscriptionEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.removeSubscriptionEventListener(listener)
+
+  def removeDonationEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.removeDonationEventListener(listener)
+
+  def removeFollowEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.removeFollowEventListener(listener)
+
   override def stop(): Boolean = {
     socket.foreach(_.close())
     true

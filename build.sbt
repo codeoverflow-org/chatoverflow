@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 name := "ChatOverflow"
-version := "0.2"
+version := "0.2.1"
 mainClass := Some("org.codeoverflow.chatoverflow.Launcher")
 
 // One version for all sub projects. Use "retrieveManaged := true" to download and show all library dependencies.

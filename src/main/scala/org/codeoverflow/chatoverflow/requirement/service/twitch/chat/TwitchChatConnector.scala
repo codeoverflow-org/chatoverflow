@@ -15,10 +15,12 @@ import scala.collection.mutable.ListBuffer
   */
 class TwitchChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
   private val twitchChatListener = new TwitchChatListener
+  private val connectionListener = new TwitchChatConnectListener(onConnect)
   private val oauthKey = "oauth"
   override protected var requiredCredentialKeys: List[String] = List(oauthKey)
   override protected var optionalCredentialKeys: List[String] = List()
   private var bot: PircBotX = _
+  private var status: Option[(Boolean, String)] = None
   private val channels = ListBuffer[String]()
 
   def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
@@ -27,6 +29,14 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
     twitchChatListener.addUnknownEventListener(listener)
+  }
+
+  def removeMessageEventListener(listener: MessageEvent => Unit): Unit = {
+    twitchChatListener.removeMessageEventListener(listener)
+  }
+
+  def removeUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
+    twitchChatListener.removeUnknownEventListener(listener)
   }
 
   def joinChannel(channel: String): Unit = {
@@ -63,6 +73,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
         .setName(credentials.get.credentialsIdentifier)
         .setServerPassword(password.getOrElse(""))
         .addListener(twitchChatListener)
+        .addListener(connectionListener)
         .buildConfiguration()
     } else {
       logger error "No credentials set!"
@@ -72,32 +83,46 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   }
 
   /**
+    * Gets called by the TwitchChatConnectListener when the bot has connected.
+    * Saves the passed information into the status variable.
+    */
+  private def onConnect(success: Boolean, msg: String): Unit = {
+    status.synchronized {
+      // tell the thread which starts the connector that the status has been reported
+      status.notify()
+      status = Some((success, msg))
+    }
+  }
+
+  /**
     * Starts the connector, e.g. creates a connection with its platform.
     */
   override def start(): Boolean = {
     bot = new PircBotX(getConfig)
     startBot()
-    true
   }
 
-  private def startBot(): Unit = {
-
-    var errorCount = 0
-
+  private def startBot(): Boolean = {
     new Thread(() => {
       bot.startBot()
     }).start()
 
-    while (bot.getState != PircBotX.State.CONNECTED && errorCount < 30) {
-      logger info "Waiting while the bot is connecting..."
-      Thread.sleep(100)
-      errorCount += 1
+    logger info "Waiting while the bot is connecting and logging in..."
+    status.synchronized {
+      status.wait(10000)
     }
 
-    if (errorCount >= 30) {
-      logger error "Fatal. Unable to start bot."
+    if (status.isEmpty) {
+      logger error "Bot couldn't connect within timeout of 10 seconds."
+      return false
     }
 
+    val (success, msg) = status.get
+    if (!success) {
+      logger error s"Bot couldn't connect. Reason: $msg."
+    }
+
+    success
   }
 
   /**
@@ -106,6 +131,8 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   override def stop(): Boolean = {
     bot.sendIRC().quitServer()
     bot.close()
+    status = None
+    channels.clear()
     true
   }
 }

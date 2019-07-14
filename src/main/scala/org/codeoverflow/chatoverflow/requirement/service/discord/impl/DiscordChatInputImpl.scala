@@ -34,12 +34,18 @@ class DiscordChatInputImpl extends EventInputImpl[DiscordEvent, DiscordChatConne
   private val privateMessages = ListBuffer[DiscordChatMessage]()
   private var channelId: Option[String] = None
 
+  private val onMessageFn = onMessage _
+  private val onMessageUpdateFn = onMessageUpdate _
+  private val onMessageDeleteFn = onMessageDelete _
+  private val onReactionAddedFn = onReactionAdded _
+  private val onReactionRemovedFn = onReactionRemoved _
+
   override def start(): Boolean = {
-    sourceConnector.get.addMessageReceivedListener(onMessage)
-    sourceConnector.get.addMessageUpdateListener(onMessageUpdate)
-    sourceConnector.get.addMessageDeleteListener(onMessageDelete)
-    sourceConnector.get.addReactionAddEventListener(onReactionAdded)
-    sourceConnector.get.addReactionDelEventListener(onReactionRemoved)
+    sourceConnector.get.addMessageReceivedListener(onMessageFn)
+    sourceConnector.get.addMessageUpdateListener(onMessageUpdateFn)
+    sourceConnector.get.addMessageDeleteListener(onMessageDeleteFn)
+    sourceConnector.get.addReactionAddEventListener(onReactionAddedFn)
+    sourceConnector.get.addReactionDelEventListener(onReactionRemovedFn)
     true
   }
 
@@ -81,7 +87,14 @@ class DiscordChatInputImpl extends EventInputImpl[DiscordEvent, DiscordChatConne
     *
     * @return true if stopping was successful
     */
-  override def stop(): Boolean = true
+  override def stop(): Boolean = {
+    sourceConnector.get.removeMessageReceivedListener(onMessageFn)
+    sourceConnector.get.removeMessageUpdateListener(onMessageUpdateFn)
+    sourceConnector.get.removeMessageDeleteListener(onMessageDeleteFn)
+    sourceConnector.get.removeReactionAddEventListener(onReactionAddedFn)
+    sourceConnector.get.removeReactionDelEventListener(onReactionRemovedFn)
+    true
+  }
 
   /**
     * Listens for received messages, parses the data, adds them to the buffer and handles them over to the correct handler
