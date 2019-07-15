@@ -4,7 +4,7 @@ import java.io.File
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.plugin.Plugin
-import org.codeoverflow.chatoverflow.framework.PluginType
+import org.codeoverflow.chatoverflow.framework.{PluginMetadata, PluginType}
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ConfigurationBuilder
@@ -76,9 +76,10 @@ class PluginLoader(private val jar: File) extends WithLogger {
       Some(new PluginType(
         getString(p, "name"),
         getString(p, "author"),
-        getString(p, "description"),
+        getString(p, "version"),
         majorString.toInt,
         minorString.toInt,
+        PluginMetadata.fromXML(p),
         cls
       ))
     } catch {

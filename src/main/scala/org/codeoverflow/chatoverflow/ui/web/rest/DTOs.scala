@@ -2,8 +2,11 @@ package org.codeoverflow.chatoverflow.ui.web.rest
 
 object DTOs {
 
-  case class PluginType(name: String, author: String, description: String,
-                        majorAPIVersion: Int, minorAPIVersion: Int, state: String)
+  case class PluginType(name: String, author: String, version: String, majorAPIVersion: Int, minorAPIVersion: Int,
+                        metadata: PluginMetadata, state: String)
+
+  case class PluginMetadata(description: Option[String], licence: Option[String], website: Option[String],
+                            sourceRepo: Option[String], bugtracker: Option[String])
 
   case class PluginInstance(instanceName: String, pluginName: String, pluginAuthor: String, isRunning: Boolean, requirementIDs: Seq[String])
 

@@ -37,13 +37,6 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
   def getPluginTypeAuthor: String = pluginType.getAuthor
 
   /**
-    * Returns a description of the plugin type.
-    *
-    * @return a simple description of the service
-    */
-  def getPluginTypeDescription: String = pluginType.getDescription
-
-  /**
     * Returns the newest version of the api, where the plugin type was successfully tested!
     *
     * @return a version number in format "major.minor", e.g. "1.0"
