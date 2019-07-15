@@ -10,7 +10,7 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ConfigurationBuilder
 
 import scala.collection.JavaConverters._
-import scala.xml.{SAXParseException, XML}
+import scala.xml.{Node, SAXParseException, XML}
 
 /**
   * PluginLoader contains all logic to load plugins from their .jar files.
@@ -56,42 +56,57 @@ class PluginLoader(private val jar: File) extends WithLogger {
     try {
       val xml = XML.load(is)
 
-      val p = xml \\ "plugin"
-      if (p.length != 1) {
-        logger warn s"Can't load plugin from '${jar.getName}': requires exactly one root 'plugin' tag. Currently having ${p.length}."
+      val pluginElems = xml \\ "plugin"
+      if (pluginElems.length != 1) {
+        logger warn s"Can't load plugin from '${jar.getName}': requires exactly one 'plugin' tag." +
+          s" Currently having ${pluginElems.length}."
         return None
       }
 
-      val api = p \ "api"
-      val majorString = (api \ "major").text
-      val minorString = (api \ "minor").text
+      val p = pluginElems.head
+      val api = (p \ "api").head
+      val majorString = getString(api, "major")
+      val minorString = getString(api, "minor")
 
-      if (majorString.isEmpty || minorString.isEmpty) {
-        logger warn s"Can't load plugin from '${jar.getName}': api versions are missing!"
-        return None
-      } else if (!isVersionNumber(majorString) || !isVersionNumber(minorString)) {
+      if (!isVersionNumber(majorString) || !isVersionNumber(minorString)) {
         logger warn s"Can't load plugin from '${jar.getName}': api versions must be positive numbers!"
         return None
       }
 
-      val pType = new PluginType(
-        (p \ "name").text,
-        (p \ "author").text,
-        (p \ "description").text,
+      Some(new PluginType(
+        getString(p, "name"),
+        getString(p, "author"),
+        getString(p, "description"),
         majorString.toInt,
         minorString.toInt,
         cls
-      )
-
-      if (pType.getName.isEmpty || pType.getAuthor.isEmpty || pType.getDescription.isEmpty) {
-        logger warn s"Can't load plugin from '${jar.getName}': name, author and/or description missing."
-        None
-      } else
-        Some(pType)
+      ))
     } catch {
+      // thrown by getString
+      case e: IllegalArgumentException =>
+        logger warn s"Can't load plugin from '${jar.getName}': ${e.getMessage}"
+        None
       case e: SAXParseException =>
         logger warn s"Can't load plugin from '${jar.getName}' because the xml file is invalid. Error message: $e"
         None
+    }
+  }
+
+  /**
+    * Helper method for parsePluginXMLFile, which gets the value of a tag if it occurs exactly once and isn't empty.
+    * Throws a IllegalArgumentException if the tag is missing, occurs multiple times or is empty.
+    * The advantage of a exception rather than option is that we don't need to explicitly check
+    * every single call to this method. parsePluginXMLFile can just print a warning when this exception is thrown.
+    *
+    * @return the value of the requested tag
+    */
+  private def getString(n: Node, tag: String): String = {
+    val elems = n \ tag
+    elems.size match {
+      case 1 if elems.text.nonEmpty => elems.text
+      case 1 => throw new IllegalArgumentException(s"'$tag' in the plugin.xml is empty")
+      case 0 => throw new IllegalArgumentException(s"'$tag' in the plugin.xml is missing")
+      case _ => throw new IllegalArgumentException(s"only one tag with the name '$tag' is allowed in the plugin.xml")
     }
   }
 
