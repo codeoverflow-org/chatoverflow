@@ -8,15 +8,11 @@ import javax.imageio.ImageIO
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.input.FileInput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.InputImpl
 import org.codeoverflow.chatoverflow.requirement.service.file.FileConnector
 
 @Impl(impl = classOf[FileInput], connector = classOf[FileConnector])
 class FileInputImpl extends InputImpl[FileConnector] with FileInput with WithLogger {
-
-  override def init(): Boolean = {
-    sourceConnector.get.init()
-  }
 
   override def getFile(pathInResources: String): Optional[String] = Optional.ofNullable(sourceConnector.get.getFile(pathInResources).orNull)
 
@@ -24,7 +20,7 @@ class FileInputImpl extends InputImpl[FileConnector] with FileInput with WithLog
 
   override def getImage(pathInResources: String): Optional[BufferedImage] = {
     val data = sourceConnector.get.getBinaryFile(pathInResources)
-    if (!data.isDefined) {
+    if (data.isEmpty) {
       None
     }
     val bis = new ByteArrayInputStream(data.get)
@@ -32,4 +28,11 @@ class FileInputImpl extends InputImpl[FileConnector] with FileInput with WithLog
   }
 
   override def start(): Boolean = true
+
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

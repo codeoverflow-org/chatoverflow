@@ -7,15 +7,11 @@ import javax.imageio.ImageIO
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.output.FileOutput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.OutputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.file.FileConnector
 
 @Impl(impl = classOf[FileOutput], connector = classOf[FileConnector])
 class FileOutputImpl extends OutputImpl[FileConnector] with FileOutput with WithLogger {
-
-  override def init() = {
-    sourceConnector.get.init()
-  }
 
   override def saveFile(content: String, pathInResources: String): Boolean = {
     sourceConnector.get.saveFile(pathInResources, content)
@@ -45,4 +41,10 @@ class FileOutputImpl extends OutputImpl[FileConnector] with FileOutput with With
 
   override def start() = true
 
+  /**
+    * Stops the output, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

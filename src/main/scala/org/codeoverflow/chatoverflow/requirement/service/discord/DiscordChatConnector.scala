@@ -47,6 +47,21 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
   def addReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit =
     discordChatListener.addReactionDelEventListener(listener)
 
+  def removeMessageReceivedListener(listener: MessageReceivedEvent => Unit): Unit =
+    discordChatListener.removeMessageReceivedListener(listener)
+
+  def removeMessageUpdateListener(listener: MessageUpdateEvent => Unit): Unit =
+    discordChatListener.removeMessageUpdateEventListener(listener)
+
+  def removeMessageDeleteListener(listener: MessageDeleteEvent => Unit): Unit =
+    discordChatListener.removeMessageDeleteEventListener(listener)
+
+  def removeReactionAddEventListener(listener: MessageReactionAddEvent => Unit): Unit =
+    discordChatListener.removeReactionAddEventListener(listener)
+
+  def removeReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit =
+    discordChatListener.removeReactionDelEventListener(listener)
+
   /**
     * Connects to discord
     */
@@ -101,7 +116,7 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
       case None =>
         Option(validJDA.getPrivateChannelById(channelId)) match {
           case Some(channel) => channel.getMessageById(messageId)
-          case None => throw new IllegalArgumentException(s"Channel with id $channelId not found")
+          case None => throw new IllegalArgumentException(s"TextChannel with id $channelId not found")
         }
     }
   }
@@ -123,7 +138,7 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
   def sendChatMessage(channelId: String, chatMessage: String): Unit = {
     Option(validJDA.getTextChannelById(channelId)) match {
       case Some(channel) => channel.sendMessage(chatMessage).queue(null, defaultFailureHandler)
-      case None => throw new IllegalArgumentException(s"Channel with id $channelId not found")
+      case None => throw new IllegalArgumentException(s"TextChannel with id $channelId not found")
     }
   }
 
@@ -136,7 +151,7 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
   def sendChatMessage(channelId: String, embed: MessageEmbed): Unit = {
     Option(validJDA.getTextChannelById(channelId)) match {
       case Some(channel) => channel.sendMessage(embed).queue(null, defaultFailureHandler)
-      case None => throw new IllegalArgumentException(s"Channel with id $channelId not found")
+      case None => throw new IllegalArgumentException(s"TextChannel with id $channelId not found")
     }
   }
 
@@ -157,7 +172,7 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
             case Some(m) => channel.sendFile(fileIn.get.get, fileName, new MessageBuilder(m).build()).queue(null, defaultFailureHandler)
             case None => channel.sendFile(fileIn.get.get, fileName).queue(null, defaultFailureHandler)
           }
-        case None => throw new IllegalArgumentException(s"Channel with id $channelId not found")
+        case None => throw new IllegalArgumentException(s"TextChannel with id $channelId not found")
       }
     } else {
       logger warn s"Could not load file '$file'"

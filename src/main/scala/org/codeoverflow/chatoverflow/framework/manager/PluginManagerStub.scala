@@ -2,7 +2,7 @@ package org.codeoverflow.chatoverflow.framework.manager
 
 import java.util
 
-import org.codeoverflow.chatoverflow.api.plugin.PluginManager
+import org.codeoverflow.chatoverflow.api.plugin.{PluginLogMessage, PluginManager}
 
 /**
   * This plugin manager stub does not provide any useful functionality and should only be used for
@@ -23,7 +23,7 @@ class PluginManagerStub extends PluginManager {
     *
     * @return a list of log messages
     */
-  override def getLogMessages: util.List[String] = {
-    new util.ArrayList[String]()
+  override def getLogMessages: util.List[PluginLogMessage] = {
+    new util.ArrayList[PluginLogMessage]()
   }
 }

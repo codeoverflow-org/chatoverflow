@@ -43,4 +43,6 @@ object DTOs {
 
   case class Password(password: String)
 
+  case class PluginLogMessageDTO(message: String, timestamp: String)
+
 }

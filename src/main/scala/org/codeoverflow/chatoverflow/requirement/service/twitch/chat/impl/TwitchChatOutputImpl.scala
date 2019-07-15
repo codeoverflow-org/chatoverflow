@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.output.chat.TwitchChatOutput
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.OutputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.OutputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 
@@ -28,4 +28,11 @@ class TwitchChatOutputImpl extends OutputImpl[chat.TwitchChatConnector] with Twi
     currentChannel = Some(TwitchChatConnector.formatChannel(channel.trim))
     if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
   }
+
+  /**
+    * Stops the output, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = true
 }

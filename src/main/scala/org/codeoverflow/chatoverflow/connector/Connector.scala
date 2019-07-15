@@ -25,6 +25,8 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
   protected var optionalCredentialKeys: List[String]
   protected var running = false
 
+  private var instanceCount = 0
+
   def getCredentials: Option[Credentials] = this.credentials
 
   /**
@@ -76,6 +78,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
     // Check if running
     if (running) {
       logger info s"Unable to start $connectorSourceAndType. Already running!"
+      changeInstanceCount(1)
       true
     } else {
 
@@ -101,6 +104,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
 
           if (start()) {
             logger info s"Started $connectorSourceAndType."
+            changeInstanceCount(1)
             running = true
             true
           } else {
@@ -127,13 +131,27 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
   /**
     * Shuts down the connector by calling the stop method.
     */
-  def shutdown(): Unit = {
-    if (stop()) {
-      running = false
-      logger info s"Stopped $connectorSourceAndType."
+  def shutdown(): Boolean = {
+    changeInstanceCount(-1)
+
+    if (instanceCount <= 0) {
+      logger info "Instance count is zero. Connector is no longer needed and shut down. RIP."
+      if (stop()) {
+        running = false
+        logger info s"Stopped $connectorSourceAndType."
+        true
+      } else {
+        logger warn s"Unable to shutdown $connectorSourceAndType."
+        false
+      }
     } else {
-      logger warn s"Unable to shutdown $connectorSourceAndType."
+      true // Return true to keep transparency
     }
+  }
+
+  private def changeInstanceCount(delta: Int): Unit = {
+    instanceCount += delta
+    logger info s"Instance count: $instanceCount"
   }
 
   /**

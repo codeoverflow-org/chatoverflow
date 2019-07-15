@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.framework.manager
 import java.util
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.api.plugin.PluginManager
+import org.codeoverflow.chatoverflow.api.plugin.{PluginLogMessage, PluginManager}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -15,7 +15,7 @@ import scala.collection.mutable.ListBuffer
   */
 class PluginManagerImpl(pluginInstanceName: String, logOutputOnConsole: Boolean) extends PluginManager with WithLogger {
 
-  private val logMessages = new ListBuffer[String]
+  private val logMessages = new ListBuffer[PluginLogMessage]
 
   /**
     * Prints a log message on the console and saves the message for later inspection.
@@ -23,7 +23,7 @@ class PluginManagerImpl(pluginInstanceName: String, logOutputOnConsole: Boolean)
     * @param message the message to show
     */
   override def log(message: String): Unit = {
-    logMessages += message
+    logMessages += new PluginLogMessage(message)
 
     if (logOutputOnConsole) {
       logger info s"[$pluginInstanceName] $message"
@@ -35,5 +35,5 @@ class PluginManagerImpl(pluginInstanceName: String, logOutputOnConsole: Boolean)
     *
     * @return a list of log messages
     */
-  override def getLogMessages: util.List[String] = logMessages.toList.asJava
+  override def getLogMessages: util.List[PluginLogMessage] = logMessages.toList.asJava
 }

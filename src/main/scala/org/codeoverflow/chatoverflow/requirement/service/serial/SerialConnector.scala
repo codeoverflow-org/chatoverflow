@@ -2,9 +2,11 @@ package org.codeoverflow.chatoverflow.requirement.service.serial
 
 import java.io.{InputStream, PrintStream}
 
-import com.fazecast.jSerialComm.{SerialPort, SerialPortInvalidPortException}
+import com.fazecast.jSerialComm.{SerialPort, SerialPortEvent, SerialPortInvalidPortException}
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
+
+import scala.collection.mutable
 
 /**
   * The serial connector allows to communicate with a device connected to the pcs serial port (like an Arduino)
@@ -19,6 +21,7 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
   private var serialPort: Option[SerialPort] = None
   private var out: Option[PrintStream] = None
   private var in: Option[InputStream] = None
+  private val inputListeners: mutable.Map[Array[Byte] => Unit, SerialPortEvent => Unit] = mutable.Map()
 
   /**
     * @throws java.lang.IllegalStateException if the serial port is not available yet
@@ -49,11 +52,20 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
   @throws(classOf[IllegalStateException])
   def addInputListener(listener: Array[Byte] => Unit): Unit = {
     if (serialPort.isEmpty) throw new IllegalStateException("Serial port is not available yet")
-    serialPortInputListener.addDataAvailableListener(_ => {
+    val l: SerialPortEvent => Unit = _ => {
       val buffer = new Array[Byte](serialPort.get.bytesAvailable())
       serialPort.get.readBytes(buffer, buffer.length)
       listener(buffer)
-    })
+    }
+    inputListeners += (listener -> l)
+    serialPortInputListener.addDataAvailableListener(l)
+  }
+
+  def removeInputListener(listener: Array[Byte] => Unit): Unit = {
+    inputListeners remove listener match {
+      case Some(l) => serialPortInputListener.removeDataAvailableListener(l)
+      case _ => //listener not found, do nothing
+    }
   }
 
   /**
@@ -93,6 +105,7 @@ class SerialConnector(override val sourceIdentifier: String) extends Connector(s
     * Closes the connection with the port
     */
   override def stop(): Boolean = {
+
     serialPort.foreach(_.closePort())
     true
   }

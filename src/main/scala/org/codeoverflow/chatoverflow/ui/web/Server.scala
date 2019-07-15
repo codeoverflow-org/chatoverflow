@@ -16,6 +16,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
   private val server = new org.eclipse.jetty.server.Server(port)
   private val context = new WebAppContext()
   context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
+  context.setInitParameter("org.eclipse.jetty.servlet.Default.cacheControl", "no-cache,no-store")
   context setContextPath "/"
   context.setBaseResource(Resource.newClassPathResource("/chatoverflow-gui/"))
   context.addEventListener(new ScalatraListener)
@@ -35,6 +36,13 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
   private def startServer(): Unit = {
     server.start()
     server.join()
+  }
+
+  /**
+    * Stops the server.
+    */
+  def stop(): Unit = {
+    server.stop()
   }
 
 }

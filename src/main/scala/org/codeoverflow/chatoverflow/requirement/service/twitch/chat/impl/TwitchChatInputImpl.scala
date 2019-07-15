@@ -1,14 +1,15 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.chat.impl
 
-import java.util.Calendar
-import java.util.function.Consumer
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.twitch.{TwitchChatEmoticon, TwitchChatMessage, TwitchChatMessageAuthor}
-import org.codeoverflow.chatoverflow.api.io.dto.chat.{Channel, ChatEmoticon}
+import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, TextChannel}
+import org.codeoverflow.chatoverflow.api.io.event.chat.twitch.{TwitchChatMessageReceiveEvent, TwitchEvent, TwitchPrivateChatMessageReceiveEvent}
 import org.codeoverflow.chatoverflow.api.io.input.chat._
 import org.codeoverflow.chatoverflow.registry.Impl
-import org.codeoverflow.chatoverflow.requirement.InputImpl
+import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
@@ -20,7 +21,7 @@ import scala.collection.mutable.ListBuffer
   * This is the implementation of the twitch chat input, using the twitch connector.
   */
 @Impl(impl = classOf[TwitchChatInput], connector = classOf[chat.TwitchChatConnector])
-class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with TwitchChatInput with WithLogger {
+class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatConnector] with TwitchChatInput with WithLogger {
 
   private val messages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
   private val privateMessages: ListBuffer[TwitchChatMessage] = ListBuffer[TwitchChatMessage]()
@@ -28,14 +29,14 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
   private val wholeEmoticonRegex = """(\d+):([\d,-]+)""".r
   private val emoticonRegex = """(\d+)-(\d+)""".r
 
-  private val messageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
-  private val privateMessageHandler = ListBuffer[Consumer[TwitchChatMessage]]()
-
   private var currentChannel: Option[String] = None
 
+  private val onMessageFn = onMessage _
+  private val onUnknownFn = onUnknown _
+
   override def start(): Boolean = {
-    sourceConnector.get.addMessageEventListener(onMessage)
-    sourceConnector.get.addUnknownEventListener(onUnknown)
+    sourceConnector.get.addMessageEventListener(onMessageFn)
+    sourceConnector.get.addUnknownEventListener(onUnknownFn)
     true
   }
 
@@ -48,7 +49,8 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
       val broadcaster = event.getV3Tags.get("badges").contains("broadcaster/1")
       val turbo = event.getV3Tags.get("badges").contains("turbo/1")
       val author = new TwitchChatMessageAuthor(event.getUser.getNick, color, broadcaster, moderator, subscriber, turbo)
-      val channel = new Channel(event.getChannelSource)
+      val time = OffsetDateTime.ofInstant(Instant.ofEpochMilli(event.getTimestamp), ZoneOffset.UTC)
+      val channel = new TextChannel(event.getChannelSource)
       val emoticons = new java.util.ArrayList[ChatEmoticon]()
       wholeEmoticonRegex.findAllMatchIn(event.getV3Tags.get("emotes")).foreach(matchedElement => {
         val id = matchedElement.group(1)
@@ -59,10 +61,11 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
           emoticons.add(emoticon)
         })
       })
-      val msg = new TwitchChatMessage(author, message, event.getTimestamp, channel, emoticons)
+      val msg = new TwitchChatMessage(author, message, time, channel, emoticons)
 
-      messageHandler.foreach(consumer => consumer.accept(msg))
+
       messages += msg
+      call(new TwitchChatMessageReceiveEvent(msg))
     }
   }
 
@@ -72,37 +75,41 @@ class TwitchChatInputImpl extends InputImpl[chat.TwitchChatConnector] with Twitc
     if (matchedElement.isDefined) {
       val name = matchedElement.get.group(1)
       val message = matchedElement.get.group(2)
-      val timestamp = event.getTimestamp
-      val msg = new TwitchChatMessage(new TwitchChatMessageAuthor(name), message, timestamp, null)
+      val time = OffsetDateTime.ofInstant(Instant.ofEpochMilli(event.getTimestamp), ZoneOffset.UTC)
+      val msg = new TwitchChatMessage(new TwitchChatMessageAuthor(name), message, time, null)
 
-      privateMessageHandler.foreach(consumer => consumer.accept(msg))
       privateMessages += msg
+      call(new TwitchPrivateChatMessageReceiveEvent(msg))
     }
   }
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
     if (currentChannel.isEmpty) throw new IllegalStateException("first set the channel for this input")
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val until = OffsetDateTime.now.minus(lastMilliseconds, ChronoUnit.MILLIS)
 
-    messages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
+    messages.filter(_.getTime.isAfter(until)).toList.asJava
   }
 
 
   override def getLastPrivateMessages(lastMilliseconds: Long): java.util.List[TwitchChatMessage] = {
-    val currentTime = Calendar.getInstance.getTimeInMillis
+    val until = OffsetDateTime.now.minus(lastMilliseconds, ChronoUnit.MILLIS)
 
-    privateMessages.filter(_.getTimestamp > currentTime - lastMilliseconds).toList.asJava
+    privateMessages.filter(_.getTime.isAfter(until)).toList.asJava
   }
-
-  override def registerMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = {
-    if (currentChannel.isEmpty) throw new IllegalStateException("first set the channel for this input")
-    messageHandler += handler
-  }
-
-  override def registerPrivateMessageHandler(handler: Consumer[TwitchChatMessage]): Unit = privateMessageHandler += handler
 
   override def setChannel(channel: String): Unit = {
     currentChannel = Some(TwitchChatConnector.formatChannel(channel.trim))
     if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
+  }
+
+  /**
+    * Stops the input, called before source connector will shutdown
+    *
+    * @return true if stopping was successful
+    */
+  override def stop(): Boolean = {
+    sourceConnector.get.removeMessageEventListener(onMessageFn)
+    sourceConnector.get.removeUnknownEventListener(onUnknownFn)
+    true
   }
 }
