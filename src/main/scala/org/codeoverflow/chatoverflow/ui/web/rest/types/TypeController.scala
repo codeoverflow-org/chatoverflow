@@ -58,7 +58,7 @@ class TypeController(implicit val swagger: Swagger) extends JsonServlet with Typ
     pluginType.getName, pluginType.getAuthor, pluginType.getVersion, pluginType.getMajorAPIVersion,
     pluginType.getMinorAPIVersion, getPluginMetadata(pluginType.getMetadata), pluginType.getState.toString))
 
-  private def getPluginMetadata(m: FrameworkPluginMetadata): PluginMetadata = PluginMetadata(m.description, m.licence,
+  private def getPluginMetadata(m: FrameworkPluginMetadata): PluginMetadata = PluginMetadata(m.description, m.license,
     m.website.map(_.toString), m.sourceRepo.map(_.toString), m.bugtracker.map(_.toString))
 
   private def getRequirementTypes = {

@@ -12,14 +12,14 @@ import scala.xml.{Node, NodeSeq}
   * Contains optional metadata of plugins that the plugin developer may share to the users.
   *
   * @param description a short description of what this plugin does
-  * @param licence     the license of the plugin, if it has one. Should be a SPDX short identifier e.g. "MIT".
+  * @param license     the licence of the plugin, if it has one. Should be a SPDX short identifier e.g. "MIT".
   *                    Check this url for more information: https://spdx.org/licenses/
   * @param website     a website of the author or plugin
   * @param sourceRepo  the repository on e.g. GitHub, if published.
   * @param bugtracker  a link to a bug tracker where users can report bugs
   */
 case class PluginMetadata(description: Option[String],
-                          licence: Option[String],
+                          license: Option[String],
                           website: Option[URL],
                           sourceRepo: Option[URL],
                           bugtracker: Option[URL])
@@ -34,7 +34,7 @@ object PluginMetadata {
     */
   def fromXML(elem: Node): PluginMetadata = PluginMetadata(
     description = getStringOpt(elem \ "description"),
-    licence = getStringOpt(elem \ "license"),
+    license = getStringOpt(elem \ "license"),
     website = getURLOpt(elem \ "website"),
     sourceRepo = getURLOpt(elem \ "sourceRepo"),
     bugtracker = getURLOpt(elem \ "bugtracker"),
