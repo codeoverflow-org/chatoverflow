@@ -91,7 +91,7 @@ pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plu
 apiProjectPath := "api"
 guiProjectPath := "gui"
 
-create := BuildUtility(streams.value.log).createPluginTask(pluginFolderNames.value)
+create := PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
 fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)

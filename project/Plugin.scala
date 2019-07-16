@@ -1,4 +1,6 @@
-import java.io.File
+import java.io.{File, FileOutputStream}
+
+import scala.xml.PrettyPrinter
 
 /**
   * A plugin represents a directory in a plugin source directory. Every plugin has its own build file and source folder.
@@ -27,19 +29,16 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
   }
 
   /**
-    * Creates the plugin src folder inside of a plugin folder
+    * Creates the plugin src and resources folder inside of a plugin folder
     *
     * @note Make sure to create the plugin folder first!
     * @return true, if the process was successful
     */
-  def createSrcFolder(): Boolean = {
-    if (new File(s"$pluginDirectoryPath/src").mkdir() &&
+  def createSrcFolders(): Boolean = {
+    new File(s"$pluginDirectoryPath/src").mkdir() &&
       new File(s"$pluginDirectoryPath/src/main").mkdir() &&
-      new File(s"$pluginDirectoryPath/src/main/scala").mkdir()) {
-      true
-    } else {
-      false
-    }
+      new File(s"$pluginDirectoryPath/src/main/scala").mkdir() &&
+      new File(s"$pluginDirectoryPath/src/main/resources").mkdir()
   }
 
   /**
@@ -55,6 +54,44 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     sbtFile.save(s"$pluginDirectoryPath/$name.sbt")
   }
 
+  /**
+    * Generates the plugin.xml file in the resources of the plugin.
+    *
+    * @param metadata the metadata for this plugin
+    * @param author   author of this plugin, used by the framework to identify it
+    */
+  def createPluginXMLFile(metadata: PluginMetadata, author: String, version: String): Boolean = {
+    val xml = <plugin>
+      <name>
+        {name}
+      </name>
+      <author>
+        {author}
+      </author>
+      <version>
+        {version}
+      </version>
+      <api>
+        <major>3</major>
+        <minor>0</minor>
+      </api>{metadata.toXML}
+    </plugin>
+
+    val file = new FileOutputStream(s"$pluginDirectoryPath/src/main/resources/plugin.xml")
+    try {
+      val trimmed = scala.xml.Utility.trim(xml)
+      val prettyXml = new PrettyPrinter(100, 2).format(trimmed)
+      file.write(prettyXml.getBytes)
+      true
+    } catch {
+      case e: Throwable =>
+        e.printStackTrace()
+        false
+    } finally {
+      file.close()
+    }
+  }
+  
   /**
     * Fetches the build plugin jar from the target folder of a given scala version.
     *

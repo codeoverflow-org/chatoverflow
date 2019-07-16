@@ -6,7 +6,9 @@ import scala.xml.{Node, NodeSeq}
 
 /* To add more metadata properties just add them to this class and the fromXML method in the companion object.
  * To make them accessible to the rest interface you also need to add them in ui.web.rest.DTOs.PluginMetadata
- * and in the getPluginMetadata method of the TypeController */
+ * and in the getPluginMetadata method of the TypeController.
+ * If you also want to let the user specify a value in the sbt create task you also have to add it
+ * in the PluginCreateWizard and in the PluginMetadata class of sbt. */
 
 /**
   * Contains optional metadata of plugins that the plugin developer may share to the users.
