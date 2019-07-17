@@ -52,7 +52,7 @@ class PluginCreateWizard(logger: ManagedLogger) {
 
       val availableLanguages = PluginLanguage.values.mkString(", ").toLowerCase
       val languageString = askForInput(
-        "Please specify the programming lanugage, in which this project is going to be coded. " +
+        "Please specify the programming language, in which this project is going to be coded. " +
           s"Available languages: $availableLanguages.",
         "Plugin language",
         s => PluginLanguage.fromString(s).isDefined,

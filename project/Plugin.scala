@@ -130,7 +130,9 @@ object Plugin {
     */
   def getPlugins(pluginSourceFolderName: String): Seq[Plugin] = {
     val pluginSourceFolder = new File(pluginSourceFolderName)
-    pluginSourceFolder.listFiles.filter(_.isDirectory).filter(d => d.getName != ".git" && d.getName != ".github")
+    pluginSourceFolder.listFiles
+      .filter(_.isDirectory)
+      .filter(d => containsPluginXMLFile(d))
       .map(folder => new Plugin(pluginSourceFolderName, folder.getName))
 
   }
@@ -148,6 +150,9 @@ object Plugin {
 
   private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
 
+  private def containsPluginXMLFile(directory: File): Boolean = {
+    new File(s"$directory/src/main/resources/plugin.xml").exists()
+  }
 }
 
 
