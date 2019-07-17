@@ -1,5 +1,8 @@
-import java.io.{File, FileOutputStream}
+import java.io.File
 
+import sbt.io.IO
+
+import scala.util.Try
 import scala.xml.PrettyPrinter
 
 /**
@@ -26,19 +29,6 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
       pluginDirectory.mkdir()
       true
     }
-  }
-
-  /**
-    * Creates the plugin src and resources folder inside of a plugin folder
-    *
-    * @note Make sure to create the plugin folder first!
-    * @return true, if the process was successful
-    */
-  def createSrcFolders(): Boolean = {
-    new File(s"$pluginDirectoryPath/src").mkdir() &&
-      new File(s"$pluginDirectoryPath/src/main").mkdir() &&
-      new File(s"$pluginDirectoryPath/src/main/scala").mkdir() &&
-      new File(s"$pluginDirectoryPath/src/main/resources").mkdir()
   }
 
   /**
@@ -77,21 +67,30 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
       </api>{metadata.toXML}
     </plugin>
 
-    val file = new FileOutputStream(s"$pluginDirectoryPath/src/main/resources/plugin.xml")
-    try {
-      val trimmed = scala.xml.Utility.trim(xml)
-      val prettyXml = new PrettyPrinter(100, 2).format(trimmed)
-      file.write(prettyXml.getBytes)
-      true
-    } catch {
-      case e: Throwable =>
-        e.printStackTrace()
-        false
-    } finally {
-      file.close()
-    }
+    val trimmed = scala.xml.Utility.trim(xml)
+    val prettyXml = new PrettyPrinter(100, 2).format(trimmed)
+
+    Try(
+      IO.write(new File(s"$pluginDirectoryPath/src/main/resources/plugin.xml"), prettyXml)
+    ).isSuccess
   }
-  
+
+  /**
+    * Generates the main class file implementing PluginImpl for the plugin developer in their choosen language.
+    * 
+    * @param language the language in with the source file will be generated
+    * @return true, if everything was successful
+    */
+  def createSourceFile(language: PluginLanguage.Value): Boolean = {
+    val content = PluginLanguage.getSourceFileContent(name, language)
+    val langName = language.toString.toLowerCase
+    
+    
+    Try(
+      IO.write(new File(s"$pluginDirectoryPath/src/main/$langName/${name}Plugin.$langName"), content.getBytes)
+    ).isSuccess
+  }
+
   /**
     * Fetches the build plugin jar from the target folder of a given scala version.
     *

@@ -50,6 +50,16 @@ class PluginCreateWizard(logger: ManagedLogger) {
         "Source directory must be one of the provided directories."
       )
 
+      val availableLanguages = PluginLanguage.values.mkString(", ").toLowerCase
+      val languageString = askForInput(
+        "Please specify the programming lanugage, in which this project is going to be coded. " +
+          s"Available languages: $availableLanguages.",
+        "Plugin language",
+        s => PluginLanguage.fromString(s).isDefined,
+        s"The language must be one of the following: $availableLanguages"
+      )
+      val language = PluginLanguage.fromString(languageString).get // guaranteed to not be empty by the validate function above
+
       // In case we couldn't figure out the api version, maybe because the api project didn't exist, we ask the user for it.
       val api = {
         val validate = (s: String) => s.nonEmpty && s.forall(_.isDigit) // not empty and must be a valid number
@@ -69,11 +79,13 @@ class PluginCreateWizard(logger: ManagedLogger) {
 
       val metadata = PluginMetadata(description, licence, website, sourceRepo, bugtracker)
 
-      createPlugin(name, author, version, pluginFolderName, api, metadata)
+      createPlugin(name, author, version, pluginFolderName, api, metadata, language)
     }
   }
 
-  private def createPlugin(name: String, author: String, version: String, pluginFolderName: String, apiVersion: (Int, Int), metadata: PluginMetadata): Unit = {
+  private def createPlugin(name: String, author: String, version: String, pluginFolderName: String, apiVersion: (Int, Int),
+                           metadata: PluginMetadata, language: PluginLanguage.Value): Unit = {
+
     logger info s"Trying to create plugin $name (version $version) at plugin folder $pluginFolderName."
 
     val pluginFolder = new File(pluginFolderName)
@@ -89,16 +101,16 @@ class PluginCreateWizard(logger: ManagedLogger) {
       } else {
         logger info s"Created plugin '$name'"
 
-        if (plugin.createSrcFolders()) {
-          logger info "Successfully created source folder."
-
-          if (plugin.createPluginXMLFile(metadata, author, version, apiVersion)) {
-            logger info "Successfully created plugin.xml containing metadata."
-          } else {
-            logger warn "Unable to create plugin.xml containing metadata in plugin resources."
-          }
+        if (plugin.createSourceFile(language)) {
+          logger info s"Successfully generated the main source file in ${language.toString.toLowerCase}."
         } else {
-          logger warn "Unable to create source folder."
+          logger warn "Unable to generate the main source file."
+        }
+
+        if (plugin.createPluginXMLFile(metadata, author, version, apiVersion)) {
+          logger info "Successfully created plugin.xml containing metadata."
+        } else {
+          logger warn "Unable to create plugin.xml containing metadata in plugin resources."
         }
 
         if (plugin.createSbtFile(version)) {
