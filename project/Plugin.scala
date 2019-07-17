@@ -41,7 +41,7 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     val sbtFile = new SbtFile(name, version)
 
     // The name of the sbt file is the plugin name. This worked in first tests
-    sbtFile.save(s"$pluginDirectoryPath/$name.sbt")
+    sbtFile.save(s"$pluginDirectoryPath/$normalizedName.sbt")
   }
 
   /**
@@ -82,12 +82,11 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     * @return true, if everything was successful
     */
   def createSourceFile(language: PluginLanguage.Value): Boolean = {
-    val content = PluginLanguage.getSourceFileContent(name, language)
+    val content = PluginLanguage.getSourceFileContent(normalizedName, language)
     val langName = language.toString.toLowerCase
     
-    
     Try(
-      IO.write(new File(s"$pluginDirectoryPath/src/main/$langName/${name}Plugin.$langName"), content.getBytes)
+      IO.write(new File(s"$pluginDirectoryPath/src/main/$langName/${normalizedName}Plugin.$langName"), content.getBytes)
     ).isSuccess
   }
 
@@ -148,7 +147,7 @@ object Plugin {
     pluginSourceFolder.exists() && pluginSourceFolder.isDirectory
   }
 
-  private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
+  private def toPluginPathName(name: String) = name.replaceAll("[ -]", "").toLowerCase
 
   private def containsPluginXMLFile(directory: File): Boolean = {
     new File(s"$directory/src/main/resources/plugin.xml").exists()
