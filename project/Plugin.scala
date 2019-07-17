@@ -60,7 +60,7 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     * @param metadata the metadata for this plugin
     * @param author   author of this plugin, used by the framework to identify it
     */
-  def createPluginXMLFile(metadata: PluginMetadata, author: String, version: String): Boolean = {
+  def createPluginXMLFile(metadata: PluginMetadata, author: String, version: String, apiVersion: (Int, Int)): Boolean = {
     val xml = <plugin>
       <name>
         {name}
@@ -72,8 +72,8 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
         {version}
       </version>
       <api>
-        <major>3</major>
-        <minor>0</minor>
+        <major>{apiVersion._1}</major>
+        <minor>{apiVersion._2}</minor>
       </api>{metadata.toXML}
     </plugin>
 

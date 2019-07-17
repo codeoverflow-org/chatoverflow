@@ -28,13 +28,13 @@ class PluginCreateWizard(logger: ManagedLogger) {
       val name = askForInput(
         "Please specify the name of the plugin. Do only use characters allowed for directories and files of your OS.",
         "Plugin name",
-        s => s.nonEmpty
+        s => s.nonEmpty, "Plugin name mustn't be empty"
       )
 
       val author = askForInput(
         "Please specify the name of the author of the plugin. Can be a real name or alias.",
         "Author name",
-        s => s.nonEmpty
+        s => s.nonEmpty, "Plugin author mustn't be empty"
       )
 
       // Plugin version (default: 0.1)
@@ -46,9 +46,19 @@ class PluginCreateWizard(logger: ManagedLogger) {
       // Plugin folder name (must be defined in build.sbt)
       val pluginFolderName = askForInput(
         s"Please specify the plugin source directory. Available directories: ${pluginFolderNames.mkString("[", ", ", "]")}",
-        "Plugin source directory",
-        s => s.nonEmpty && pluginFolderNames.contains(s)
+        "Plugin source directory", s => s.nonEmpty && pluginFolderNames.contains(s),
+        "Source directory must be one of the provided directories."
       )
+
+      // In case we couldn't figure out the api version, maybe because the api project didn't exist, we ask the user for it.
+      val api = {
+        val validate = (s: String) => s.nonEmpty && s.forall(_.isDigit) // not empty and must be a valid number
+        val major = askForInput("Please specify the current major version of the api. Check api/build.sbt for it.",
+          "Major api version", validate, "Api version must be a number")
+        val minor = askForInput("Please specify the current minor version of the api. Check api/build.sbt for it.",
+          "Minor api version", validate, "Api version must be a number")
+        (major.toInt, minor.toInt)
+      }
 
       // Plugin metadata
       val description = askForInput("Please specify a optional description of what this plugin does.", "Description")
@@ -59,11 +69,11 @@ class PluginCreateWizard(logger: ManagedLogger) {
 
       val metadata = PluginMetadata(description, licence, website, sourceRepo, bugtracker)
 
-      createPlugin(name, author, version, pluginFolderName, metadata)
+      createPlugin(name, author, version, pluginFolderName, api, metadata)
     }
   }
 
-  private def createPlugin(name: String, author: String, version: String, pluginFolderName: String, metadata: PluginMetadata): Unit = {
+  private def createPlugin(name: String, author: String, version: String, pluginFolderName: String, apiVersion: (Int, Int), metadata: PluginMetadata): Unit = {
     logger info s"Trying to create plugin $name (version $version) at plugin folder $pluginFolderName."
 
     val pluginFolder = new File(pluginFolderName)
@@ -82,7 +92,7 @@ class PluginCreateWizard(logger: ManagedLogger) {
         if (plugin.createSrcFolders()) {
           logger info "Successfully created source folder."
 
-          if (plugin.createPluginXMLFile(metadata, author, version)) {
+          if (plugin.createPluginXMLFile(metadata, author, version, apiVersion)) {
             logger info "Successfully created plugin.xml containing metadata."
           } else {
             logger warn "Unable to create plugin.xml containing metadata in plugin resources."
@@ -105,7 +115,8 @@ object PluginCreateWizard {
 
   def apply(logger: ManagedLogger): PluginCreateWizard = new PluginCreateWizard(logger)
 
-  private def askForInput(information: String, description: String, validate: String => Boolean): String = {
+  private def askForInput(information: String, description: String, validate: String => Boolean = _ => true,
+                          validationDescription: String = ""): String = {
     println(information)
     print(s"$description > ")
 
@@ -114,11 +125,12 @@ object PluginCreateWizard {
 
     if (validate(input))
       input
-    else
-      askForInput(information, description, validate)
+    else {
+      if (validationDescription.nonEmpty)
+        println(s"Your entered value is not valid: $validationDescription")
+      askForInput(information, description, validate, validationDescription)
+    }
   }
-
-  private def askForInput(information: String, description: String): String = askForInput(information, description, _ => true)
 
   private def askForInput(information: String, description: String, default: String): String = {
     val input = askForInput(information, description, _ => true)
