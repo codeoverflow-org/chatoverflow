@@ -1,11 +1,21 @@
 import java.io.{File, PrintWriter}
 
+/**
+  * Represents a requirements class which is used by plugin devs to require inputs / outputs and parameters.
+  *
+  * @param requirementsDirectory the requirements directory in the api project
+  * @param requirementType       the type of the requirements class (input / output / parameter)
+  * @param files                 all found annotated source files which can be required
+  */
 class RequirementsFile(requirementsDirectory: File, requirementType: String, files: Seq[AnnotatedRequirement]) {
 
+  /**
+    * Creates the requirement file and saves it into the api.
+    */
   def createFile(): Unit = {
     val fileContent = generateContent()
 
-    val writer = new PrintWriter(new File(requirementsDirectory, s"${requirementType}Gen.java"))
+    val writer = new PrintWriter(new File(requirementsDirectory, s"$requirementType.java"))
     writer.print(fileContent)
     writer.close()
   }
@@ -13,7 +23,11 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
   private def generateContent(): String =
     s"""package org.codeoverflow.chatoverflow.api.plugin.configuration;
        |
+       |// THIS FILE IS GENERATED WHILE COMPILING. DO NOT CHANGE ANYTHING HERE!
+       |
        |$generateImportStatements
+       |
+       |// THIS FILE IS GENERATED WHILE COMPILING. DO NOT CHANGE ANYTHING HERE!
        |
        |/**
        | * Select a $requirementType Requirement to get access to the desired platform or values.
@@ -27,103 +41,70 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
        |    }
        |
        |$generateRequireMethods
-       |
        |}
        |""".stripMargin
 
-  private def generateImportStatements: String =
-    """import org.codeoverflow.chatoverflow.api.io.input.FileInput;
-      |import org.codeoverflow.chatoverflow.api.io.input.SampleInput;
-      |import org.codeoverflow.chatoverflow.api.io.input.SerialInput;
-      |import org.codeoverflow.chatoverflow.api.io.input.chat.DiscordChatInput;
-      |import org.codeoverflow.chatoverflow.api.io.input.chat.MockUpChatInput;
-      |import org.codeoverflow.chatoverflow.api.io.input.event.TipeeestreamEventInput;
-      |import org.codeoverflow.chatoverflow.api.io.input.chat.TwitchChatInput;"""
+  private def generateImportStatements: String = {
+    val startingPoint = "main.java."
+    val filesToImport = files.map(annotateReq => annotateReq.file.getAbsolutePath.replace(File.separatorChar, '.'))
+    val classesToImport = filesToImport.map(filePath => filePath.substring(filePath.lastIndexOf(startingPoint) + startingPoint.length))
 
-  private def generateRequireMethods: String =
-    """    /**
-      |     *  Requires a twitch chat login that has to be created by the framework user.
-      |     *
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<TwitchChatInput> twitchChat(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, TwitchChatInput.class);
-      |    }
-      |
-      |    /**
-      |     * Requires a connected mockup chat that has to be submitted by the user.
-      |     *
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user and to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<MockUpChatInput> mockupChat(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, MockUpChatInput.class);
-      |    }
-      |
-      |    /**
-      |     * Demonstration requirement for the sample input, to get a idea how requirements work
-      |     *
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user and to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<SampleInput> sampleInput(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, SampleInput.class);
-      |    }
-      |
-      |    /**
-      |     *  Requires a discord chat bot that has to be created by the framework user.
-      |     *
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<DiscordChatInput> discordChat(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, DiscordChatInput.class);
-      |    }
-      |
-      |    /**
-      |     * Requires a connection with a device connected to a serial port (an Arduino for example)
-      |     *
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user and to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<SerialInput> serial(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, SerialInput.class);
-      |    }
-      |
-      |    /**
-      |     * Requires a login for the TipeeeStream api that has to be created by the framework user.
-      |     *
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user and to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<TipeeestreamEventInput> tipeeeStream(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, TipeeestreamEventInput.class);
-      |    }
-      |
-      |    /**
-      |     * @param uniqueRequirementId any unique id by which your plugin can identify the requirement
-      |     * @param displayName Is displayed to the framework user and to tell him what to enter
-      |     * @param isOptional true if this requirement is optional, false if mandatory
-      |     * @return the requirement object
-      |     */
-      |    public Requirement<FileInput> file(String uniqueRequirementId, String displayName, boolean isOptional) {
-      |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, FileInput.class);
-      |    }
-      |
-      |    // Add more inputs here"""
+    classesToImport.map(_.replace(".java", "")).map(cls => s"import $cls;").mkString("\n|")
+  }
+
+  private def generateRequireMethods: String = {
+    files.map(file => generateRequireMethod(file, shortVersion = false)
+      ++ generateRequireMethod(file, shortVersion = true)).mkString
+  }
+
+  private def generateRequireMethod(requirement: AnnotatedRequirement, shortVersion: Boolean): String = {
+
+    val className = requirement.file.getAbsolutePath.substring(
+      requirement.file.getAbsolutePath.lastIndexOf(File.separator) + 1).replace(".java", "")
+
+    val requiresValue = if (requirement.requires != "") requirement.requires else className
+
+    val generatedName = className
+      .replace("Input", "")
+      .replace("Output", "")
+      .replace("Parameter", "")
+
+    val methodNameValue = if (requirement.methodName != "") {
+      requirement.methodName.replace(" ", "")
+    } else {
+      generatedName.head.toLower + generatedName.tail
+    }
+
+    if (!shortVersion) {
+      s"""    /**
+         |     * Requires a $requiresValue which has to be specified by the user.
+         |     *
+         |     * @param uniqueRequirementId a plugin unique identifier which is stored for your plugin
+         |     * @param displayName         a string to display to the user while setting your requirement
+         |     * @param isOptional          true if this requirement is optional, false if mandatory
+         |     * @return the requirement object. Use the get() method only at runtime!
+         |     */
+         |    public Requirement<$className> $methodNameValue(String uniqueRequirementId, String displayName, boolean isOptional) {
+         |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, $className.class);
+         |    }
+         |
+       |"""
+    } else {
+      val displayName = "\"" + s"${generatedName.map(c => if (c.isUpper) " " + c else c).mkString.trim}" + "\""
+
+      s"""    /**
+         |     * Requires a $requiresValue which has to be specified by the user.
+         |     *
+         |     * @param uniqueRequirementId a plugin unique identifier which is stored for your plugin
+         |     * @return the requirement object. Use the get() method only at runtime!
+         |     */
+         |    public Requirement<$className> $methodNameValue(String uniqueRequirementId) {
+         |        return requirements.requireInput(uniqueRequirementId, $displayName, false, $className.class);
+         |    }
+         |
+       |"""
+    }
+  }
 }
 
 object RequirementsFile {

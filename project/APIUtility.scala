@@ -39,7 +39,9 @@ class APIUtility(logger: ManagedLogger) {
     val filesWithRequirements =
       for (sourceFilesOfAKind <- sourceFiles) yield {
         for (sourceFile <- sourceFilesOfAKind) yield {
-          val content = Source.fromFile(sourceFile).mkString
+          val file = Source.fromFile(sourceFile)
+          val content = file.mkString
+          file.close()
 
           // This is (especially the group ids) highly dependent of the regex string and the IsRequirement-Annotation
           requirementRegex.findFirstMatchIn(content) match {
