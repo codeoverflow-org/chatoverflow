@@ -8,6 +8,7 @@ project/plugins/project/
 .cache
 .lib/
 *.log
+/docs/
 
 # MacOS
 .DS_Store
