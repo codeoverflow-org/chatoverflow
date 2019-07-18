@@ -4,7 +4,6 @@ branches:
   only:
     - master
 language: scala
-jdk: oraclejdk8
 scala:
   - 2.12.5
 cache:
