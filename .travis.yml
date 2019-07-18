@@ -14,6 +14,8 @@ cache:
 before_install:
   - git clone https://github.com/codeoverflow-org/chatoverflow-api --branch master --single-branch --depth 1 api
   - sbt ++$TRAVIS_SCALA_VERSION update
+  - sbt ++$TRAVIS_SCALA_VERSION fetch
+  - sbt ++$TRAVIS_SCALA_VERSION update
 script:
   - sbt ++$TRAVIS_SCALA_VERSION -Dfile.encoding=UTF8 doc
   - chmod +x .scripts/update-docs.sh

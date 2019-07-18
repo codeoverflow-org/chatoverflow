@@ -15,6 +15,6 @@ echo "Copying docs..."
 cp -fR target/scala-$SCALA_MAJOR/api chatoverflow
 
 echo "Updating wiki..."
-
+git add .
 git commit --message "Deployed doc (Travis build #$TRAVIS_BUILD_NUMBER)"
 git push --force origin master
