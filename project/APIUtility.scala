@@ -14,53 +14,54 @@ class APIUtility(logger: ManagedLogger) {
 
   /**
     * Generates the requirement classes input, output and parameter from annotated types in the api.
+    *
+    * @param sourceDirectory the sourceDirectory from sbt {{{sourceDirectory.value}}}
     */
   def generatedRequirements(sourceDirectory: File): Unit = {
-    println("I'm not implemented yet.")
-
-    // Short explanation: Using reflection would cause circular dependencies between api and build environment.
+    // Short explanation: Using reflection would cause strong circular dependencies between api and build environment.
     // So, looking up the source files is considered a dirty but "cleaner" solution
 
-    val ioDirectory = new File(sourceDirectory, "main/java/org/codeoverflow/chatoverflow/api/io")
-    val subDiretories = Seq(new File(ioDirectory, "input"),
-      new File(ioDirectory, "output"), new File(ioDirectory, "parameter"))
-
-    // Uses recursion to retrieve all (nested) source files
-    val sourceFiles = subDiretories.flatMap(getAllChilds)
+    val apiFolder = "main/java/org/codeoverflow/chatoverflow/api"
+    val ioFolder = s"$apiFolder/io"
+    val configurationFolder = s"$apiFolder/plugin/configuration"
+    val requirementTypes = List("input", "output", "parameter")
+    val requiresFieldName = "requires"
+    val methodFieldName = "methodName"
 
     // Note: We assume clean java files. Interface name == fileName and only one annotated interface per file
     val requirementRegex =
       """@IsRequirement\s*(\((([a-zA-Z]*)\s*=\s*"([^"]*)",?\s*)?(([a-zA-Z]*)\s*=\s*"([^"]*)",?\s*)?\))?""".r
 
+    val ioDirectory = new File(sourceDirectory, ioFolder)
+    val sourceFiles = requirementTypes.map(req => new File(ioDirectory, req)).map(getAllChilds)
+
+    // Creates a list with 3 sub lists of all files of a kind (input/output/parameter) containing requirement annotations
     val filesWithRequirements =
-      for (sourceFile <- sourceFiles) yield {
-        val content = Source.fromFile(sourceFile).mkString
+      for (sourceFilesOfAKind <- sourceFiles) yield {
+        for (sourceFile <- sourceFilesOfAKind) yield {
+          val content = Source.fromFile(sourceFile).mkString
 
-        // This is (especially the group ids) highly dependent of the regex string and the IsRequirement-Annotation
-        requirementRegex.findFirstMatchIn(content) match {
-          case None =>
-          case Some(regexMatch) =>
-            var requires = ""
-            var methodName = ""
+          // This is (especially the group ids) highly dependent of the regex string and the IsRequirement-Annotation
+          requirementRegex.findFirstMatchIn(content) match {
+            case None => None
+            case Some(regexMatch) =>
+              var requires = ""
+              var methodName = ""
 
-            if (regexMatch.group(3) == "requires")
-              requires = regexMatch.group(4)
+              if (regexMatch.subgroups.indexOf(requiresFieldName) != -1)
+                requires = regexMatch.group(regexMatch.subgroups.indexOf(requiresFieldName) + 2)
 
-            if (regexMatch.group(3) == "methodName")
-              methodName = regexMatch.group(4)
+              if (regexMatch.subgroups.indexOf(methodFieldName) != -1)
+                methodName = regexMatch.group(regexMatch.subgroups.indexOf(methodFieldName) + 2)
 
-            if (regexMatch.group(6) == "requires")
-              requires = regexMatch.group(7)
-
-            if (regexMatch.group(6) == "methodName")
-              methodName = regexMatch.group(7)
-
-            AnnotatedRequirement(sourceFile, requires, methodName)
+              Some(AnnotatedRequirement(sourceFile, requires, methodName))
+          }
         }
-      }
+      }.filter(_.isDefined).map(_.get)
 
-    // TODO: Refactor in a way, that the structure (input/output/parameter) is kept
-    // TODO: Now, create a ConfigurationFile (Input/Output/Parameter) which is then saved
+    RequirementsFile(new File(sourceDirectory, configurationFolder), "Input", filesWithRequirements.head).createFile()
+    RequirementsFile(new File(sourceDirectory, configurationFolder), "Output", filesWithRequirements(1)).createFile()
+    RequirementsFile(new File(sourceDirectory, configurationFolder), "Parameter", filesWithRequirements(2)).createFile()
   }
 
   /**
@@ -89,9 +90,9 @@ class APIUtility(logger: ManagedLogger) {
     directory.listFiles().filter(_.isFile) ++ directory.listFiles().filter(_.isDirectory).flatMap(getAllChilds)
   }
 
-  case class AnnotatedRequirement(file: File, requires: String = "", methodName: String = "")
-
 }
+
+case class AnnotatedRequirement(file: File, requires: String = "", methodName: String = "")
 
 object APIUtility {
   def apply(logger: ManagedLogger): APIUtility = new APIUtility(logger)
