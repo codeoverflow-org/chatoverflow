@@ -9,7 +9,7 @@ git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 
 echo "Cloning docs repo..."
-git clone https://${GH_TOKEN}@github.com/codeoverflow-org/chatoverflow-gh-pages docs
+git clone https://${GH_TOKEN}@github.com/codeoverflow-org/chatoverflow-gh-pages --branch master --single-branch --depth 1 docs
 
 echo "Copying docs..."
 cp -fR target/scala-$SCALA_MAJOR/api chatoverflow
