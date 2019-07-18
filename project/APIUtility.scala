@@ -3,7 +3,7 @@ import java.io.File
 import sbt.internal.util.ManagedLogger
 import sbt.io.IO
 
-import scala.collection.mutable.ListBuffer
+import scala.io.Source
 
 /**
   * The API utility encapsulates methods for building the chatoverflow API.
@@ -18,32 +18,49 @@ class APIUtility(logger: ManagedLogger) {
   def generatedRequirements(sourceDirectory: File): Unit = {
     println("I'm not implemented yet.")
 
-    // Short explanation: Using reflection would cause circular dependencies between classes and build environment.
-    // So, looking up the source files is considered a dirty, but cleaner solution
+    // Short explanation: Using reflection would cause circular dependencies between api and build environment.
+    // So, looking up the source files is considered a dirty but "cleaner" solution
 
     val ioDirectory = new File(sourceDirectory, "main/java/org/codeoverflow/chatoverflow/api/io")
     val subDiretories = Seq(new File(ioDirectory, "input"),
       new File(ioDirectory, "output"), new File(ioDirectory, "parameter"))
 
-    var sourceFiles = ListBuffer[File]()
+    // Uses recursion to retrieve all (nested) source files
+    val sourceFiles = subDiretories.flatMap(getAllChilds)
 
-    sourceFiles ++= subDiretories.flatMap(file => file.listFiles().toList)
+    // Note: We assume clean java files. Interface name == fileName and only one annotated interface per file
+    val requirementRegex =
+      """@IsRequirement\s*(\((([a-zA-Z]*)\s*=\s*"([^"]*)",?\s*)?(([a-zA-Z]*)\s*=\s*"([^"]*)",?\s*)?\))?""".r
 
-    // Recursively add child files
-    for (i <- 1 to 5) {
-      sourceFiles = addChilds(sourceFiles)
-    }
+    val filesWithRequirements =
+      for (sourceFile <- sourceFiles) yield {
+        val content = Source.fromFile(sourceFile).mkString
 
-    // TODO: Now, every file should be parsed for the Annotation and the interface name using regex
-  }
+        // This is (especially the group ids) highly dependent of the regex string and the IsRequirement-Annotation
+        requirementRegex.findFirstMatchIn(content) match {
+          case None =>
+          case Some(regexMatch) =>
+            var requires = ""
+            var methodName = ""
 
-  private def addChilds(sourceFiles: ListBuffer[File]): ListBuffer[File] = {
-    for (sourceFile <- sourceFiles) {
-      if (sourceFile.isDirectory) {
-        sourceFiles ++= sourceFile.listFiles().filter(file => !sourceFiles.contains(file))
+            if (regexMatch.group(3) == "requires")
+              requires = regexMatch.group(4)
+
+            if (regexMatch.group(3) == "methodName")
+              methodName = regexMatch.group(4)
+
+            if (regexMatch.group(6) == "requires")
+              requires = regexMatch.group(7)
+
+            if (regexMatch.group(6) == "methodName")
+              methodName = regexMatch.group(7)
+
+            AnnotatedRequirement(sourceFile, requires, methodName)
+        }
       }
-    }
-    sourceFiles
+
+    // TODO: Refactor in a way, that the structure (input/output/parameter) is kept
+    // TODO: Now, create a ConfigurationFile (Input/Output/Parameter) which is then saved
   }
 
   /**
@@ -67,6 +84,12 @@ class APIUtility(logger: ManagedLogger) {
         |}
         |""".stripMargin.format(majorVersion, minorVersion))
   }
+
+  private def getAllChilds(directory: File): Seq[File] = {
+    directory.listFiles().filter(_.isFile) ++ directory.listFiles().filter(_.isDirectory).flatMap(getAllChilds)
+  }
+
+  case class AnnotatedRequirement(file: File, requires: String = "", methodName: String = "")
 
 }
 
