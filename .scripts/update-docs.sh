@@ -1,6 +1,6 @@
 #!/bin/bash
 set -ev
-SCALA_MAJOR=$(echo $TRAVIS_SCALA_VERSION | grep '^\d+\.\d+' -o)
+SCALA_MAJOR=$(echo $TRAVIS_SCALA_VERSION | egrep '^[0-9]+\.[0-9]+' -o)
 
 # Update the java-/scaladocs on https://github.com/codeoverflow-org/chatoverflow-gh-pages
 
