@@ -1,6 +1,7 @@
 import javax.servlet.ServletContext
 import org.codeoverflow.chatoverflow.ui.web.rest.config.ConfigController
 import org.codeoverflow.chatoverflow.ui.web.rest.connector.ConnectorController
+import org.codeoverflow.chatoverflow.ui.web.rest.events.{EventsController, EventsDispatcher}
 import org.codeoverflow.chatoverflow.ui.web.rest.plugin.PluginInstanceController
 import org.codeoverflow.chatoverflow.ui.web.rest.types.TypeController
 import org.codeoverflow.chatoverflow.ui.web.{CodeOverflowSwagger, OpenAPIServlet}
@@ -21,6 +22,9 @@ class ScalatraBootstrap extends LifeCycle {
     context.initParameters("org.scalatra.cors.allowedMethods") = "*"
 
     // Add all servlets and controller
+    val eventsController = new EventsController()
+    EventsDispatcher.init(eventsController)
+    context.mount(eventsController, "/events/*", "events")
     context.mount(new TypeController(), "/types/*", "types")
     context.mount(new ConfigController(), "/config/*", "config")
     context.mount(new PluginInstanceController(), "/instances/*", "instances")
