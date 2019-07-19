@@ -21,8 +21,7 @@ object PluginLanguage extends Enumeration {
     */
   def getSourceFileContent(name: String, lang: PluginLanguage.Value): String = lang match {
     case JAVA =>
-      s"""
-        |import org.codeoverflow.chatoverflow.api.io.input.SampleInput;
+      s"""import org.codeoverflow.chatoverflow.api.io.input.SampleInput;
         |import org.codeoverflow.chatoverflow.api.plugin.PluginImpl;
         |import org.codeoverflow.chatoverflow.api.plugin.PluginManager;
         |import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirement;
@@ -34,7 +33,7 @@ object PluginLanguage extends Enumeration {
         |    }
         |
         |    // require more requirements as needed here
-        |    private Requirement<SampleInput> sampleReq = require.input.sampleInput("sampleReq", "Sample requirement", true);
+        |    private Requirement<SampleInput> sampleReq = require.input.sample("sampleReq", "Sample requirement", true);
         |
         |    /**
         |     * The setup method is executed one, when the plugin is started. Do NOT define your requirements in here!
@@ -44,7 +43,7 @@ object PluginLanguage extends Enumeration {
         |        // you can adjust the loop interval here
         |        // loopInterval = 1000;
         |
-        |        log("Initialized $name plugin!");
+        |        log("Initialized $name!");
         |    }
         |
         |    /**
@@ -53,7 +52,7 @@ object PluginLanguage extends Enumeration {
         |     */
         |    @Override
         |    public void loop() {
-        |        log("$name plugin loop!");
+        |        log("$name loop!");
         |    }
         |
         |    /**
@@ -61,19 +60,18 @@ object PluginLanguage extends Enumeration {
         |     */
         |    @Override
         |    public void shutdown() {
-        |        log("Shutting down $name plugin!");
+        |        log("Shutting down $name!");
         |    }
         |}
         |
       """.stripMargin
     case SCALA =>
-      s"""
-        |import org.codeoverflow.chatoverflow.api.plugin.{PluginImpl, PluginManager}
+      s"""import org.codeoverflow.chatoverflow.api.plugin.{PluginImpl, PluginManager}
         |
         |class ${name}Plugin(manager: PluginManager) extends PluginImpl(manager) {
         |
         |  // require more requirements as needed here
-        |  private val sampleReq = require.input.sampleInput("sampleReq", "Sample requirement", true)
+        |  private val sampleReq = require.input.sample("sampleReq", "Sample requirement", true)
         |
         |  // you can adjust the loop interval here
         |  // loopInterval = 1000;
@@ -82,7 +80,7 @@ object PluginLanguage extends Enumeration {
         |    * The setup method is executed one, when the plugin is started. Do NOT define your requirements in here!
         |    */
         |  override def setup(): Unit = {
-        |    log("Initialized $name plugin!")
+        |    log("Initialized $name!")
         |  }
         |
         |  /**
@@ -90,14 +88,14 @@ object PluginLanguage extends Enumeration {
         |    * The loop method is NOT executed if a negative loop interval is set.
         |    */
         |  override def loop(): Unit = {
-        |    log("$name plugin loop!")
+        |    log("$name loop!")
         |  }
         |
         |  /**
         |    * The shutdown method should contain logic to close everything.
         |    */
         |  override def shutdown(): Unit = {
-        |    log("Shutting down $name plugin!")
+        |    log("Shutting down $name!")
         |  }
         |}
         |
