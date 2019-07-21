@@ -23,6 +23,8 @@ bootstrap_deploy:
 
 create:
 	sbt create
+	sbt fetch
+	sbt reload
 
 deploy:
 	sbt deploy
