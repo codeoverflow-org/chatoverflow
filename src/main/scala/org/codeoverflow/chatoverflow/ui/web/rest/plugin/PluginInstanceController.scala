@@ -273,7 +273,9 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
   = {
     PluginInstance(pluginInstance.instanceName, pluginInstance.getPluginTypeName,
       pluginInstance.getPluginTypeAuthor, pluginInstance.isRunning,
-      pluginInstance.getRequirements.getRequirementMap.keySet().asScala.toList)
+      pluginInstance.getRequirements.getRequirementMap.keySet().asScala.toList,
+      pluginInstance.getPluginManager.getLogMessages
+        .asScala.map(logMessage => PluginLogMessageDTO(logMessage.getMessage, logMessage.getTimestamp.toString)))
   }
 
   private def createRequirement(requirementID: String, requirement: configuration.Requirement[_ <: io.Serializable]): Requirement

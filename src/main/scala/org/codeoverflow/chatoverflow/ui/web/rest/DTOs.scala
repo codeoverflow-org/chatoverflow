@@ -8,7 +8,7 @@ object DTOs {
   case class PluginMetadata(description: Option[String], licence: Option[String], website: Option[String],
                             sourceRepo: Option[String], bugtracker: Option[String])
 
-  case class PluginInstance(instanceName: String, pluginName: String, pluginAuthor: String, isRunning: Boolean, requirementIDs: Seq[String])
+  case class PluginInstance(instanceName: String, pluginName: String, pluginAuthor: String, isRunning: Boolean, requirementIDs: Seq[String], log: Seq[PluginLogMessageDTO])
 
   case class PluginInstanceName(instanceName: String)
 
