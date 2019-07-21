@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.requirement.service.rcon
 
-import java.io.{DataInputStream, InputStream, OutputStream}
+import java.io.{DataInputStream, IOException, InputStream, OutputStream}
 import java.net.{Socket, SocketException}
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Random
@@ -16,13 +16,8 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
   private var outputStream: OutputStream = _
   private var inputStream: InputStream = _
   private var requestId: Int = 0
-  private var loggedIn = false
 
   def sendCommand(command: String): String = {
-    if (!loggedIn) {
-      logger error "Could not execute RCON Command due to wrong password or no connection"
-      return null
-    }
     logger debug s"Sending $command to RCON"
     requestId += 1
     if (write(2, command.getBytes("ASCII"))) {
@@ -39,32 +34,50 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
     logger info s"Starting rcon connection to ${credentials.get.getValue("address").get}"
     var port: Int = 25575
     if (credentials.get.exists("port")) {
-      port = credentials.get.getValue("port").get.toInt
+      try{
+        port = credentials.get.getValue("port").get.toInt
+      } catch {
+        case e: NumberFormatException => {
+          logger error "Please enter a valid port"
+          return false
+        }
+      }
       if (port < 1 || port > 65535) {
+        logger error "Please enter a valid port"
         return false
       }
     }
-    socket = new Socket(credentials.get.getValue("address").get, port)
-    socket.setKeepAlive(true)
-    outputStream = socket.getOutputStream
-    inputStream = socket.getInputStream
-    login()
+    try {
+      socket = new Socket(credentials.get.getValue("address").get, port)
+      socket.setKeepAlive(true)
+      outputStream = socket.getOutputStream
+      inputStream = socket.getInputStream
+    } catch {
+      case e: IOException => {
+        logger error "No Connection to RCON Server. Is it up?"
+        return false
+      }
+    }
+    val loggedIn = login()
+    // Sleeping here to allow the (minecraft) server to start its own rcon procedure. Otherwise it caused errors in my tests.
     Thread.sleep(5000)
-    true
+    loggedIn
   }
 
-  private def login(): Unit = {
+  private def login(): Boolean = {
     requestId = new Random().nextInt(Integer.MAX_VALUE)
     logger info "Logging RCON in..."
     val password = credentials.get.getValue("password").get
     if (write(3, password.getBytes("ASCII"))) {
       if (read() == null) {
         logger error "Could not log in to RCON Server. Password is Wrong!"
+        return false
       } else {
         logger debug "Login to RCON was successful"
-        loggedIn = true
+        return true
       }
     }
+    false
   }
 
   private def write(packageType: Int, payload: Array[Byte]): Boolean = {
@@ -83,10 +96,6 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
       outputStream.write(byteBuffer.array())
       outputStream.flush()
     } catch {
-      case e: NullPointerException => {
-        logger error "There was and is no Connection to the RCON Server, please try restarting."
-        return false
-      }
       case e: SocketException => {
         logger error "Connection Error to RCON Server. This request will not be sended!"
         return false
@@ -116,13 +125,11 @@ class RconConnector(override val sourceIdentifier: String) extends Connector(sou
     }
   }
 
-  private[rcon] def isLoggedIn: Boolean = loggedIn
-
   /**
     * This stops the activity of the connector, e.g. by closing the platform connection.
     */
   override def stop(): Boolean = {
-    logger info s"Stopped RCON connector to ${credentials.get.getValue("address")}!"
+    logger info s"Stopped RCON connector to ${credentials.get.getValue("address").get}!"
     socket.close()
     true
   }

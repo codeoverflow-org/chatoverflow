@@ -17,7 +17,7 @@ class RconOutputImpl extends OutputImpl[RconConnector] with RconOutput with With
     *
     * @return true if starting the input was successful, false if some problems occurred
     */
-  override def start(): Boolean = sourceConnector.get.isLoggedIn
+  override def start(): Boolean = true
 
   /**
     * Stops the output, called before source connector will shutdown
