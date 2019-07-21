@@ -12,8 +12,8 @@ import scala.xml.PrettyPrinter
   * @param name                      the name of the plugin
   */
 class Plugin(val pluginSourceDirectoryName: String, val name: String) {
-  val normalizedName: String = Plugin.toPluginPathName(name)
-  val pluginDirectoryPath: String = s"$pluginSourceDirectoryName/$normalizedName"
+  val normalizedName: String = Plugin.toNormalizedName(name)
+  val pluginDirectoryPath: String = s"$pluginSourceDirectoryName/${normalizedName.toLowerCase}"
 
   /**
     * Creates the plugin folder inside of a plugin source directory
@@ -147,7 +147,20 @@ object Plugin {
     pluginSourceFolder.exists() && pluginSourceFolder.isDirectory
   }
 
-  private def toPluginPathName(name: String) = name.replaceAll("[ -]", "").toLowerCase
+  private def toNormalizedName(name: String): String = {
+    if (name.isEmpty) {
+      return ""
+    }
+
+    val firstChar = name(0)
+
+    if (!Character.isJavaIdentifierStart(firstChar)) {
+      toNormalizedName(name.substring(1))
+    } else {
+      val rest = name.substring(1)
+      firstChar + rest.filter(Character.isJavaIdentifierPart)
+    }
+  }
 
   private def containsPluginXMLFile(directory: File): Boolean = {
     new File(s"$directory/src/main/resources/plugin.xml").exists()
