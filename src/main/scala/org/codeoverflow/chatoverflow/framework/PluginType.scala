@@ -2,31 +2,26 @@ package org.codeoverflow.chatoverflow.framework
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.APIVersion
-import org.codeoverflow.chatoverflow.api.plugin.{Pluggable, Plugin, PluginManager}
+import org.codeoverflow.chatoverflow.api.plugin.{Plugin, PluginManager}
 import org.codeoverflow.chatoverflow.framework.PluginCompatibilityState.PluginCompatibilityState
 
 /**
-  * A plugin type is a container for a pluggable definition found in a plugin jar file.
-  * The plugins functionality and meta information can be accessed trough this interface.
+  * A plugin type is a container for all information about a plugin, everything in the 'plugin.xml' and the actual class.
+  * The plugins functionality and meta information can be accessed through this interface.
   *
-  * @param pluggable the original pluggable element, instantiated with the custom class loader
+  * @param name            the name of the plugin, used for identifying
+  * @param author          the author of the plugin, used for identifying
+  * @param version         the version of the plugin
+  * @param majorAPIVersion the major api version, with which the plugin was developed
+  * @param minorAPIVersion the minor api version, with which the plugin was developed
+  * @param pluginClass     the class of the plugin, used to create instances of this plugin.
+  *                        Needs to have a constructor with the signature of one PluginManager,
+  *                        otherwise instances can't be created from it.
   */
-class PluginType(pluggable: Pluggable) extends WithLogger {
+class PluginType(name: String, author: String, version: String, majorAPIVersion: Int, minorAPIVersion: Int,
+                 metadata: PluginMetadata, pluginClass: Class[_ <: Plugin]) extends WithLogger {
+
   private var pluginVersionState = PluginCompatibilityState.Untested
-
-  /**
-    * Returns the author name of the plugin.
-    *
-    * @return the real name or a alias of the author
-    */
-  def getAuthor: String = pluggable.getAuthor
-
-  /**
-    * Returns a description of the plugin.
-    *
-    * @return a simple description of the service
-    */
-  def getDescription: String = pluggable.getDescription
 
   /**
     * Creates a instance of the plugins functionality only if it might be compatible.
@@ -42,10 +37,15 @@ class PluginType(pluggable: Pluggable) extends WithLogger {
 
     if (getState == PluginCompatibilityState.MajorCompatible || getState == PluginCompatibilityState.FullyCompatible) {
       try {
-        val plugin = pluggable.createNewPluginInstance(manager)
+        val constructor = pluginClass.getConstructor(classOf[PluginManager])
+        val plugin = constructor.newInstance(manager)
+
         logger info s"Successful created a instance of plugin $getName ($getAuthor)"
         Some(plugin)
       } catch {
+        case _: NoSuchMethodException =>
+          logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). It hasn't a constructor with correct signature."
+          None
         case _: Exception =>
           logger error s"Exception thrown while creating instance of plugin $getName ($getAuthor)"
           None
@@ -90,19 +90,40 @@ class PluginType(pluggable: Pluggable) extends WithLogger {
     *
     * @return the display name of the plugin
     */
-  def getName: String = pluggable.getName
+  def getName: String = name
+
+  /**
+    * Returns the author name of the plugin.
+    *
+    * @return the real name or a alias of the author
+    */
+  def getAuthor: String = author
+
+  /**
+    * Returns the version of the plugin
+    *
+    * @return the plugin version
+    */
+  def getVersion: String = version
 
   /**
     * Returns the newest major version of the api, where the plugin was successfully tested!
     *
     * @return a version number
     */
-  def getMajorAPIVersion: Int = pluggable.getMajorAPIVersion
+  def getMajorAPIVersion: Int = majorAPIVersion
 
   /**
     * Returns the newest minor version of the api, where the plugin was successfully tested!
     *
     * @return a version number
     */
-  def getMinorAPIVersion: Int = pluggable.getMinorAPIVersion
+  def getMinorAPIVersion: Int = minorAPIVersion
+
+  /**
+    * Returns the metadata instance for this plugin with information about website, description and so on.
+    *
+    * @return the PluginMetadata instance of this plugin
+    */
+  def getMetadata: PluginMetadata = metadata
 }

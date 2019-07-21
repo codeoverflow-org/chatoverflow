@@ -1,5 +1,10 @@
 import java.io.File
 
+import sbt.io.IO
+
+import scala.util.Try
+import scala.xml.PrettyPrinter
+
 /**
   * A plugin represents a directory in a plugin source directory. Every plugin has its own build file and source folder.
   *
@@ -27,22 +32,6 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
   }
 
   /**
-    * Creates the plugin src folder inside of a plugin folder
-    *
-    * @note Make sure to create the plugin folder first!
-    * @return true, if the process was successful
-    */
-  def createSrcFolder(): Boolean = {
-    if (new File(s"$pluginDirectoryPath/src").mkdir() &&
-      new File(s"$pluginDirectoryPath/src/main").mkdir() &&
-      new File(s"$pluginDirectoryPath/src/main/scala").mkdir()) {
-      true
-    } else {
-      false
-    }
-  }
-
-  /**
     * Creates a simple sbt file with name and version info into the plugin folder
     *
     * @param version the version of the sbt plugin project
@@ -52,7 +41,53 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     val sbtFile = new SbtFile(name, version)
 
     // The name of the sbt file is the plugin name. This worked in first tests
-    sbtFile.save(s"$pluginDirectoryPath/$name.sbt")
+    sbtFile.save(s"$pluginDirectoryPath/$normalizedName.sbt")
+  }
+
+  /**
+    * Generates the plugin.xml file in the resources of the plugin.
+    *
+    * @param metadata the metadata for this plugin
+    * @param author   author of this plugin, used by the framework to identify it
+    */
+  def createPluginXMLFile(metadata: PluginMetadata, author: String, version: String, apiVersion: (Int, Int)): Boolean = {
+    val xml = <plugin>
+      <name>
+        {name}
+      </name>
+      <author>
+        {author}
+      </author>
+      <version>
+        {version}
+      </version>
+      <api>
+        <major>{apiVersion._1}</major>
+        <minor>{apiVersion._2}</minor>
+      </api>{metadata.toXML}
+    </plugin>
+
+    val trimmed = scala.xml.Utility.trim(xml)
+    val prettyXml = new PrettyPrinter(100, 2).format(trimmed)
+
+    Try(
+      IO.write(new File(s"$pluginDirectoryPath/src/main/resources/plugin.xml"), prettyXml)
+    ).isSuccess
+  }
+
+  /**
+    * Generates the main class file implementing PluginImpl for the plugin developer in their choosen language.
+    * 
+    * @param language the language in with the source file will be generated
+    * @return true, if everything was successful
+    */
+  def createSourceFile(language: PluginLanguage.Value): Boolean = {
+    val content = PluginLanguage.getSourceFileContent(normalizedName, language)
+    val langName = language.toString.toLowerCase
+    
+    Try(
+      IO.write(new File(s"$pluginDirectoryPath/src/main/$langName/${normalizedName}Plugin.$langName"), content.getBytes)
+    ).isSuccess
   }
 
   /**
@@ -94,7 +129,9 @@ object Plugin {
     */
   def getPlugins(pluginSourceFolderName: String): Seq[Plugin] = {
     val pluginSourceFolder = new File(pluginSourceFolderName)
-    pluginSourceFolder.listFiles.filter(_.isDirectory).filter(d => d.getName != ".git" && d.getName != ".github")
+    pluginSourceFolder.listFiles
+      .filter(_.isDirectory)
+      .filter(d => containsPluginXMLFile(d))
       .map(folder => new Plugin(pluginSourceFolderName, folder.getName))
 
   }
@@ -110,8 +147,11 @@ object Plugin {
     pluginSourceFolder.exists() && pluginSourceFolder.isDirectory
   }
 
-  private def toPluginPathName(name: String) = name.replace(" ", "").toLowerCase
+  private def toPluginPathName(name: String) = name.replaceAll("[ -]", "").toLowerCase
 
+  private def containsPluginXMLFile(directory: File): Boolean = {
+    new File(s"$directory/src/main/resources/plugin.xml").exists()
+  }
 }
 
 

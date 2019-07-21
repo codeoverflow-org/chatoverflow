@@ -3,7 +3,7 @@ package org.codeoverflow.chatoverflow.framework
 import java.io.File
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.framework.helper.{PluggableLoader, PluginClassLoader}
+import org.codeoverflow.chatoverflow.framework.helper.PluginLoader
 import org.codeoverflow.chatoverflow.framework.manager.PluginManagerStub
 
 import scala.collection.mutable.ListBuffer
@@ -64,22 +64,17 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
 
       // Get (new) jar file urls
       val jarFiles = getNewJarFiles(pluginDirectory)
-      val jarUrls = for (jarFile <- jarFiles) yield jarFile.toURI.toURL
       logger info s"Found ${jarFiles.length} new plugins."
 
-      // Create own class loader and PluggableLoader
-      val classLoader = new PluginClassLoader(jarUrls)
-      val pluggableLoader = new PluggableLoader(classLoader)
-
-      // Load pluggables
       for (jarFile <- jarFiles) {
 
-        // Get pluggables
-        val pluggables = pluggableLoader.loadPluggables(jarFile)
+        // Load plugin from jar
+        val pluginOpt = new PluginLoader(jarFile).loadPlugin()
 
-        // Create plugin types
-        for (pluggable <- pluggables) {
-          val plugin = new PluginType(pluggable)
+        // if something went wrong just carry on to the next jar.
+        // Warnings about loading the plugin will be printed by PluginLoader.
+        if (pluginOpt.isDefined) {
+          val plugin = pluginOpt.get
 
           if (plugin.testState == PluginCompatibilityState.NotCompatible) {
             logger warn s"Unable to load plugin '${plugin.getName}' due to different major versions."

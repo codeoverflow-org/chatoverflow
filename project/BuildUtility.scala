@@ -131,86 +131,6 @@ class BuildUtility(logger: ManagedLogger) {
     logger info s"Successfully copied $successCounter / ${allJarFiles.length} plugins to target '${pluginTargetFolder.getPath}'!"
   }
 
-  /**
-    * Creates a new plugin. Interactive command using the console.
-    *
-    * @param pluginFolderNames All folder names, containing plugin source code. Defined in build.sbt.
-    */
-  def createPluginTask(pluginFolderNames: List[String]): Unit = {
-    withTaskInfo("CREATE PLUGIN") {
-
-      // Plugin folders have to be defined in the build.sbt file first
-      if (pluginFolderNames.isEmpty) {
-        println("Before creating a new plugin, please define at least one plugin source folder in the build.sbt file.")
-        logger warn "Aborting task without plugin creation."
-
-      } else {
-        println("Welcome to the \"create plugin\"-wizard. Please specify name, version and plugin source folder.")
-
-        // Plugin name
-        val name = BuildUtility.askForInput(
-          "Please specify the name of the plugin. Do only use characters allowed for directories and files of your OS.",
-          "Plugin name",
-          repeatIfEmpty = true
-        )
-
-        // Plugin version (default: 0.1)
-        var version = BuildUtility.askForInput(
-          "Please specify the version of the plugin. Just press enter for version \"0.1\".",
-          "Plugin version",
-          repeatIfEmpty = false
-        )
-        if (version == "") version = "0.1"
-
-        // Plugin folder name (must be defined in build.sbt)
-        var pluginFolderName = ""
-        while (!pluginFolderNames.contains(pluginFolderName)) {
-          pluginFolderName = BuildUtility.askForInput(
-            s"Please specify the plugin source directory. Available directories: ${pluginFolderNames.mkString("[", ", ", "]")}",
-            "Plugin source directory",
-            repeatIfEmpty = true
-          )
-        }
-
-        createPlugin(name, version, pluginFolderName)
-      }
-    }
-  }
-
-  private def withTaskInfo(taskName: String)(task: Unit): Unit = BuildUtility.withTaskInfo(taskName, logger)(task)
-
-  private def createPlugin(name: String, version: String, pluginFolderName: String): Unit = {
-    logger info s"Trying to create plugin $name (version $version) at plugin folder $pluginFolderName."
-
-    val pluginFolder = new File(pluginFolderName)
-    if (!pluginFolder.exists()) {
-      logger error "Plugin source folder does not exist. Aborting task without plugin creation."
-
-    } else {
-
-      val plugin = new Plugin(pluginFolderName, name)
-
-      if (!plugin.createPluginFolder()) {
-        logger error "Plugin does already exist. Aborting task without plugin creation."
-      } else {
-        logger info s"Created plugin '$name'"
-
-        if (plugin.createSrcFolder()) {
-          logger info "Successfully created source folder."
-        } else {
-          logger warn "Unable to create source folder."
-        }
-
-        if (plugin.createSbtFile(version)) {
-          logger info "Successfully created plugins sbt file."
-        } else {
-          logger warn "Unable to create plugins sbt file."
-        }
-
-      }
-    }
-  }
-
   def guiTask(guiProjectPath: String, cacheDir: File): Unit = {
     withTaskInfo("BUILD GUI") {
       val guiDir = new File(guiProjectPath)
@@ -234,13 +154,13 @@ class BuildUtility(logger: ManagedLogger) {
   /**
     * Download the dependencies of the gui using npm.
     *
-    * @param guiDir the directory of the gui.
+    * @param guiDir   the directory of the gui.
     * @param cacheDir a dir, where sbt can store files for caching in the "install" sub-dir.
     * @return None, if a error occurs which will be displayed, otherwise the output directory with the built gui.
     */
   private def installGuiDeps(guiDir: File, cacheDir: File): Option[File] = {
     // Check buildGui for a explanation, it's almost the same.
-    
+
     val install = FileFunction.cached(new File(cacheDir, "install"), FilesInfo.hash)(_ => {
 
       logger info "Installing GUI dependencies."
@@ -266,8 +186,8 @@ class BuildUtility(logger: ManagedLogger) {
 
   /**
     * Builds the gui using npm.
-    * 
-    * @param guiDir the directory of the gui.
+    *
+    * @param guiDir   the directory of the gui.
     * @param cacheDir a dir, where sbt can store files for caching in the "build" sub-dir.
     * @return None, if a error occurs which will be displayed, otherwise the output directory with the built gui.
     */
@@ -326,24 +246,13 @@ class BuildUtility(logger: ManagedLogger) {
       Set(f)
     }
   }
+
+  private def withTaskInfo(taskName: String)(task: Unit): Unit = BuildUtility.withTaskInfo(taskName, logger)(task)
 }
 
 object BuildUtility {
 
   def apply(logger: ManagedLogger): BuildUtility = new BuildUtility(logger)
-
-  private def askForInput(information: String, description: String, repeatIfEmpty: Boolean): String = {
-    println(information)
-    print(s"$description > ")
-
-    var input = scala.io.Source.fromInputStream(System.in).bufferedReader().readLine()
-    println("")
-
-    if (input == "" && repeatIfEmpty)
-      input = askForInput(information, description, repeatIfEmpty)
-
-    input
-  }
 
   /**
     * This method can be used to create better readable sbt console output by declaring start and stop of a custom task.

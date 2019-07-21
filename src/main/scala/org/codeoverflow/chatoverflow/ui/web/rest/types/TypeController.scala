@@ -3,11 +3,13 @@ package org.codeoverflow.chatoverflow.ui.web.rest.types
 import org.codeoverflow.chatoverflow.api.io.input.Input
 import org.codeoverflow.chatoverflow.api.io.output.Output
 import org.codeoverflow.chatoverflow.api.io.parameter.Parameter
+import org.codeoverflow.chatoverflow.framework.{PluginMetadata => FrameworkPluginMetadata}
 import org.codeoverflow.chatoverflow.ui.web.JsonServlet
 import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
 import org.scalatra.swagger.Swagger
 
 import scala.collection.mutable.ListBuffer
+
 
 class TypeController(implicit val swagger: Swagger) extends JsonServlet with TypesControllerDefinition {
 
@@ -52,8 +54,12 @@ class TypeController(implicit val swagger: Swagger) extends JsonServlet with Typ
     }
   }
 
-  private def getPluginTypes = chatOverflow.pluginFramework.getPlugins.map(pluginType => PluginType(pluginType.getName, pluginType.getAuthor,
-    pluginType.getDescription, pluginType.getMajorAPIVersion, pluginType.getMinorAPIVersion, pluginType.getState.toString))
+  private def getPluginTypes = chatOverflow.pluginFramework.getPlugins.map(pluginType => PluginType(
+    pluginType.getName, pluginType.getAuthor, pluginType.getVersion, pluginType.getMajorAPIVersion,
+    pluginType.getMinorAPIVersion, getPluginMetadata(pluginType.getMetadata), pluginType.getState.toString))
+
+  private def getPluginMetadata(m: FrameworkPluginMetadata): PluginMetadata = PluginMetadata(m.description, m.license,
+    m.website.map(_.toString), m.sourceRepo.map(_.toString), m.bugtracker.map(_.toString))
 
   private def getRequirementTypes = {
     var input = ListBuffer[String]()
