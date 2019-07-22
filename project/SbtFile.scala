@@ -55,16 +55,16 @@ class SbtFile(var name: String, var version: String, var plugins: List[Plugin], 
     val sbtContent = new StringBuilder("// GENERATED FILE USING THE CHAT OVERFLOW PLUGIN FRAMEWORK\n")
 
     if (name != "") {
-      sbtContent append "\nname := \"%s\"".format(name)
+      sbtContent append "\nname := \"%s\"".format(name.replaceAll("\\", ""))
     }
 
     if (version != "") {
-      sbtContent append "\nversion := \"%s\"".format(version)
+      sbtContent append "\nversion := \"%s\"".format(version.replaceAll("\\", ""))
     }
 
     if (plugins.nonEmpty) {
       for (plugin <- plugins) {
-        var pluginLine = "\nlazy val %s = (project in file(\"%s\"))".format(plugin.normalizedName, plugin.pluginDirectoryPath)
+        var pluginLine = "\nlazy val `%s` = (project in file(\"%s\"))".format(plugin.normalizedName, plugin.pluginDirectoryPath)
 
         if (apiProjectPath != "") {
           pluginLine += ".dependsOn(apiProject)"
@@ -79,8 +79,8 @@ class SbtFile(var name: String, var version: String, var plugins: List[Plugin], 
     }
 
     if (defineRoot) {
-      var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(apiProject,%s)"
-        .format(plugins.map(_.normalizedName).mkString(", "))
+      var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(apiProject, %s)"
+        .format(plugins.map(p => s"`${p.normalizedName}`").mkString(", "))
 
       if (apiProjectPath != "") {
         rootLine += ".dependsOn(apiProject)"
