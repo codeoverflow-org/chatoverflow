@@ -3,9 +3,8 @@ package org.codeoverflow.chatoverflow.requirement.service.twitter
 import com.danielasfregola.twitter4s.TwitterRestClient
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
-import org.codeoverflow.chatoverflow.connector.actor.{GetRestClient, GetTimeline, SendTweet, TwitterActor}
-
-import scala.concurrent.duration._
+import org.codeoverflow.chatoverflow.connector.actor.TwitterActor
+import org.codeoverflow.chatoverflow.connector.actor.TwitterActor._
 
 /*
  * TODO: Remove magic values
@@ -25,30 +24,26 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
   private val consumerSecretConfig = "consumerSecret"
   private val accessTokenConfig = "accessToken"
   private val accessSecretConfig = "accessSecret"
-  protected val timeout: Duration = 5 seconds
+  private var client: TwitterRestClient = _
   override protected var requiredCredentialKeys: List[String] = List(consumerTokenConfig, consumerSecretConfig, accessSecretConfig, accessTokenConfig)
   override protected var optionalCredentialKeys: List[String] = List()
   private val twitterActor = createActor[TwitterActor]()
-  private var client: TwitterRestClient = _
 
-  override def isRunning: Boolean = running
+  def sendTweet(status: String): Boolean = twitterActor.??[Boolean](5){SendTweet(client, status)}.get
 
+  /*def getTimeline(client: TwitterRestClient, timeout: Duration): Option[String] =
+    askActor(TwitterActor, 5, GetTimeline(client, timeout))*/
 
-  override def start(): Boolean = {
-    client = askActor[TwitterRestClient](twitterActor, 5, GetRestClient(credentials.get.getValue(consumerTokenConfig).get,
-      credentials.get.getValue(accessTokenConfig).get, credentials.get.getValue(consumerSecretConfig).get, credentials.get.getValue(accessSecretConfig).get)).get
-    true
-  }
-
-  def getTimeline(client: TwitterRestClient, timeout: Duration): Option[String] =
-    askActor(twitterActor, 5, GetTimeline(client, timeout))
-
-  def sendTweet(client: TwitterRestClient, timeout: Duration, status: String) : Boolean = askActor(twitterActor, 5, SendTweet(client, status, timeout)).get
-
-  def getClient : TwitterRestClient = client
+  def getClient: TwitterRestClient = client
 
   override def getUniqueTypeString: String = this.getClass.getName
 
+  override def start(): Boolean = {
+    logger info s"Starting twitter connector! Source identifier is: '$sourceIdentifier'."
+    this.client = twitterActor.??[TwitterRestClient](5){GetRestClient(credentials.get.getValue(consumerTokenConfig).get,
+      credentials.get.getValue(accessTokenConfig).get, credentials.get.getValue(consumerSecretConfig).get, credentials.get.getValue(accessSecretConfig).get)}.get
+    true
+  }
 
   /**
     * This stops the activity of the connector, e.g. by closing the platform connection.

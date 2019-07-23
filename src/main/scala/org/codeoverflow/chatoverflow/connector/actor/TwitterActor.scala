@@ -2,11 +2,11 @@ package org.codeoverflow.chatoverflow.connector.actor
 
 import akka.actor.Actor
 import com.danielasfregola.twitter4s.TwitterRestClient
-import com.danielasfregola.twitter4s.entities.enums.TweetMode
 import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken}
+import org.codeoverflow.chatoverflow.connector.actor.TwitterActor._
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 
 /**
@@ -20,26 +20,39 @@ class TwitterActor extends Actor {
     * @return a loaded file or a boolean if the saving process was successful
     */
   override def receive: Receive = {
-    case GetRestClient(consumerToken, accessToken, consumerSecret, accessSecret) => try {
-      sender ! TwitterRestClient(ConsumerToken(consumerToken, consumerSecret), AccessToken(accessToken, accessSecret))
-    } catch {
-      case _: Exception => sender ! None
-    }
-
-    case GetTimeline(client, timeout) =>
-      Await.result(client.homeTimeline(count = 1, tweet_mode = TweetMode.Extended), timeout).data.headOption match {
-        case Some(t) => {sender ! Option(t.text)}
-        case None => {sender ! "Test"}
+    case GetRestClient(consumerToken, accessToken, consumerSecret, accessSecret) =>
+      try {
+        sender ! TwitterRestClient(ConsumerToken(consumerToken, consumerSecret), AccessToken(accessToken, accessSecret))
+      } catch {
+        case _: Exception => None
       }
-    case SendTweet(client, status, timeout) =>
-      Await.result(client.createTweet(status), timeout)
-      sender ! true
+
+    /*case GetTimeline(client, timeout) =>
+      Await.result(client.homeTimeline(count = 1, tweet_mode = TweetMode.Extended), timeout).data.headOption match {
+        case Some(t) => {
+          sender ! Option(t.text)
+        }
+        case None => {
+          sender ! "Test"
+        }
+      }*/
+    case SendTweet(client, status) =>
+      try {
+        Await.result(client.createTweet(status), 5 seconds)
+        sender ! true
+      } catch {
+        case _: Exception => sender ! false
+      }
   }
 
 }
 
-case class GetRestClient(consumerToken: String, accessToken: String, consumerSecret: String, accessSecret: String)
+object TwitterActor {
 
-case class GetTimeline(client: TwitterRestClient, timeout: Duration)
+  case class GetRestClient(consumerToken: String, accessToken: String, consumerSecret: String, accessSecret: String) extends ActorMessage
 
-case class SendTweet(client: TwitterRestClient, status: String, timeout: Duration)
+  //case class GetTimeline(client: TwitterRestClient, timeout: Duration) extends ActorMessage
+
+  case class SendTweet(client: TwitterRestClient, status: String) extends ActorMessage
+
+}
