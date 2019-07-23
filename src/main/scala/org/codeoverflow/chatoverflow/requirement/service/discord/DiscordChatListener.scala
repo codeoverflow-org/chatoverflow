@@ -32,6 +32,16 @@ class DiscordChatListener extends EventListener {
 
   def addReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit = reactionDelEventListener += listener
 
+  def removeMessageReceivedListener(listener: MessageReceivedEvent => Unit): Unit = messageEventListener -= listener
+
+  def removeMessageUpdateEventListener(listener: MessageUpdateEvent => Unit): Unit = messageUpdateEventListener -= listener
+
+  def removeMessageDeleteEventListener(listener: MessageDeleteEvent => Unit): Unit = messageDeleteEventListener -= listener
+
+  def removeReactionAddEventListener(listener: MessageReactionAddEvent => Unit): Unit = reactionAddEventListener -= listener
+
+  def removeReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit = reactionDelEventListener -= listener
+
   override def onEvent(event: Event): Unit = {
     event match {
       case receivedEvent: MessageReceivedEvent => messageEventListener.foreach(listener => listener(receivedEvent))

@@ -29,4 +29,12 @@ class TwitchChatListener extends ListenerAdapter {
     unknownEventListener += listener
   }
 
+  def removeMessageEventListener(listener: MessageEvent => Unit): Unit = {
+    messageEventListener -= listener
+  }
+
+  def removeUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
+    unknownEventListener -= listener
+  }
+
 }

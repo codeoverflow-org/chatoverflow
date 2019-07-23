@@ -31,6 +31,14 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     twitchChatListener.addUnknownEventListener(listener)
   }
 
+  def removeMessageEventListener(listener: MessageEvent => Unit): Unit = {
+    twitchChatListener.removeMessageEventListener(listener)
+  }
+
+  def removeUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
+    twitchChatListener.removeUnknownEventListener(listener)
+  }
+
   def joinChannel(channel: String): Unit = {
     bot.send().joinChannel(channel)
     channels += channel
