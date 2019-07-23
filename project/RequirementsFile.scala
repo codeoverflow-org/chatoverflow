@@ -64,10 +64,7 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
 
     val requiresValue = if (requirement.requires != "") requirement.requires else className
 
-    val generatedName = className
-      .replace("Input", "")
-      .replace("Output", "")
-      .replace("Parameter", "")
+    val generatedName = className.replace(requirementType, "")
 
     val methodNameValue = if (requirement.methodName != "") {
       requirement.methodName.replace(" ", "")
@@ -85,7 +82,7 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
          |     * @return the requirement object. Use the get() method only at runtime!
          |     */
          |    public Requirement<$className> $methodNameValue(String uniqueRequirementId, String displayName, boolean isOptional) {
-         |        return requirements.requireInput(uniqueRequirementId, displayName, isOptional, $className.class);
+         |        return requirements.require$requirementType(uniqueRequirementId, displayName, isOptional, $className.class);
          |    }
          |
        |"""
@@ -99,7 +96,7 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
          |     * @return the requirement object. Use the get() method only at runtime!
          |     */
          |    public Requirement<$className> $methodNameValue(String uniqueRequirementId) {
-         |        return requirements.requireInput(uniqueRequirementId, $displayName, false, $className.class);
+         |        return requirements.require$requirementType(uniqueRequirementId, $displayName, false, $className.class);
          |    }
          |
        |"""
