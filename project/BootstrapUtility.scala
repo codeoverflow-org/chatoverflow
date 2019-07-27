@@ -92,15 +92,17 @@ object BootstrapUtility {
   }
 
   /**
-    * Prepares the environemnt for deployment. Should be called after package and assembly task.
-    *
-    * @param logger              the sbt logger
-    * @param scalaLibraryVersion the scala library major version
-    */
-  def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
-    // Assuming, before this: clean, bs, assembly bootstrapProject, package
+   * Prepares the environemnt for deployment. Should be called after package and assembly task.
+   *
+   * @param logger              the sbt logger
+   * @param scalaLibraryVersion the scala library major version
+   * @param dev                 whether sbt scripts and stuff for plugin developers should be included
+   */
+  def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, dev: Boolean): Unit = {
+    // Assuming, before this: clean, bs, assembly bootstrapProject, package and if dev apiProject/packagedArtifacts
     // Assuming: Hardcoded "bin/" and "deploy/" folders
     // Assuming: A folder called "deployment-files" with all additional files (license, bat, etc.)
+    // Assuming: A folder called "deployment-files-dev" with more additional files for plugin developers (only included if dev == true)
 
     withTaskInfo("PREPARE DEPLOYMENT", logger) {
 
@@ -136,10 +138,25 @@ object BootstrapUtility {
       if (!deploymentFiles.exists()) {
         logger warn "Unable to find deployment files."
       } else {
-        for (deploymentFile <- deploymentFiles.listFiles()) {
-          Files.copy(Paths.get(deploymentFile.getAbsolutePath),
-            Paths.get(s"deploy/${deploymentFile.getName}"))
-          logger info s"Finished copying additional deployment file '${deploymentFile.getName}'."
+        sbt.IO.copyDirectory(deploymentFiles, new File("deploy/"))
+        logger info s"Finished copying additional deployment files."
+      }
+
+      if (dev) {
+        val devDeploymentFiles = new File("deployment-files-dev/")
+        if (!devDeploymentFiles.exists()) {
+          logger warn "Unable to find dev deployment files."
+        } else {
+          sbt.IO.copyDirectory(devDeploymentFiles, new File("deploy/"))
+          logger info "Finished copying additional dev deployment files."
+        }
+
+        val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
+          "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala")
+        for (filepath <- requiredBuildFiles) {
+          val origFile = new File(s"project/$filepath")
+          val deployFile = new File(s"deploy/project/$filepath")
+          sbt.IO.copyFile(origFile, deployFile)
         }
       }
     }
@@ -155,8 +172,8 @@ object BootstrapUtility {
         if (file.isFile) {
           file.delete()
         } else {
-            createOrEmptyFolder(file.getAbsolutePath)
-            file.delete()
+          createOrEmptyFolder(file.getAbsolutePath)
+          file.delete()
         }
       }
     } else {
@@ -165,19 +182,15 @@ object BootstrapUtility {
   }
 
   /**
-    * Copies ONE jar file from the source to all target directories. Useful for single packaged jar files.
+    * Copies all jar files from the source to all target directories.
     */
   private def copyJars(sourceDirectory: String, targetDirectories: List[String], logger: ManagedLogger): Unit = {
     val candidates = new File(sourceDirectory)
       .listFiles().filter(f => f.isFile && f.getName.toLowerCase.endsWith(".jar"))
-    if (candidates.length != 1) {
-      logger warn s"Unable to identify jar file in $sourceDirectory"
-    } else {
-      for (targetDirectory <- targetDirectories) {
-        Files.copy(Paths.get(candidates.head.getAbsolutePath),
-          Paths.get(s"$targetDirectory/${candidates.head.getName}"))
-        logger info s"Finished copying file '${candidates.head.getAbsolutePath}' to '$targetDirectory'."
-      }
+    for (targetDirectory <- targetDirectories; file <- candidates) {
+      Files.copy(Paths.get(file.getAbsolutePath),
+        Paths.get(s"$targetDirectory/${file.getName}"))
+      logger info s"Finished copying file '${file.getAbsolutePath}' to '$targetDirectory'."
     }
   }
 }

@@ -83,6 +83,7 @@ lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin director
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
 lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
+lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for deployment, fills deploy folder.")
 lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
 
 pluginBuildFileName := "plugins.sbt"
@@ -96,7 +97,8 @@ fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.valu
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
-deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion, dev = false)
+deployDev := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion, dev = true)
 gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 // ---------------------------------------------------------------------------------------------------------------------

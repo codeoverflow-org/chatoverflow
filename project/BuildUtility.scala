@@ -1,6 +1,7 @@
 import java.io.{File, IOException}
 import java.nio.file.{Files, StandardCopyOption}
 
+import BuildUtility._
 import sbt.internal.util.ManagedLogger
 import sbt.util.{FileFunction, FilesInfo}
 
@@ -233,20 +234,6 @@ class BuildUtility(logger: ManagedLogger) {
     }
   }
 
-  /**
-    * Creates a file listing with all files including files in any sub-dir.
-    *
-    * @param f the directory for which the file listing needs to be created.
-    * @return the file listing as a set of files.
-    */
-  private def recursiveFileListing(f: File): Set[File] = {
-    if (f.isDirectory) {
-      f.listFiles().flatMap(recursiveFileListing).toSet
-    } else {
-      Set(f)
-    }
-  }
-
   private def withTaskInfo(taskName: String)(task: Unit): Unit = BuildUtility.withTaskInfo(taskName, logger)(task)
 }
 
@@ -273,4 +260,17 @@ object BuildUtility {
     logger info s"Finished custom task: $taskName"
   }
 
+  /**
+   * Creates a file listing with all files including files in any sub-dir.
+   *
+   * @param f the directory for which the file listing needs to be created.
+   * @return the file listing as a set of files.
+   */
+  def recursiveFileListing(f: File): Set[File] = {
+    if (f.isDirectory) {
+      f.listFiles().flatMap(recursiveFileListing).toSet
+    } else {
+      Set(f)
+    }
+  }
 }
