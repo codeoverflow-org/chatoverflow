@@ -57,11 +57,11 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
     val sbtContent = new StringBuilder("// GENERATED FILE USING THE CHAT OVERFLOW PLUGIN FRAMEWORK\n")
 
     if (name != "") {
-      sbtContent append "\nname := \"%s\"".format(name.replaceAll("\\", ""))
+      sbtContent append "\nname := \"%s\"".format(name.replaceAll("\\\\", ""))
     }
 
     if (version != "") {
-      sbtContent append "\nversion := \"%s\"".format(version.replaceAll("\\", ""))
+      sbtContent append "\nversion := \"%s\"".format(version.replaceAll("\\\\", ""))
     }
 
     for (plugin <- plugins) {
