@@ -79,8 +79,8 @@ class SbtFile(var name: String, var version: String, var plugins: List[Plugin], 
     }
 
     if (defineRoot) {
-      var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(apiProject, %s)"
-        .format(plugins.map(p => s"`${p.normalizedName}`").mkString(", "))
+      var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(%s)"
+        .format(("apiProject" +: plugins.map(p => s"`${p.normalizedName}`")).mkString(", "))
 
       if (apiProjectPath != "") {
         rootLine += ".dependsOn(apiProject)"
