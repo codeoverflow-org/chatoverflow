@@ -9,7 +9,7 @@
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Package and copy plugins (sbt package copy)" run_configuration_type="SbtRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Full API package (sbt packagedArtifacts)" run_configuration_type="SbtRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Bootstrap Assembly (sbt bs assembly)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="DeployDev (sbt deployDev)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Deploy dev (sbt deployDev)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
 </component>

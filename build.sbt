@@ -94,7 +94,7 @@ guiProjectPath := "gui"
 
 create := PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
 fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
-  pluginTargetFolderNames.value, apiProjectPath.value)
+  pluginTargetFolderNames.value, apiProjectPath.value, apiJarPath = "")
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion, dev = false)

@@ -1,22 +1,24 @@
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 
 /**
-  * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
-  *
-  * @param name           the name of a sbt project
-  * @param version        the version of a sbt project
-  * @param plugins        list of paths of sub projects
-  * @param apiProjectPath the path of a base api project which every project depends on
-  * @param defineRoot     true, if a root project (".") should be defined in the sbt file
-  */
-class SbtFile(var name: String, var version: String, var plugins: List[Plugin], var apiProjectPath: String, var defineRoot: Boolean) {
+ * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
+ *
+ * @param name           the name of a sbt project
+ * @param version        the version of a sbt project
+ * @param plugins        list of paths of sub projects
+ * @param apiProjectPath the path of a base api project which every project depends on
+ * @param apiJarDirPath  the path of a directory containing jar files over the api. Designed to be a fallback to apiProjectPath
+ * @param defineRoot     true, if a root project (".") should be defined in the sbt file
+ */
+class SbtFile(val name: String, val version: String, val plugins: List[Plugin], val apiProjectPath: String,
+              val apiJarDirPath: String, val defineRoot: Boolean) {
   /**
     * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
     *
     * @param name    the name of a sbt project
     * @param version the version of a sbt project
     */
-  def this(name: String, version: String) = this(name, version, List(), "", false)
+  def this(name: String, version: String) = this(name, version, List(), "", "", false)
 
   /**
     * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
@@ -62,25 +64,32 @@ class SbtFile(var name: String, var version: String, var plugins: List[Plugin], 
       sbtContent append "\nversion := \"%s\"".format(version.replaceAll("\\", ""))
     }
 
-    if (plugins.nonEmpty) {
-      for (plugin <- plugins) {
-        var pluginLine = "\nlazy val `%s` = (project in file(\"%s\"))".format(plugin.normalizedName, plugin.pluginDirectoryPath)
+    for (plugin <- plugins) {
+      var pluginLine = "\nlazy val `%s` = (project in file(\"%s\"))".format(plugin.normalizedName, plugin.pluginDirectoryPath)
 
-        if (apiProjectPath != "") {
-          pluginLine += ".dependsOn(apiProject)"
-        }
-
-        sbtContent append pluginLine
+      if (apiProjectPath != "") {
+        pluginLine += ".dependsOn(apiProject)"
+      } else if (apiJarDirPath != "") {
+        pluginLine += ".settings(Compile / unmanagedJars := jars)"
       }
+
+      sbtContent append pluginLine
     }
 
     if (apiProjectPath != "") {
       sbtContent append "\n\nlazy val apiProject = project in file(\"%s\")".format(apiProjectPath)
+    } else if (apiJarDirPath != "") {
+      sbtContent append "\nlazy val jars: Classpath = (file(\"%s\") ** \"chatoverflow-api*.jar\").classpath\n".format(apiJarDirPath)
     }
 
     if (defineRoot) {
+      var aggregateElems = plugins.map(p => s"`${p.normalizedName}`")
+      if (apiProjectPath != "") {
+        aggregateElems = "apiProject" +: aggregateElems
+      }
+
       var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(%s)"
-        .format(("apiProject" +: plugins.map(p => s"`${p.normalizedName}`")).mkString(", "))
+        .format(aggregateElems.mkString(", "))
 
       if (apiProjectPath != "") {
         rootLine += ".dependsOn(apiProject)"
