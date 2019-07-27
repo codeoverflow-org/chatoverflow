@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="[Advanced] Full Reload and Run ChatOverflow" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/ChatOverflow.jar" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Clean (sbt clean)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Fetch plugins (sbt fetch)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Reload (sbt reload)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="List plugin versions (sbt version)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Package and copy plugins (sbt package copy)" run_configuration_type="SbtRunConfiguration" />
+    </method>
+  </configuration>
+</component>

@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Reload (sbt reload)" type="SbtRunConfiguration" factoryName="sbt Task">
+    <!-- for IntelliJ < 2019.2-->
+    <setting name="tasks" value="reload" />
+    <setting name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
+    <setting name="workingDir" value="$PROJECT_DIR$" />
+
+    <!-- for IntelliJ >= 2019.2 -->
+    <option name="allowRunningInParallel" value="false" />
+    <option name="tasks" value="reload" />
+    <option name="useSbtShell" value="false" />
+    <option name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
+    <option name="workingDir" value="$PROJECT_DIR$" />
+
+    <!-- used by all IntelliJ versions -->
+    <envs />
+    <method />
+  </configuration>
+</component>
