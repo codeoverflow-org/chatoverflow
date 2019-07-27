@@ -21,6 +21,15 @@ bootstrap_deploy:
 	sbt bs "project bootstrapProject" assembly
 	sbt deploy
 
+bootstrap_deploy_dev:
+	sbt clean
+	sbt compile
+	sbt gui
+	sbt package copy
+	sbt apiProject/packagedArtifacts
+	sbt bs "project bootstrapProject" assembly
+	sbt deployDev
+
 create:
 	sbt create
 	sbt fetch
@@ -28,6 +37,9 @@ create:
 
 deploy:
 	sbt deploy
+
+deploy_dev:
+	sbt deployDev
 
 fetch:
 	sbt fetch
