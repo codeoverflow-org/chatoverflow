@@ -70,12 +70,12 @@ object BootstrapUtility {
 
     logger info "Updating and modifying dependencies..."
 
-    // Modify dependencies: Remove ChatOverflow and opus-java, add scala library
+    // Modify dependencies: Remove opus-java, add scala library
     // opus-java is a virtual package which instructs sbt or any other build tool to get opus-java-api and opus-java-native.
     // Therefore it doesn't have a jar that needs to be downloaded and sbt includes the requested dependencies in the dependencyList.
     // So we can just ignore it as it can't be resolved and only need to include the requested deps in our xml.
     // Check https://github.com/discord-java/opus-java#opus-java-1 for more information on this.
-    val excludedDeps = List("chatoverflow", "chatoverflow-api", "opus-java")
+    val excludedDeps = List("opus-java")
     val filteredDeps = dependencyList.filter(d => !excludedDeps.contains(d.nameWithoutScalaVersion))
 
     val modifiedDependencies = filteredDeps ++
@@ -135,7 +135,7 @@ object BootstrapUtility {
    * @param logger              the sbt logger
    * @param scalaLibraryVersion the scala library major version
    */
-  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
+  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, dependencies: List[ModuleID]): Unit = {
     // Assuming, before this: clean, package and apiProject/packagedArtifacts
     // Assuming: Hardcoded "bin/" and "deployDev/" folders
     // Assuming: A folder called "deployment-files-dev" with more additional files for plugin developers
@@ -160,6 +160,10 @@ object BootstrapUtility {
         val deployFile = new File(s"deployDev/project/$filepath")
         sbt.IO.copyFile(origFile, deployFile)
       }
+
+      // Fourth step: Create sbt files containing all dependencies
+      val depFile = new SbtFile(dependencies)
+      sbt.IO.write(new File("deployDev/dependencies.sbt"), depFile.toString)
 
       // Last step: Copy additional files
       val devDeploymentFiles = new File("deployment-files-dev/")

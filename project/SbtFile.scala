@@ -1,5 +1,7 @@
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 
+import sbt.librarymanagement.ModuleID
+
 /**
  * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
  *
@@ -9,21 +11,29 @@ import java.io.{BufferedWriter, File, FileWriter, IOException}
  * @param apiProjectPath the path of a base api project which every project depends on
  * @param apiJarDirPath  the path of a directory containing jar files over the api. Designed to be a fallback to apiProjectPath
  * @param defineRoot     true, if a root project (".") should be defined in the sbt file
+ * @param dependencies   library dependencies to add to the sbt file
  */
 class SbtFile(val name: String, val version: String, val plugins: List[Plugin], val apiProjectPath: String,
-              val apiJarDirPath: String, val defineRoot: Boolean) {
+              val apiJarDirPath: String, val defineRoot: Boolean, dependencies: List[ModuleID]) {
   /**
     * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
     *
     * @param name    the name of a sbt project
     * @param version the version of a sbt project
     */
-  def this(name: String, version: String) = this(name, version, List(), "", "", false)
+  def this(name: String, version: String) = this(name, version, List(), "", "", false, List())
 
   /**
     * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
     */
   def this() = this("", "")
+
+  /**
+   * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
+   *
+   * @param dependencies library dependencies to add to the sbt file
+   */
+  def this(dependencies: List[ModuleID]) = this("", "", List(), "", "", false, dependencies)
 
   /**
     * Tries to save the sbt files content into a defined directory.
@@ -96,6 +106,16 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
       }
 
       sbtContent append rootLine
+    }
+
+    if (dependencies.nonEmpty) {
+      sbtContent append "\nresolvers += \"jcenter-bintray\" at \"http://jcenter.bintray.com\"\n"
+
+      // Note that the %% in the string are required to escape the string formatter and will turn into a single %
+      val depString = dependencies.map(m => "\"%s\" %% \"%s\" %% \"%s\"".format(m.organization, m.name, m.revision))
+        .mkString("  ", ",\n  ", "")
+
+      sbtContent append s"libraryDependencies ++= Seq(\n$depString\n)\n"
     }
 
     sbtContent.mkString
