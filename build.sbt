@@ -65,7 +65,7 @@ libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 
 // Socket.io
-libraryDependencies += "io.socket" % "socket.io-client"% "1.0.0"
+libraryDependencies += "io.socket" % "socket.io-client" % "1.0.0"
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
@@ -97,8 +97,8 @@ fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.valu
   pluginTargetFolderNames.value, apiProjectPath.value, apiJarPath = "")
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
-deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion, dev = false)
-deployDev := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion, dev = true)
+deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion)
 gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 // ---------------------------------------------------------------------------------------------------------------------

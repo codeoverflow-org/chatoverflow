@@ -92,44 +92,28 @@ object BootstrapUtility {
   }
 
   /**
-   * Prepares the environemnt for deployment. Should be called after package and assembly task.
+   * Prepares the environment for deployment. Should be called after package and assembly task.
    *
    * @param logger              the sbt logger
    * @param scalaLibraryVersion the scala library major version
-   * @param dev                 whether sbt scripts and stuff for plugin developers should be included
    */
-  def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, dev: Boolean): Unit = {
-    // Assuming, before this: clean, bs, assembly bootstrapProject, package and if dev apiProject/packagedArtifacts
+  def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
+    // Assuming, before this: clean, bs, assembly bootstrapProject, package
     // Assuming: Hardcoded "bin/" and "deploy/" folders
     // Assuming: A folder called "deployment-files" with all additional files (license, bat, etc.)
-    // Assuming: A folder called "deployment-files-dev" with more additional files for plugin developers (only included if dev == true)
 
     withTaskInfo("PREPARE DEPLOYMENT", logger) {
 
       logger info "Started deployment process."
 
-      // First step: Preparing bin folder
-      logger info "Preparing 'bin/' folder."
-      createOrEmptyFolder("bin/")
+      // First step: Create directories
+      createOrEmptyFolder("deployDev")
 
-      // Second step: Preparing deploy folder, copying bin folder, bootstrap launcher, etc.
-      logger info "Preparing 'deploy/' folder."
-      createOrEmptyFolder("deploy/")
-      createOrEmptyFolder("deploy/bin/")
-
-      // Third step: Copying chat overflow files
-      logger info "Copying chat overflow files..."
-
-      val sourceJarDirectories = List(s"target/scala-$scalaLibraryVersion/",
-        s"api/target/scala-$scalaLibraryVersion/")
-
+      // Second step: Create bin directories and copy all binaries
       val targetJarDirectories = List("bin", "deploy/bin")
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion)
 
-      for (sourceDirectory <- sourceJarDirectories) {
-        copyJars(sourceDirectory, targetJarDirectories, logger)
-      }
-
-      // Fourth step: Copy bootstrap launcher
+      // Third step: Copy bootstrap launcher
       copyJars(s"bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
 
       // Last step: Copy additional files
@@ -141,25 +125,66 @@ object BootstrapUtility {
         sbt.IO.copyDirectory(deploymentFiles, new File("deploy/"))
         logger info s"Finished copying additional deployment files."
       }
+    }
+  }
 
-      if (dev) {
-        val devDeploymentFiles = new File("deployment-files-dev/")
-        if (!devDeploymentFiles.exists()) {
-          logger warn "Unable to find dev deployment files."
-        } else {
-          sbt.IO.copyDirectory(devDeploymentFiles, new File("deploy/"))
-          logger info "Finished copying additional dev deployment files."
-        }
+  /**
+   * Prepares the environment for a deployment for plugin developers.
+   * Should be called after package and apiProject/packagedArtifacts task.
+   *
+   * @param logger              the sbt logger
+   * @param scalaLibraryVersion the scala library major version
+   */
+  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
+    // Assuming, before this: clean, package and apiProject/packagedArtifacts
+    // Assuming: Hardcoded "bin/" and "deployDev/" folders
+    // Assuming: A folder called "deployment-files-dev" with more additional files for plugin developers
 
-        val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
-          "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala")
-        for (filepath <- requiredBuildFiles) {
-          val origFile = new File(s"project/$filepath")
-          val deployFile = new File(s"deploy/project/$filepath")
-          sbt.IO.copyFile(origFile, deployFile)
-        }
+    withTaskInfo("PREPARE DEV DEPLOYMENT", logger) {
+
+      logger info "Started deployment process for plugin dev environment."
+
+      // First step: Create directories
+      createOrEmptyFolder("deployDev")
+
+      // Second step: Copy all binaries
+      val targetJarDirectories = List("bin", "deployDev/bin")
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion)
+
+      // Third step: Copy required meta-build files
+      val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
+        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala")
+
+      for (filepath <- requiredBuildFiles) {
+        val origFile = new File(s"project/$filepath")
+        val deployFile = new File(s"deployDev/project/$filepath")
+        sbt.IO.copyFile(origFile, deployFile)
+      }
+
+      // Last step: Copy additional files
+      val devDeploymentFiles = new File("deployment-files-dev/")
+      if (!devDeploymentFiles.exists()) {
+        logger warn "Unable to find dev deployment files."
+      } else {
+        sbt.IO.copyDirectory(devDeploymentFiles, new File("deployDev/"))
+        logger info "Finished copying additional dev deployment files."
       }
     }
+  }
+
+  private def prepareBinDirectories(logger: ManagedLogger, targetDirs: List[String], scalaLibraryVersion: String): Unit = {
+    // First prepare all bin folders
+    targetDirs.foreach(d => {
+      logger info s"Preparing '$d' folder."
+      createOrEmptyFolder(d)
+    })
+
+    // Then copy all binary files
+    logger info "Copying chat overflow files..."
+    val sourceJarDirectories = List(s"target/scala-$scalaLibraryVersion/",
+      s"api/target/scala-$scalaLibraryVersion/")
+
+    sourceJarDirectories.foreach(d => copyJars(d, targetDirs, logger))
   }
 
   /**
@@ -177,7 +202,7 @@ object BootstrapUtility {
         }
       }
     } else {
-      folder.mkdir()
+      folder.mkdirs()
     }
   }
 
