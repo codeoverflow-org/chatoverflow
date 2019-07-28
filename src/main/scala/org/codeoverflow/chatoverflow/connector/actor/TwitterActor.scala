@@ -10,14 +10,14 @@ import scala.concurrent.duration._
 
 
 /**
-  * The file system actor provides simple utility methods to read and write files.
+  * The TwitterActor enables communication with the twitter REST-API over the twitter4s library
   */
 class TwitterActor extends Actor {
 
   /**
-    * Receives either LoadFile or SaveFile object, acts accordingly.
+    * Receives either GetRestClient or a SendTextTweet object, acts accordingly.
     *
-    * @return a loaded file or a boolean if the saving process was successful
+    * @return a TwitterRestClient or a (Boolean, String) as result for API interaction
     */
   override def receive: Receive = {
     case GetRestClient(consumerToken, accessToken, consumerSecret, accessSecret) =>
@@ -26,17 +26,7 @@ class TwitterActor extends Actor {
       } catch {
         case _: Exception => None
       }
-
-    /*case GetTimeline(client, timeout) =>
-      Await.result(client.homeTimeline(count = 1, tweet_mode = TweetMode.Extended), timeout).data.headOption match {
-        case Some(t) => {
-          sender ! Option(t.text)
-        }
-        case None => {
-          sender ! "Test"
-        }
-      }*/
-    case SendTweet(client, status) =>
+    case SendTextTweet(client, status) =>
       try {
         Await.result(client.createTweet(status), 5 seconds)
         sender ! (true, "")
@@ -49,10 +39,22 @@ class TwitterActor extends Actor {
 
 object TwitterActor {
 
+  /**
+    * Initiate a new Rest-Client with the needed API-Keys
+    *
+    * @param consumerToken  Twitter consumer API key
+    * @param accessToken    Twitter access token
+    * @param consumerSecret Twitter consumer API secret key
+    * @param accessSecret   Twitter access token secret
+    */
   case class GetRestClient(consumerToken: String, accessToken: String, consumerSecret: String, accessSecret: String) extends ActorMessage
 
-  //case class GetTimeline(client: TwitterRestClient, timeout: Duration) extends ActorMessage
-
-  case class SendTweet(client: TwitterRestClient, status: String) extends ActorMessage
+  /**
+    * Sends a plaintext tweet for the account the client is connected to
+    *
+    * @param client TwitterRestClient for the account the tweet should be posted on
+    * @param status Text that should be tweeted
+    */
+  case class SendTextTweet(client: TwitterRestClient, status: String) extends ActorMessage
 
 }
