@@ -66,6 +66,8 @@ libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 // Socket.io
 libraryDependencies += "io.socket" % "socket.io-client"% "1.0.0"
 
+unmanagedBase := file("bin")
+
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
