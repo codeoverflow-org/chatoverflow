@@ -29,7 +29,7 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
   override protected var optionalCredentialKeys: List[String] = List()
   private val twitterActor = createActor[TwitterActor]()
 
-  def sendTweet(status: String): Boolean = twitterActor.??[Boolean](5){SendTweet(client, status)}.get
+  def sendTweet(status: String): (Boolean, String) = twitterActor.??[(Boolean, String)](5){SendTweet(client, status)}.get
 
   /*def getTimeline(client: TwitterRestClient, timeout: Duration): Option[String] =
     askActor(TwitterActor, 5, GetTimeline(client, timeout))*/

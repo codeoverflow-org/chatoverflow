@@ -30,6 +30,13 @@ class TwitterConnectorOutputImpl extends OutputImpl[TwitterConnector] with Twitt
   override def stop(): Boolean = true
 
   override def sendTweet(status: String): Boolean = {
-    sourceConnector.get.sendTweet(status)
+    val result = sourceConnector.get.sendTweet(status)
+    if (result._1) {
+      logger info s"Successfully send tweet: $status"
+      true
+    } else {
+      logger error s"Error sending tweet: ${result._2}"
+      false
+    }
   }
 }

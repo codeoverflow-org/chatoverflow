@@ -39,9 +39,9 @@ class TwitterActor extends Actor {
     case SendTweet(client, status) =>
       try {
         Await.result(client.createTweet(status), 5 seconds)
-        sender ! true
+        sender ! (true, "")
       } catch {
-        case _: Exception => sender ! false
+        case e: Exception => sender ! (false, e)
       }
   }
 
