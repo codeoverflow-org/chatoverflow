@@ -60,6 +60,7 @@ class APIUtility(logger: ManagedLogger) {
           }
         }
       }.filter(_.isDefined).map(_.get)
+        .sortBy(x => x.file.getAbsolutePath)
 
     RequirementsFile(new File(sourceDirectory, configurationFolder), "Input", filesWithRequirements.head).createFile()
     RequirementsFile(new File(sourceDirectory, configurationFolder), "Output", filesWithRequirements(1)).createFile()

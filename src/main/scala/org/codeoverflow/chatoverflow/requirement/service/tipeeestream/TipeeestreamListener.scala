@@ -23,6 +23,18 @@ class TipeeestreamListener {
     followEventListeners += listener
   }
 
+  def removeSubscriptionEventListener(listener: JSONObject => Unit): Unit = {
+    subscriptionEventListeners -= listener
+  }
+
+  def removeDonationEventListener(listener: JSONObject => Unit): Unit = {
+    donationEventListeners -= listener
+  }
+
+  def removeFollowEventListener(listener: JSONObject => Unit): Unit = {
+    followEventListeners -= listener
+  }
+
   def onSocketEvent(objects : Array[AnyRef]) : Unit = {
     val json: JSONObject = objects(0).asInstanceOf[JSONObject]
     val event: JSONObject = json.getJSONObject("event")
