@@ -94,11 +94,11 @@ guiProjectPath := "gui"
 
 create := PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
 fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
-  pluginTargetFolderNames.value, apiProjectPath.value, apiJarPath = "")
+  pluginTargetFolderNames.value, apiProjectPath.value)
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
-deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, getDependencyList.value)
+deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, apiProjectPath.value, libraryDependencies.value.toList)
 gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -119,7 +119,7 @@ lazy val getDependencyList = Def.task[List[ModuleID]] {
         m.name == s"chatoverflow_$scalaMajorVersion")
   }
 }
-
+//lazy val x = ModuleID.apply()
 // Clears the built GUI dirs on clean
 cleanFiles += baseDirectory.value / guiProjectPath.value / "dist"
 cleanFiles += baseDirectory.value / "src" / "main" / "resources" / "chatoverflow-gui"

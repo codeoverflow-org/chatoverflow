@@ -34,10 +34,9 @@ class BuildUtility(logger: ManagedLogger) {
    * @param pluginBuildFileName     The generated sbt build file, containing all sub project references. Defined in build.sbt.
    * @param pluginTargetFolderNames The name of the directory, in which all plugins should be copied.
    * @param apiProjectPath          The path of the api project. Chosen over apiJarPath if possible.
-   * @param apiJarPath              The path of a directory which is containing all api jars. Chosen if apiProjectPath is empty.
    */
   def fetchPluginsTask(pluginSourceFolderNames: List[String], pluginBuildFileName: String,
-                       pluginTargetFolderNames: List[String], apiProjectPath: String, apiJarPath: String): Unit = {
+                       pluginTargetFolderNames: List[String], apiProjectPath: String): Unit = {
     withTaskInfo("FETCH PLUGINS") {
 
       // Check validity of plugin source folders
@@ -49,7 +48,7 @@ class BuildUtility(logger: ManagedLogger) {
       val allPlugins = getAllPlugins(pluginSourceFolderNames)
 
       // Create a sbt file with all plugin dependencies (sub projects)
-      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, apiJarPath, defineRoot = true, List())
+      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true, List())
 
       if (sbtFile.save(pluginBuildFileName)) {
         logger info s"Successfully updated plugin file at '$pluginBuildFileName'."

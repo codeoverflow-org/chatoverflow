@@ -98,7 +98,7 @@ object BootstrapUtility {
    * @param scalaLibraryVersion the scala library major version
    */
   def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
-    // Assuming, before this: clean, bs, assembly bootstrapProject, package
+    // Assuming, before this: clean, gui, bs, bootstrapProject/assembly, package
     // Assuming: Hardcoded "bin/" and "deploy/" folders
     // Assuming: A folder called "deployment-files" with all additional files (license, bat, etc.)
 
@@ -111,7 +111,7 @@ object BootstrapUtility {
 
       // Second step: Create bin directories and copy all binaries
       val targetJarDirectories = List("bin", "deploy/bin")
-      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion)
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = true)
 
       // Third step: Copy bootstrap launcher
       copyJars(s"bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
@@ -134,9 +134,11 @@ object BootstrapUtility {
    *
    * @param logger              the sbt logger
    * @param scalaLibraryVersion the scala library major version
+   * @param apiProjectPath      the path to the api project. Used to copy the api into the deployDev directory
+   * @param dependencies        the dependencies of the framework. Used to create a sbt file with them.
    */
-  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, dependencies: List[ModuleID]): Unit = {
-    // Assuming, before this: clean, package and apiProject/packagedArtifacts
+  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String, dependencies: List[ModuleID]): Unit = {
+    // Assuming, before this: clean, gui and package
     // Assuming: Hardcoded "bin/" and "deployDev/" folders
     // Assuming: A folder called "deployment-files-dev" with more additional files for plugin developers
 
@@ -149,11 +151,15 @@ object BootstrapUtility {
 
       // Second step: Copy all binaries
       val targetJarDirectories = List("bin", "deployDev/bin")
-      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion)
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = false)
 
-      // Third step: Copy required meta-build files
+      // Third step: Copy the api
+      sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
+      sbt.IO.delete(new File("deployDev/api/target"))
+
+      // Fourth step: Copy required meta-build files
       val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
-        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala")
+        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala")
 
       for (filepath <- requiredBuildFiles) {
         val origFile = new File(s"project/$filepath")
@@ -161,7 +167,7 @@ object BootstrapUtility {
         sbt.IO.copyFile(origFile, deployFile)
       }
 
-      // Fourth step: Create sbt files containing all dependencies
+      // Fifth step: Create sbt files containing all dependencies
       val depFile = new SbtFile(dependencies)
       sbt.IO.write(new File("deployDev/dependencies.sbt"), depFile.toString)
 
@@ -176,7 +182,7 @@ object BootstrapUtility {
     }
   }
 
-  private def prepareBinDirectories(logger: ManagedLogger, targetDirs: List[String], scalaLibraryVersion: String): Unit = {
+  private def prepareBinDirectories(logger: ManagedLogger, targetDirs: List[String], scalaLibraryVersion: String, copyApi: Boolean): Unit = {
     // First prepare all bin folders
     targetDirs.foreach(d => {
       logger info s"Preparing '$d' folder."
@@ -185,8 +191,10 @@ object BootstrapUtility {
 
     // Then copy all binary files
     logger info "Copying chat overflow files..."
-    val sourceJarDirectories = List(s"target/scala-$scalaLibraryVersion/",
-      s"api/target/scala-$scalaLibraryVersion/")
+    val sourceJarDirectories = if (copyApi)
+      List(s"target/scala-$scalaLibraryVersion/", s"api/target/scala-$scalaLibraryVersion/")
+    else
+      List(s"target/scala-$scalaLibraryVersion/")
 
     sourceJarDirectories.foreach(d => copyJars(d, targetDirs, logger))
   }
