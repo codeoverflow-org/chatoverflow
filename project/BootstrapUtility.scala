@@ -106,8 +106,8 @@ object BootstrapUtility {
 
       logger info "Started deployment process."
 
-      // First step: Create directories
-      createOrEmptyFolder("deployDev")
+      // First step: Create directory
+      createOrEmptyFolder("deploy/")
 
       // Second step: Create bin directories and copy all binaries
       val targetJarDirectories = List("bin", "deploy/bin")
@@ -146,8 +146,8 @@ object BootstrapUtility {
 
       logger info "Started deployment process for plugin dev environment."
 
-      // First step: Create directories
-      createOrEmptyFolder("deployDev")
+      // First step: Create directory
+      createOrEmptyFolder("deployDev/")
 
       // Second step: Copy all binaries
       val targetJarDirectories = List("bin", "deployDev/bin")
@@ -155,7 +155,7 @@ object BootstrapUtility {
 
       // Third step: Copy the api
       sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
-      sbt.IO.delete(new File("deployDev/api/target"))
+      sbt.IO.delete(new File("deployDev/api/target")) // otherwise compiled code would end up in the zip
 
       // Fourth step: Copy required meta-build files
       val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",

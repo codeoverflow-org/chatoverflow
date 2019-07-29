@@ -20,7 +20,7 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
     * @param name    the name of a sbt project
     * @param version the version of a sbt project
     */
-  def this(name: String, version: String) = this(name, version, List(),  "", false, List())
+  def this(name: String, version: String) = this(name, version, List(), "", false, List())
 
   /**
     * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
@@ -88,13 +88,8 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
     }
 
     if (defineRoot) {
-      var aggregateElems = plugins.map(p => s"`${p.normalizedName}`")
-      if (apiProjectPath != "") {
-        aggregateElems = "apiProject" +: aggregateElems
-      }
-
       var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(%s)"
-        .format(aggregateElems.mkString(", "))
+        .format(("apiProject" +: plugins.map(p => s"`${p.normalizedName}`")).mkString(", "))
 
       if (apiProjectPath != "") {
         rootLine += ".dependsOn(apiProject)"
@@ -107,23 +102,28 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
       sbtContent append "\nresolvers += \"jcenter-bintray\" at \"http://jcenter.bintray.com\"\n"
 
       // Note that the %% in the string are required to escape the string formatter and will turn into a single %
-      val depString = dependencies.map(m => {
-        var formatString = ""
-
-        if (m.crossVersion == CrossVersion.binary)
-          formatString += "\"%s\" %%%% \"%s\" %% \"%s\""
-        else
-          formatString += "\"%s\" %% \"%s\" %% \"%s\""
-
-        if (m.configurations.isDefined)
-          formatString += " %% \"%s\""
-
-        formatString.format(m.organization, m.name, m.revision, m.configurations.getOrElse(""))
-      }).mkString("  ", ",\n  ", "")
+      val depString = dependencies.map(m => renderModuleID(m)).mkString("  ", ",\n  ", "")
 
       sbtContent append s"libraryDependencies ++= Seq(\n$depString\n)\n"
     }
 
     sbtContent.mkString
+  }
+
+  /**
+   * Converts a ModuleID instance to a string with the module in the syntax that is used in sbt files.
+   */
+  private def renderModuleID(m: ModuleID): String = {
+    var formatString = ""
+
+    if (m.crossVersion == CrossVersion.binary)
+      formatString += "\"%s\" %%%% \"%s\" %% \"%s\""
+    else
+      formatString += "\"%s\" %% \"%s\" %% \"%s\""
+
+    if (m.configurations.isDefined)
+      formatString += " %% \"%s\""
+
+    formatString.format(m.organization, m.name, m.revision, m.configurations.getOrElse(""))
   }
 }

@@ -83,7 +83,7 @@ lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin director
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
 lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
-lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for deployment, fills deploy folder.")
+lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for plugin developers, fills deployDev folder.")
 lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
 
 pluginBuildFileName := "plugins.sbt"
@@ -119,7 +119,7 @@ lazy val getDependencyList = Def.task[List[ModuleID]] {
         m.name == s"chatoverflow_$scalaMajorVersion")
   }
 }
-//lazy val x = ModuleID.apply()
+
 // Clears the built GUI dirs on clean
 cleanFiles += baseDirectory.value / guiProjectPath.value / "dist"
 cleanFiles += baseDirectory.value / "src" / "main" / "resources" / "chatoverflow-gui"
