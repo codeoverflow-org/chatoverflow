@@ -4,7 +4,7 @@ import java.io.{File, PrintWriter}
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io
-import org.codeoverflow.chatoverflow.api.plugin.configuration.{Requirement, Requirements}
+import org.codeoverflow.chatoverflow.api.plugin.configuration.Requirements
 import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow.framework.PluginFramework
 import org.codeoverflow.chatoverflow.instance.PluginInstanceRegistry
@@ -197,7 +197,7 @@ class ConfigurationService(val configFilePath: String) extends WithLogger {
     * Creates the xml for all requirements of a plugin.
     */
   private def createRequirementXML(requirements: Requirements): Array[Elem] = {
-    val requirementMap = requirements.getRequirementMap
+    val requirementMap = requirements.getAccess.getRequirementMap
     val keys = requirementMap.keySet().toArray
 
     for {
@@ -264,7 +264,7 @@ object ConfigurationService extends WithLogger {
       false
     } else {
       val requirements = instance.get.getRequirements
-      val requirement = requirements.getRequirementById(requirementId)
+      val requirement = requirements.getAccess.getRequirementById(requirementId)
 
       if (!requirement.isPresent) {
         logger error s"Unable to find requirement with the given id '$requirementId'."
@@ -289,7 +289,7 @@ object ConfigurationService extends WithLogger {
 
             try {
               val reqContent = loadedRequirementType.get.newInstance().asInstanceOf[io.Serializable]
-              requirement.get.asInstanceOf[Requirement[io.Serializable]].set(reqContent)
+              requirements.getAccess.setRequirementContent(requirementId, reqContent)
               reqContent.deserialize(content)
 
               logger info s"Created requirement content for '$requirementId' and deserialized its content."

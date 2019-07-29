@@ -92,9 +92,9 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
       } else {
 
         // Next, check for complete requirements
-        if (!getRequirements.isComplete) {
+        if (!getRequirements.getAccess.isComplete) {
           logger error s"At least one non-optional requirement of plugin '$instanceName' has not been set. Unable to start!"
-          logger debug s"Not set requirements: ${getRequirements.getMissingRequirements.toArray.mkString(", ")}."
+          logger debug s"Not set requirements: ${getRequirements.getAccess.getMissingRequirements.toArray.mkString(", ")}."
           false
 
         } else {
@@ -103,7 +103,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
           var allConnectorsReady = true
 
           // Initialize all inputs & outputs
-          val inputRequirements = getRequirements.getInputRequirements.toArray
+          val inputRequirements = getRequirements.getAccess.getInputRequirements.toArray
           for (requirement <- inputRequirements) {
             try {
               val input = requirement.asInstanceOf[Requirement[Input]]
@@ -118,7 +118,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                 logger warn s"Unable to initialize input '$requirement'. Exception: ${e.getMessage}"
             }
           }
-          val outputRequirements = getRequirements.getOutputRequirements.toArray
+          val outputRequirements = getRequirements.getAccess.getOutputRequirements.toArray
           for (requirement <- outputRequirements) {
             try {
               val output = requirement.asInstanceOf[Requirement[Output]]
@@ -177,12 +177,12 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
                 } finally {
 
                   // If the plugin ended or crashed, try to shut down the connectors
-                  val inputRequirements = getRequirements.getInputRequirements.toArray
+                  val inputRequirements = getRequirements.getAccess.getInputRequirements.toArray
                   inputRequirements.filter(_.asInstanceOf[Requirement[_]].isSet).foreach(requirement => {
                     requirement.asInstanceOf[Requirement[Input]].get().shutdown()
                   })
 
-                  val outputRequirements = getRequirements.getOutputRequirements.toArray
+                  val outputRequirements = getRequirements.getAccess.getOutputRequirements.toArray
                   outputRequirements.filter(_.asInstanceOf[Requirement[_]].isSet).foreach(requirement => {
                     requirement.asInstanceOf[Requirement[Output]].get().shutdown()
                   })

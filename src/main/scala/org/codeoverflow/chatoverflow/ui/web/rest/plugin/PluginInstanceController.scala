@@ -43,7 +43,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
             } else if (pluginInstance.get.isRunning) {
               ResultMessage(success = false, "Plugin instance already running.")
 
-            } else if (!pluginInstance.get.getRequirements.isComplete) {
+            } else if (!pluginInstance.get.getRequirements.getAccess.isComplete) {
               ResultMessage(success = false, "Not all required requirements have been set.")
 
             } else if (!pluginInstance.get.start()) {
@@ -93,7 +93,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
         returnSeq
 
       } else {
-        val requirements = pluginInstance.get.getRequirements.getRequirementMap
+        val requirements = pluginInstance.get.getRequirements.getAccess.getRequirementMap
 
         requirements.forEach((uniqueRequirementID, requirement) =>
           returnSeq += createRequirement(uniqueRequirementID, requirement))
@@ -113,7 +113,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
       if (pluginInstance.isEmpty) {
         Requirement("", "", isOptional = false, isSet = false, "", "")
       } else {
-        val requirement = pluginInstance.get.getRequirements.getRequirementById(requirementID)
+        val requirement = pluginInstance.get.getRequirements.getAccess.getRequirementById(requirementID)
 
         if (!requirement.isPresent) {
           Requirement("", "", isOptional = false, isSet = false, "", "")
@@ -143,7 +143,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
             } else if (pluginInstance.get.isRunning) {
               ResultMessage(success = false, "Plugin is running.")
 
-            } else if (!pluginInstance.get.getRequirements.getRequirementById(requirementID).isPresent) {
+            } else if (!pluginInstance.get.getRequirements.getAccess.getRequirementById(requirementID).isPresent) {
               ResultMessage(success = false, "Requirement not found.")
             } else {
 
@@ -178,11 +178,11 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
         } else if (pluginInstance.get.isRunning) {
           ResultMessage(success = false, "Plugin is running.")
 
-        } else if (!pluginInstance.get.getRequirements.getRequirementById(requirementID).isPresent) {
+        } else if (!pluginInstance.get.getRequirements.getAccess.getRequirementById(requirementID).isPresent) {
           ResultMessage(success = false, "Requirement not found.")
         } else {
 
-          if (!pluginInstance.get.getRequirements.unsetRequirementById(requirementID)) {
+          if (!pluginInstance.get.getRequirements.getAccess.unsetRequirementById(requirementID)) {
 
             ResultMessage(success = false, "Unable to remove the requirement. Already removed.")
           } else {
@@ -273,7 +273,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
   = {
     PluginInstance(pluginInstance.instanceName, pluginInstance.getPluginTypeName,
       pluginInstance.getPluginTypeAuthor, pluginInstance.isRunning,
-      pluginInstance.getRequirements.getRequirementMap.keySet().asScala.toList,
+      pluginInstance.getRequirements.getAccess.getRequirementMap.keySet().asScala.toList,
       pluginInstance.getPluginManager.getLogMessages
         .asScala.map(logMessage => PluginLogMessageDTO(logMessage.getMessage, logMessage.getTimestamp.toString)))
   }
