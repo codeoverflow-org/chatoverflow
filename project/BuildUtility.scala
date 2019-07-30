@@ -139,90 +139,69 @@ class BuildUtility(logger: ManagedLogger) {
         return
       }
 
-      if (installGuiDeps(guiDir, cacheDir).isEmpty)
-        return // Early return on failure, error has already been displayed
+      val packageJson = new File(guiDir, "package.json")
 
-      val outDir = buildGui(guiDir, cacheDir)
-      if (outDir.isEmpty)
-        return // Again early return on failure
+      if (!executeNpmCommand(guiDir, cacheDir, Set(packageJson), "install",
+        () => logger error "GUI dependencies couldn't be installed, please check above log for further details.",
+        () => new File(guiDir, "node_modules")
+      )) {
+        return // early return on failure, error has already been displayed
+      }
 
-      // Copy built gui into resources, will be included in the classpath on execution of the framework
-      sbt.IO.copyDirectory(outDir.get, new File("src/main/resources/chatoverflow-gui"))
+      val srcFiles = recursiveFileListing(new File(guiDir, "src"))
+      val outDir = new File(guiDir, "dist")
+
+      if(!executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
+        () => logger error "GUI couldn't be built, please check above log for further details.",
+        () => outDir
+      )) {
+        return // again early return on failure
+      }
+
+      // copy built gui into resources, will be included in the classpath on execution of the framework
+      sbt.IO.copyDirectory(outDir, new File("src/main/resources/chatoverflow-gui"))
     }
   }
 
   /**
-    * Download the dependencies of the gui using npm.
-    *
-    * @param guiDir   the directory of the gui.
-    * @param cacheDir a dir, where sbt can store files for caching in the "install" sub-dir.
-    * @return None, if a error occurs which will be displayed, otherwise the output directory with the built gui.
-    */
-  private def installGuiDeps(guiDir: File, cacheDir: File): Option[File] = {
-    // Check buildGui for a explanation, it's almost the same.
-
-    val install = FileFunction.cached(new File(cacheDir, "install"), FilesInfo.hash)(_ => {
-
-      logger info "Installing GUI dependencies."
-
-      val exitCode = new ProcessBuilder(getNpmCommand :+ "install": _*)
-        .inheritIO()
-        .directory(guiDir)
-        .start()
-        .waitFor()
-
-      if (exitCode != 0) {
-        logger error "GUI dependencies couldn't be installed, please check above log for further details."
-        return None
-      } else {
-        logger info "GUI dependencies successfully installed."
-        Set(new File(guiDir, "node_modules"))
-      }
-    })
-
-    val input = new File(guiDir, "package.json")
-    install(Set(input)).headOption
-  }
-
-  /**
-    * Builds the gui using npm.
-    *
-    * @param guiDir   the directory of the gui.
-    * @param cacheDir a dir, where sbt can store files for caching in the "build" sub-dir.
-    * @return None, if a error occurs which will be displayed, otherwise the output directory with the built gui.
-    */
-  private def buildGui(guiDir: File, cacheDir: File): Option[File] = {
+   * Executes a npm command in the given directory and skips executing the given command
+   * if no input files have changed and the output file still exists.
+   *
+   * @param workDir  the directory in which npm should be executed
+   * @param cacheDir a directory required for caching using sbt
+   * @param inputs   the input files, which will be used for caching.
+   *                 If any one of these files change the cache is invalidated.
+   * @param command  the npm command to execute
+   * @param failed   called if npm returned an non-zero exit code
+   * @param success  called if npm returned successfully. Needs to return a file for caching.
+   *                 If the returned file doesn't exist the npm command will ignore the cache.
+   * @return true if npm returned zero as a exit code and false otherwise
+   */
+  private def executeNpmCommand(workDir: File, cacheDir: File, inputs: Set[File], command: String,
+                                failed: () => Unit, success: () => File): Boolean = {
     // sbt allows easily to cache our external build using FileFunction.cached
     // sbt will only invoke the passed function when at least one of the input files (passed in the last line of this method)
     // has been modified. For the gui these input files are all files in the src directory of the gui and the package.json.
     // sbt passes these input files to the passed function, but they aren't used, we just instruct npm to build the gui.
     // sbt invalidates the cache as well if any of the output files (returned by the passed function) doesn't exist anymore.
-
-    val build = FileFunction.cached(new File(cacheDir, "build"), FilesInfo.hash)(_ => {
-
-      logger info "Building GUI."
-
-      val buildExitCode = new ProcessBuilder(getNpmCommand :+ "run" :+ "build": _*)
+    val cachedFn = FileFunction.cached(new File(cacheDir, command), FilesInfo.hash) { _ => {
+      val exitCode = new ProcessBuilder(getNpmCommand ++ command.split("\\s+"): _*)
         .inheritIO()
-        .directory(guiDir)
+        .directory(workDir)
         .start()
         .waitFor()
 
-      if (buildExitCode != 0) {
-        logger error "GUI couldn't be built, please check above log for further details."
-        return None
+      if (exitCode != 0) {
+        failed()
+        return false
       } else {
-        logger info "GUI successfully built."
-        Set(new File(guiDir, "dist"))
+        Set(success())
       }
-    })
+    }
+    }
 
-
-    val srcDir = new File(guiDir, "src")
-    val packageJson = new File(guiDir, "package.json")
-    val inputs = recursiveFileListing(srcDir) + packageJson
-
-    build(inputs).headOption
+    cachedFn(inputs)
+    true
   }
 
   private def getNpmCommand: List[String] = {
