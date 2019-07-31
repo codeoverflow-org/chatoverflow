@@ -37,6 +37,3 @@ project/plugins/project/
 
 # Plugin Data
 data/
-
-# Built gui
-/src/main/resources/chatoverflow-gui

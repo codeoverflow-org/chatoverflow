@@ -1,8 +1,12 @@
 import java.io.{File, IOException}
 import java.nio.file.{Files, StandardCopyOption}
+import java.util.jar.Manifest
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import sbt.internal.util.ManagedLogger
 import sbt.util.{FileFunction, FilesInfo}
+
+import scala.io.Source
 
 /**
   * A build utility instance handles build tasks and prints debug information using the managed logger.
@@ -151,15 +155,10 @@ class BuildUtility(logger: ManagedLogger) {
       val srcFiles = recursiveFileListing(new File(guiDir, "src"))
       val outDir = new File(guiDir, "dist")
 
-      if(!executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
+      executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
         () => logger error "GUI couldn't be built, please check above log for further details.",
         () => outDir
-      )) {
-        return // again early return on failure
-      }
-
-      // copy built gui into resources, will be included in the classpath on execution of the framework
-      sbt.IO.copyDirectory(outDir, new File("src/main/resources/chatoverflow-gui"))
+      )
     }
   }
 
@@ -210,6 +209,30 @@ class BuildUtility(logger: ManagedLogger) {
     } else {
       List("npm")
     }
+  }
+
+  def packageGUITask(guiProjectPath: String, scalaMajorVersion: String, crossTargetDir: File): Unit = {
+    val dir = new File(guiProjectPath, "dist")
+    if (!dir.exists()) {
+      return
+    }
+
+    val files = recursiveFileListing(dir)
+
+    // contains tuples with the actual file as the first value and the name with directory in the jar as the second value
+    val jarEntries = files.map(file => (file, "/chatoverflow-gui/" + dir.toURI.relativize(file.toURI)))
+
+    val guiVersion = getGUIVersion(guiProjectPath)
+
+    sbt.IO.jar(jarEntries, new File(crossTargetDir, s"chatoverflow-gui_$scalaMajorVersion-$guiVersion.jar"), new Manifest())
+  }
+
+  private def getGUIVersion(guiProjectPath: String): String = {
+    val packageJson = Source.fromFile(s"$guiProjectPath/package.json")
+    val version = new ObjectMapper().reader().readTree(packageJson.mkString).get("version").asText()
+
+    packageJson.close()
+    version
   }
 
   /**
