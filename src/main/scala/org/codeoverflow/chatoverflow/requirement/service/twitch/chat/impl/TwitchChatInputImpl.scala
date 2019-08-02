@@ -103,6 +103,8 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
     if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
   }
 
+  override def getUsername: String = sourceConnector.get.getUsername
+
   /**
     * Stops the input, called before source connector will shutdown
     *

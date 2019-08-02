@@ -14,7 +14,7 @@ class TwitchChatConnectListener(fn: (Boolean, String) => Unit) extends ListenerA
   override def onEvent(event: Event): Unit = {
     event match {
       case _: ConnectEvent => fn(true, "")
-      case e: ConnectAttemptFailedEvent => fn(false, "couldn't connect to irc chat server")
+      case _: ConnectAttemptFailedEvent => fn(false, "couldn't connect to irc chat server")
       case e: NoticeEvent =>
         if (e.getNotice.contains("authentication failed")) {
           fn(false, "authentication failed")
