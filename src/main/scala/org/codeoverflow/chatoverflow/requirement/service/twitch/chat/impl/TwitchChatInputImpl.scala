@@ -30,6 +30,7 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
   private val emoticonRegex = """(\d+)-(\d+)""".r
 
   private var currentChannel: Option[String] = None
+  private var ignoreOwnMessages = false
 
   private val onMessageFn = onMessage _
   private val onUnknownFn = onUnknown _
@@ -41,7 +42,9 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
   }
 
   private def onMessage(event: MessageEvent): Unit = {
-    if (currentChannel.isDefined && event.getChannelSource == currentChannel.get) {
+    if (currentChannel.isDefined && event.getChannelSource == currentChannel.get
+      && (!ignoreOwnMessages || event.getUser.getNick.toLowerCase != getUsername)) {
+
       val message = event.getMessage
       val color = if (event.getV3Tags.get("color").contains("#")) event.getV3Tags.get("color") else ""
       val subscriber = event.getV3Tags.get("subscriber") == "1"
@@ -104,6 +107,8 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
   }
 
   override def getUsername: String = sourceConnector.get.getUsername
+
+  override def ignoreOwnMessages(ignore: Boolean): Unit = this.ignoreOwnMessages = ignore
 
   /**
     * Stops the input, called before source connector will shutdown
