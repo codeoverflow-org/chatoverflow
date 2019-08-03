@@ -15,7 +15,6 @@ simple_run:
 
 bootstrap_deploy:
 	sbt clean
-	sbt compile
 	sbt gui
 	sbt package copy
 	sbt bs "project bootstrapProject" assembly
@@ -23,11 +22,8 @@ bootstrap_deploy:
 
 bootstrap_deploy_dev:
 	sbt clean
-	sbt compile
 	sbt gui
 	sbt package copy
-	sbt apiProject/packagedArtifacts
-	sbt bs "project bootstrapProject" assembly
 	sbt deployDev
 
 create:
