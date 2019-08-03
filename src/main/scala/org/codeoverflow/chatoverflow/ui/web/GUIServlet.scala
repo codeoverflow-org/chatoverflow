@@ -24,7 +24,7 @@ class GUIServlet extends ScalatraServlet with WithLogger {
     // directory couldn't be found
     if (res == null) {
       logger error "GUI couldn't be found on the classpath! Has the GUI been built?"
-      null
+      None
     } else {
       // remove the path inside the jar and only keep the file path to the jar file
       val jarPath = res.getFile.split("!").head

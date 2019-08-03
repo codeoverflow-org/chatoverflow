@@ -214,25 +214,38 @@ class BuildUtility(logger: ManagedLogger) {
   def packageGUITask(guiProjectPath: String, scalaMajorVersion: String, crossTargetDir: File): Unit = {
     val dir = new File(guiProjectPath, "dist")
     if (!dir.exists()) {
+      logger info "GUI hasn't been compiled. Won't create a jar for it."
       return
     }
 
     val files = recursiveFileListing(dir)
 
     // contains tuples with the actual file as the first value and the name with directory in the jar as the second value
-    val jarEntries = files.map(file => (file, "/chatoverflow-gui/" + dir.toURI.relativize(file.toURI)))
+    val jarEntries = files.map(file => file -> s"/chatoverflow-gui/${dir.toURI.relativize(file.toURI).toString}")
 
-    val guiVersion = getGUIVersion(guiProjectPath)
+    val guiVersion = getGUIVersion(guiProjectPath).getOrElse("unknown")
 
     sbt.IO.jar(jarEntries, new File(crossTargetDir, s"chatoverflow-gui_$scalaMajorVersion-$guiVersion.jar"), new Manifest())
   }
 
-  private def getGUIVersion(guiProjectPath: String): String = {
-    val packageJson = Source.fromFile(s"$guiProjectPath/package.json")
-    val version = new ObjectMapper().reader().readTree(packageJson.mkString).get("version").asText()
+  private def getGUIVersion(guiProjectPath: String): Option[String] = {
+    val packageJson = new File(s"$guiProjectPath/package.json")
+    if (!packageJson.exists()) {
+      logger error "The package.json file of the GUI doesn't exist. Have you cloned the GUI in the correct directory?"
+      return None
+    }
 
-    packageJson.close()
-    version
+    val content = Source.fromFile(packageJson)
+    val version = new ObjectMapper().reader().readTree(content.mkString).get("version").asText()
+
+    content.close()
+
+    if (version.isEmpty) {
+      logger warn "The GUI version couldn't be loaded from the package.json."
+      None
+    } else {
+      Option(version)
+    }
   }
 
   /**
