@@ -100,7 +100,7 @@ object BootstrapUtility {
   def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
     // Assuming, before this: clean, gui, bs, bootstrapProject/assembly, package
     // Assuming: Hardcoded "bin/" and "deploy/" folders
-    // Assuming: A folder called "deployment-files" with all additional files (license, bat, etc.)
+    // Assuming: A folder called "deployment-files/end-user/" with all additional files (license, bat, etc.)
 
     withTaskInfo("PREPARE DEPLOYMENT", logger) {
 
@@ -118,7 +118,7 @@ object BootstrapUtility {
 
       // Last step: Copy additional files
       logger info "Copying additional deployment files..."
-      val deploymentFiles = new File("deployment-files/")
+      val deploymentFiles = new File("deployment-files/end-user/")
       if (!deploymentFiles.exists()) {
         logger warn "Unable to find deployment files."
       } else {
@@ -140,7 +140,7 @@ object BootstrapUtility {
   def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String, dependencies: List[ModuleID]): Unit = {
     // Assuming, before this: clean, gui and package
     // Assuming: Hardcoded "bin/" and "deployDev/" folders
-    // Assuming: A folder called "deployment-files-dev" with more additional files for plugin developers
+    // Assuming: A folder called "deployment-files/plugin-dev/" with more additional files for plugin developers
 
     withTaskInfo("PREPARE DEV DEPLOYMENT", logger) {
 
@@ -172,7 +172,7 @@ object BootstrapUtility {
       sbt.IO.write(new File("deployDev/dependencies.sbt"), depFile.toString)
 
       // Last step: Copy additional files
-      val devDeploymentFiles = new File("deployment-files-dev/")
+      val devDeploymentFiles = new File("deployment-files/plugin-dev/")
       if (!devDeploymentFiles.exists()) {
         logger warn "Unable to find dev deployment files."
       } else {
