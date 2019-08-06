@@ -36,4 +36,7 @@ project/plugins/project/
 /wiki/
 
 # Plugin Data
-data/
+/data/
+
+# Log Output
+/log/

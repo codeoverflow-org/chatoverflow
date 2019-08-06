@@ -53,6 +53,8 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
 
   def isJoined(channel: String): Boolean = channels.contains(channel)
 
+  def getUsername: String = bot.getNick
+
   private def getConfig: Configuration = {
 
     if (credentials.isDefined) {

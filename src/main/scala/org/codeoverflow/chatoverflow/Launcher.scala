@@ -1,5 +1,9 @@
 package org.codeoverflow.chatoverflow
 
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+
+import org.apache.log4j.{FileAppender, Level, Logger, PatternLayout}
 import org.codeoverflow.chatoverflow.ui.CLI.parse
 import org.codeoverflow.chatoverflow.ui.web.Server
 
@@ -18,6 +22,24 @@ object Launcher extends WithLogger {
     */
   def main(args: Array[String]): Unit = {
     parse(args) { config =>
+
+      // Enable logging to log files if specified
+      if (config.logFileOutput) {
+        val fileName = s"log/${
+          OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss-SSS"))
+        }.log"
+
+        // Try to retrieve the console appender layout or create a default one
+        val pattern = if (logger.getAppender("CA") != null) {
+          logger.getAppender("CA").getLayout
+        } else new PatternLayout("%-4r %d{HH:mm:ss.SSS} [%t] %-5p %c{2} %x - %m%n")
+
+        // This is the pattern from our basic console logger
+        val appender = new FileAppender(pattern, fileName, true)
+        appender.setThreshold(Level.ALL)
+
+        Logger.getRootLogger.addAppender(appender)
+      }
 
       // Set globally available plugin data path
       this.pluginDataPath = config.pluginDataPath
@@ -56,6 +78,8 @@ object Launcher extends WithLogger {
           logger warn "Unable to run startup plugins. No/wrong password supplied."
         }
       }
+
+      Runtime.getRuntime.addShutdownHook(new Thread(() => exit()))
     }
   }
 
@@ -98,6 +122,5 @@ object Launcher extends WithLogger {
     }
 
     logger info "Bye Bye. Stay minzig!"
-    System.exit(0)
   }
 }

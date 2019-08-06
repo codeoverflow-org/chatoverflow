@@ -29,6 +29,8 @@ class TwitchChatOutputImpl extends OutputImpl[chat.TwitchChatConnector] with Twi
     if (!sourceConnector.get.isJoined(currentChannel.get)) sourceConnector.get.joinChannel(currentChannel.get)
   }
 
+  override def getUsername: String = sourceConnector.get.getUsername
+
   /**
     * Stops the output, called before source connector will shutdown
     *
