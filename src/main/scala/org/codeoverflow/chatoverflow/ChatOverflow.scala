@@ -1,5 +1,6 @@
 package org.codeoverflow.chatoverflow
 
+import java.io.File
 import java.security.Policy
 
 import org.codeoverflow.chatoverflow.api.APIVersion
@@ -49,6 +50,9 @@ class ChatOverflow(val pluginFolderPath: String,
 
     logger debug "Initialization started."
 
+    logger debug "Ensuring that all required directories exist."
+    createDirectories()
+
     logger debug "Enabling framework security policy."
     enableFrameworkSecurity()
 
@@ -97,6 +101,11 @@ class ChatOverflow(val pluginFolderPath: String,
   private def enableFrameworkSecurity(): Unit = {
     Policy.setPolicy(new SandboxSecurityPolicy)
     System.setSecurityManager(new SecurityManager)
+  }
+
+  private def createDirectories(): Unit = {
+    Set(pluginFolderPath, configFolderPath, Launcher.pluginDataPath)
+      .foreach(path => new File(path).mkdir())
   }
 
   /**
