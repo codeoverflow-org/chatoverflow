@@ -38,7 +38,7 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
       // Give enough time to return success. Then bye bye
       new Thread(() => {
         Thread.sleep(500)
-        Launcher.exit()
+        System.exit(0) // Shutdown hook takes care to stop everything (registered on startup by the Launcher)
       }).start()
       ResultMessage(success = true)
     }

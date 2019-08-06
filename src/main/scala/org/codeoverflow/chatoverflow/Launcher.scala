@@ -78,6 +78,8 @@ object Launcher extends WithLogger {
           logger warn "Unable to run startup plugins. No/wrong password supplied."
         }
       }
+
+      Runtime.getRuntime.addShutdownHook(new Thread(() => exit()))
     }
   }
 
@@ -120,6 +122,5 @@ object Launcher extends WithLogger {
     }
 
     logger info "Bye Bye. Stay minzig!"
-    System.exit(0)
   }
 }
