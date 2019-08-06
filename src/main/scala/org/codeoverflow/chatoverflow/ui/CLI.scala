@@ -37,6 +37,9 @@ object CLI {
     opt[Unit]('o', "enablePluginOutput").action((_, c) =>
       c.copy(pluginLogOutputOnConsole = true)).text("set this flag to enable plugin log output on console")
 
+    opt[Unit]('f', "enableLogFile").action((_, c) =>
+      c.copy(logFileOutput = true)).text("set this flag to enable logging to log files")
+
     help("help").hidden().text("prints this usage text")
 
     note("\nFor more information, please visit http://codeoverflow.org/")
@@ -65,6 +68,7 @@ object CLI {
                     pluginDataPath: String = "data",
                     webServerPort: Int = 2400,
                     pluginLogOutputOnConsole: Boolean = false,
+                    logFileOutput: Boolean = false,
                     loginPassword: Array[Char] = Array[Char](),
                     startupPlugins: Seq[String] = Seq[String]())
 

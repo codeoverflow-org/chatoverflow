@@ -36,7 +36,10 @@ project/plugins/project/
 /wiki/
 
 # Plugin Data
-data/
+/data/
+
+# Log Output
+/log/
 
 # Built gui
 /src/main/resources/chatoverflow-gui
