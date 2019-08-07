@@ -1,26 +1,29 @@
+package org.codeoverflow.chatoverflow.build.deployment
+
 import java.io.File
 import java.nio.file.{Files, Paths}
 
-import BuildUtility.withTaskInfo
+import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
+import org.codeoverflow.chatoverflow.build.SbtFile
 import sbt.internal.util.ManagedLogger
 import sbt.librarymanagement.ModuleID
 
 import scala.xml.XML
 
 /**
-  * Holds the functionality to read all dependencies and feed the bootstrap launcher with this information.
-  * Should be used once for every new public version of chat overflow.
-  */
+ * Holds the functionality to read all dependencies and feed the bootstrap launcher with this information.
+ * Should be used once for every new public version of chat overflow.
+ */
 object BootstrapUtility {
   val dependencyProjectBasePath = "bootstrap/src/main"
   val dependencyXMLFileName = s"$dependencyProjectBasePath/resources/dependencies.xml"
 
   /**
-    * This task retrieves all dependencies and creates a xml file for the bootstrap launcher.
-    *
-    * @param logger              the sbt logger
-    * @param scalaLibraryVersion the current scala library version
-    */
+   * This task retrieves all dependencies and creates a xml file for the bootstrap launcher.
+   *
+   * @param logger              the sbt logger
+   * @param scalaLibraryVersion the current scala library version
+   */
   def bootstrapGenTask(logger: ManagedLogger, scalaLibraryVersion: String, modules: List[ModuleID]): Unit = {
     withTaskInfo("BOOTSTRAP GENERATION", logger) {
 
@@ -31,8 +34,8 @@ object BootstrapUtility {
   }
 
   /**
-    * Saves all dependencies as XML in the bootstrap launcher dependency xml file.
-    */
+   * Saves all dependencies as XML in the bootstrap launcher dependency xml file.
+   */
   private def saveDependencyXML(dependencyList: List[Dependency], logger: ManagedLogger): Unit = {
 
     logger info "Started saving dependency XML."
@@ -54,9 +57,9 @@ object BootstrapUtility {
   }
 
   /**
-    * Converts passed modules to a list of Dependency, resolves them to urls, filters out codeoverflow
-    * and adds the scala library to the list.
-    */
+   * Converts passed modules to a list of Dependency, resolves them to urls, filters out codeoverflow
+   * and adds the scala library to the list.
+   */
   private def retrieveDependencies(logger: ManagedLogger, scalaLibraryVersion: String, modules: List[ModuleID]): List[Dependency] = {
 
     logger info "Starting dependency retrieval."
@@ -139,7 +142,7 @@ object BootstrapUtility {
    */
   def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String, dependencies: List[ModuleID]): Unit = {
     // Assuming, before this: clean, gui and package
-    // Assuming: Hardcoded "bin/" and "deployDev/" folders
+    // Assuming: Hardcoded "bin/", "deployDev/" and "build/" folders
     // Assuming: A folder called "deployment-files/plugin-dev/" with more additional files for plugin developers
 
     withTaskInfo("PREPARE DEV DEPLOYMENT", logger) {
@@ -157,27 +160,19 @@ object BootstrapUtility {
       sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
       sbt.IO.delete(new File("deployDev/api/target")) // otherwise compiled code would end up in the zip
 
-      // Fourth step: Copy required meta-build files
-
-      // Everything in /project
-      val requiredMetaBuildFiles = Set("build.properties", "dependencies.sbt")
-      for (filepath <- requiredMetaBuildFiles) {
+      // Fourth step: Copy required build files
+      val requiredProjectFiles = Set("build.properties", "dependencies.sbt")
+      for (filepath <- requiredProjectFiles) {
         val origFile = new File(s"project/$filepath")
         val deployFile = new File(s"deployDev/project/$filepath")
         sbt.IO.copyFile(origFile, deployFile)
       }
 
-      // Everything in /build
-      val requiredBuildFiles = Set("BuildUtility.scala", "Plugin.scala", "PluginCreateWizard.scala",
-        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala")
+      sbt.IO.copyDirectory(new File("build"), new File("deployDev/build"))
 
-      for (filepath <- requiredBuildFiles) {
-        val origFile = new File(s"build/src/main/scala/$filepath")
-        val deployFile = new File(s"deployDev/build/src/main/scala/$filepath")
-        sbt.IO.copyFile(origFile, deployFile)
-      }
-
-      sbt.IO.copyFile(new File("build/build.sbt"), new File("deployDev/build/build.sbt")) // sbt file for the build project
+      val packageDir = "deployDev/build/src/main/scala/org/codeoverflow/chatoverflow/build"
+      sbt.IO.delete(new File(packageDir, "deployment"))
+      sbt.IO.delete(new File(packageDir, "GUIUtility.scala"))
 
       // Fifth step: Create sbt files containing all dependencies
       val depFile = new SbtFile(dependencies)
@@ -212,8 +207,8 @@ object BootstrapUtility {
   }
 
   /**
-    * Creates a directory or empties it, by recursively deleting files and sub directories.
-    */
+   * Creates a directory or empties it, by recursively deleting files and sub directories.
+   */
   private def createOrEmptyFolder(path: String): Unit = {
     val folder = new File(path)
     if (folder.exists()) {
@@ -231,8 +226,8 @@ object BootstrapUtility {
   }
 
   /**
-    * Copies all jar files from the source to all target directories.
-    */
+   * Copies all jar files from the source to all target directories.
+   */
   private def copyJars(sourceDirectory: String, targetDirectories: List[String], logger: ManagedLogger): Unit = {
     val candidates = new File(sourceDirectory)
       .listFiles().filter(f => f.isFile && f.getName.toLowerCase.endsWith(".jar"))

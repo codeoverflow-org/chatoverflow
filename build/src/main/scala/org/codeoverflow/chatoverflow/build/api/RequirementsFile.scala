@@ -1,17 +1,19 @@
+package org.codeoverflow.chatoverflow.build.api
+
 import java.io.{File, PrintWriter}
 
 /**
-  * Represents a requirements class which is used by plugin devs to require inputs / outputs and parameters.
-  *
-  * @param requirementsDirectory the requirements directory in the api project
-  * @param requirementType       the type of the requirements class (input / output / parameter)
-  * @param files                 all found annotated source files which can be required
-  */
+ * Represents a requirements class which is used by plugin devs to require inputs / outputs and parameters.
+ *
+ * @param requirementsDirectory the requirements directory in the api project
+ * @param requirementType       the type of the requirements class (input / output / parameter)
+ * @param files                 all found annotated source files which can be required
+ */
 class RequirementsFile(requirementsDirectory: File, requirementType: String, files: Seq[AnnotatedRequirement]) {
 
   /**
-    * Creates the requirement file and saves it into the api.
-    */
+   * Creates the requirement file and saves it into the api.
+   */
   def createFile(): Unit = {
     val fileContent = generateContent()
 
@@ -85,7 +87,7 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
          |        return requirements.require$requirementType(uniqueRequirementId, displayName, isOptional, $className.class);
          |    }
          |
-       |"""
+         |"""
     } else {
       val displayName = "\"" + s"${generatedName.map(c => if (c.isUpper) " " + c else c).mkString.trim}" + "\""
 
@@ -99,7 +101,7 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
          |        return requirements.require$requirementType(uniqueRequirementId, $displayName, false, $className.class);
          |    }
          |
-       |"""
+         |"""
     }
   }
 }

@@ -2,6 +2,25 @@
 // PROJECT INFORMATION
 // ---------------------------------------------------------------------------------------------------------------------
 
+/*
+ * A brief introduction of the sbt related folder structure:
+ *       root
+ *       |  build.sbt
+ *       |  plugins.sbt (produced by the fetch task)
+ *       |  -> api project (required to build plugins and the framework)
+ *       |  -> a plugin source directory
+ *       |  -> -> a plugin folder = plugin
+ *       |  -> -> -> build.sbt
+ *       |  -> -> -> source etc.
+ *       |  -> -> another folder = another plugin
+ *       |  -> -> -> build.sbt
+ *       |  -> -> -> source etc.
+ *       |  -> another plugin source directory (optional)
+ *       |  -> gui project (build will be skipped, if missing)
+ *       |  -> bootstrap launcher (for end-user deployments)
+ *       |  -> build project (contains code for all sbt tasks and sbt related things)
+ */
+
 name := "ChatOverflow"
 version := "0.3"
 mainClass := Some("org.codeoverflow.chatoverflow.Launcher")
@@ -96,17 +115,22 @@ pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plu
 apiProjectPath := "api"
 guiProjectPath := "gui"
 
+
+import org.codeoverflow.chatoverflow.build.GUIUtility
+import org.codeoverflow.chatoverflow.build.deployment.BootstrapUtility
+import org.codeoverflow.chatoverflow.build.plugins.{PluginUtility, PluginCreateWizard}
+
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
-fetch := new BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
+fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
-copy := new BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
+copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
 deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, apiProjectPath.value, libraryDependencies.value.toList)
-gui := new BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
+gui := new GUIUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 Compile / packageBin := {
-  new BuildUtility(streams.value.log).packageGUITask(guiProjectPath.value, scalaMajorVersion, crossTarget.value)
+  new GUIUtility(streams.value.log).packageGUITask(guiProjectPath.value, scalaMajorVersion, crossTarget.value)
   (Compile / packageBin).value
 }
 

@@ -1,17 +1,18 @@
+package org.codeoverflow.chatoverflow.build.plugins
+
 import java.io.File
 
-import BuildUtility._
-import PluginCreateWizard._
+import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
+import org.codeoverflow.chatoverflow.build.plugins.PluginCreateWizard.askForInput
 import sbt.internal.util.ManagedLogger
 
-
 class PluginCreateWizard(logger: ManagedLogger) {
-  
+
   /**
-    * Creates a new plugin. Interactive command using the console.
-    *
-    * @param pluginFolderNames All folder names, containing plugin source code. Defined in build.sbt.
-    */
+   * Creates a new plugin. Interactive command using the console.
+   *
+   * @param pluginFolderNames All folder names, containing plugin source code. Defined in build.sbt.
+   */
   def createPluginTask(pluginFolderNames: List[String]): Unit = {
     withTaskInfo("CREATE PLUGIN", logger) {
 

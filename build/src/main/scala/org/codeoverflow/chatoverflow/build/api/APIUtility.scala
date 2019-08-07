@@ -1,22 +1,25 @@
+package org.codeoverflow.chatoverflow.build.api
+
 import java.io.File
 
+import org.codeoverflow.chatoverflow.build.BuildUtils
 import sbt.internal.util.ManagedLogger
 import sbt.io.IO
 
 import scala.io.Source
 
 /**
-  * The API utility encapsulates methods for building the chatoverflow API.
-  *
-  * @param logger The current logger instance. Usually: {{{streams.value.log}}}
-  */
+ * The API utility encapsulates methods for building the chatoverflow API.
+ *
+ * @param logger The current logger instance. Usually: {{{streams.value.log}}}
+ */
 class APIUtility(logger: ManagedLogger) {
 
   /**
-    * Generates the requirement classes input, output and parameter from annotated types in the api.
-    *
-    * @param sourceDirectory the sourceDirectory from sbt {{{sourceDirectory.value}}}
-    */
+   * Generates the requirement classes input, output and parameter from annotated types in the api.
+   *
+   * @param sourceDirectory the sourceDirectory from sbt {{{sourceDirectory.value}}}
+   */
   def generatedRequirements(sourceDirectory: File): Unit = {
     // Short explanation: Using reflection would cause strong circular dependencies between api and build environment.
     // So, looking up the source files is considered a dirty but "cleaner" solution
@@ -33,7 +36,7 @@ class APIUtility(logger: ManagedLogger) {
       """@IsRequirement\s*(\((([a-zA-Z]*)\s*=\s*"([^"]*)",?\s*)?(([a-zA-Z]*)\s*=\s*"([^"]*)",?\s*)?\))?""".r
 
     val ioDirectory = new File(sourceDirectory, ioFolder)
-    val sourceFiles = requirementTypes.map(req => new File(ioDirectory, req)).map(getAllChilds)
+    val sourceFiles = requirementTypes.map(req => new File(ioDirectory, req)).map(BuildUtils.getAllDirectoryChilds)
 
     // Creates a list with 3 sub lists of all files of a kind (input/output/parameter) containing requirement annotations
     val filesWithRequirements =
@@ -59,8 +62,8 @@ class APIUtility(logger: ManagedLogger) {
               Some(AnnotatedRequirement(sourceFile, requires, methodName))
           }
         }
-      }.filter(_.isDefined).map(_.get)
-        .sortBy(x => x.file.getAbsolutePath)
+        }.filter(_.isDefined).map(_.get)
+        .toList.sortBy(x => x.file.getAbsolutePath)
 
     RequirementsFile(new File(sourceDirectory, configurationFolder), "Input", filesWithRequirements.head).createFile()
     RequirementsFile(new File(sourceDirectory, configurationFolder), "Output", filesWithRequirements(1)).createFile()
@@ -68,12 +71,12 @@ class APIUtility(logger: ManagedLogger) {
   }
 
   /**
-    * Generates the API version file based on the values in the build file.
-    *
-    * @param sourceDirectory the sourceDirectory from sbt {{{sourceDirectory.value}}}
-    * @param majorVersion    the major api version
-    * @param minorVersion    the minor api version
-    */
+   * Generates the API version file based on the values in the build file.
+   *
+   * @param sourceDirectory the sourceDirectory from sbt {{{sourceDirectory.value}}}
+   * @param majorVersion    the major api version
+   * @param minorVersion    the minor api version
+   */
   def generateAPIVersionFile(sourceDirectory: File, majorVersion: Int, minorVersion: Int): Unit = {
     val file = new File(sourceDirectory, "main/java/org/codeoverflow/chatoverflow/api/APIVersion.java")
     IO.write(file,
@@ -88,11 +91,6 @@ class APIUtility(logger: ManagedLogger) {
         |}
         |""".stripMargin.format(majorVersion, minorVersion))
   }
-
-  private def getAllChilds(directory: File): Seq[File] = {
-    directory.listFiles().filter(_.isFile) ++ directory.listFiles().filter(_.isDirectory).flatMap(getAllChilds)
-  }
-
 }
 
 case class AnnotatedRequirement(file: File, requires: String = "", methodName: String = "")
