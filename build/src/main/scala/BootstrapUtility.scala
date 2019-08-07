@@ -158,15 +158,26 @@ object BootstrapUtility {
       sbt.IO.delete(new File("deployDev/api/target")) // otherwise compiled code would end up in the zip
 
       // Fourth step: Copy required meta-build files
-      val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
-        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala",
-        "dependencies.sbt")
 
-      for (filepath <- requiredBuildFiles) {
+      // Everything in /project
+      val requiredMetaBuildFiles = Set("build.properties", "dependencies.sbt")
+      for (filepath <- requiredMetaBuildFiles) {
         val origFile = new File(s"project/$filepath")
         val deployFile = new File(s"deployDev/project/$filepath")
         sbt.IO.copyFile(origFile, deployFile)
       }
+
+      // Everything in /build
+      val requiredBuildFiles = Set("BuildUtility.scala", "Plugin.scala", "PluginCreateWizard.scala",
+        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala")
+
+      for (filepath <- requiredBuildFiles) {
+        val origFile = new File(s"build/src/main/scala/$filepath")
+        val deployFile = new File(s"deployDev/build/src/main/scala/$filepath")
+        sbt.IO.copyFile(origFile, deployFile)
+      }
+
+      sbt.IO.copyFile(new File("build/build.sbt"), new File("deployDev/build/build.sbt")) // sbt file for the build project
 
       // Fifth step: Create sbt files containing all dependencies
       val depFile = new SbtFile(dependencies)

@@ -17,6 +17,9 @@ inThisBuild(List(
 // Link the bootstrap launcher
 lazy val bootstrapProject = project in file("bootstrap")
 
+// not actually used. Just required to say IntelliJ to mark the build directory as a sbt project, otherwise it wouldn't detect it.
+lazy val buildProject = project in file("build")
+
 // ---------------------------------------------------------------------------------------------------------------------
 // LIBRARY DEPENDENCIES
 // ---------------------------------------------------------------------------------------------------------------------
@@ -66,6 +69,7 @@ libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 
 // Socket.io
 libraryDependencies += "io.socket" % "socket.io-client" % "1.0.0"
+
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
@@ -92,17 +96,17 @@ pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plu
 apiProjectPath := "api"
 guiProjectPath := "gui"
 
-create := PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
-fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
+create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
+fetch := new BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
-copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
+copy := new BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
 deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, apiProjectPath.value, libraryDependencies.value.toList)
-gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
+gui := new BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 Compile / packageBin := {
-  BuildUtility(streams.value.log).packageGUITask(guiProjectPath.value, scalaMajorVersion, crossTarget.value)
+  new BuildUtility(streams.value.log).packageGUITask(guiProjectPath.value, scalaMajorVersion, crossTarget.value)
   (Compile / packageBin).value
 }
 
@@ -127,5 +131,5 @@ lazy val getDependencyList = Def.task[List[ModuleID]] {
   }
 }
 
-// Clears the built GUI dirs on clean
+// Clears the built GUI dir on clean
 cleanFiles += baseDirectory.value / guiProjectPath.value / "dist"
