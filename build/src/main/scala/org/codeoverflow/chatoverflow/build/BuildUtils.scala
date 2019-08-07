@@ -35,4 +35,11 @@ object BuildUtils {
     val dirEntries = dir.listFiles()
     (dirEntries.filter(_.isFile) ++ dirEntries.filter(_.isDirectory).flatMap(getAllDirectoryChilds)).toSet
   }
+
+  /**
+   * Checks whether the current os is windows.
+   *
+   * @return true if running on any windows version, false otherwise
+   */
+  def isRunningOnWindows: Boolean = System.getProperty("os.name").toLowerCase().contains("win")
 }

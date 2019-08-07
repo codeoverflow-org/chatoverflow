@@ -5,6 +5,7 @@ import java.io.File
 import org.codeoverflow.chatoverflow.build.SbtFile
 import sbt.io.IO
 
+import scala.annotation.tailrec
 import scala.util.Try
 import scala.xml.PrettyPrinter
 
@@ -154,6 +155,7 @@ object Plugin {
     pluginSourceFolder.exists() && pluginSourceFolder.isDirectory
   }
 
+  @tailrec
   private def toNormalizedName(name: String): String = {
     if (name.isEmpty) {
       return ""

@@ -81,7 +81,7 @@ class GUIUtility(logger: ManagedLogger) {
   }
 
   private def getNpmCommand: List[String] = {
-    if (System.getProperty("os.name").toLowerCase().contains("win")) {
+    if (BuildUtils.isRunningOnWindows) {
       List("cmd.exe", "/C", "npm")
     } else {
       List("npm")

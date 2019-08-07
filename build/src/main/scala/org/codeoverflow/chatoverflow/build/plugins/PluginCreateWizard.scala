@@ -2,9 +2,12 @@ package org.codeoverflow.chatoverflow.build.plugins
 
 import java.io.File
 
+import org.codeoverflow.chatoverflow.build.BuildUtils
 import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
 import org.codeoverflow.chatoverflow.build.plugins.PluginCreateWizard.askForInput
 import sbt.internal.util.ManagedLogger
+
+import scala.annotation.tailrec
 
 class PluginCreateWizard(logger: ManagedLogger) {
 
@@ -128,10 +131,11 @@ object PluginCreateWizard {
 
   def apply(logger: ManagedLogger): PluginCreateWizard = new PluginCreateWizard(logger)
 
+  @tailrec
   private def askForInput(information: String, description: String, validate: String => Boolean = _ => true,
                           validationDescription: String = ""): String = {
     println(information)
-    print(s"$description > ")
+    print(s"$description > ${if (BuildUtils.isRunningOnWindows) "\n" else ""}")
 
     val input = scala.io.Source.fromInputStream(System.in).bufferedReader().readLine()
     println("")
