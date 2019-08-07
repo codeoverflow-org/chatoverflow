@@ -31,11 +31,13 @@ import scala.io.Source
 class BuildUtility(logger: ManagedLogger) {
 
   /**
-    * Searches for plugins in plugin directories, builds the plugin build file.
-    *
-    * @param pluginSourceFolderNames All folder names, containing plugin source code. Defined in build.sbt.
-    * @param pluginBuildFileName     The generated sbt build file, containing all sub project references. Defined in build.sbt.
-    */
+   * Searches for plugins in plugin directories, builds the plugin build file.
+   *
+   * @param pluginSourceFolderNames All folder names, containing plugin source code. Defined in build.sbt.
+   * @param pluginBuildFileName     The generated sbt build file, containing all sub project references. Defined in build.sbt.
+   * @param pluginTargetFolderNames The name of the directory, in which all plugins should be copied.
+   * @param apiProjectPath          The path of the api project. Chosen over apiJarPath if possible.
+   */
   def fetchPluginsTask(pluginSourceFolderNames: List[String], pluginBuildFileName: String,
                        pluginTargetFolderNames: List[String], apiProjectPath: String): Unit = {
     withTaskInfo("FETCH PLUGINS") {
@@ -49,7 +51,7 @@ class BuildUtility(logger: ManagedLogger) {
       val allPlugins = getAllPlugins(pluginSourceFolderNames)
 
       // Create a sbt file with all plugin dependencies (sub projects)
-      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true)
+      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true, List())
 
       if (sbtFile.save(pluginBuildFileName)) {
         logger info s"Successfully updated plugin file at '$pluginBuildFileName'."
@@ -249,12 +251,12 @@ class BuildUtility(logger: ManagedLogger) {
   }
 
   /**
-    * Creates a file listing with all files including files in any sub-dir.
-    *
-    * @param f the directory for which the file listing needs to be created.
-    * @return the file listing as a set of files.
-    */
-  private def recursiveFileListing(f: File): Set[File] = {
+   * Creates a file listing with all files including files in any sub-dir.
+   *
+   * @param f the directory for which the file listing needs to be created.
+   * @return the file listing as a set of files.
+   */
+  def recursiveFileListing(f: File): Set[File] = {
     if (f.isDirectory) {
       f.listFiles().flatMap(recursiveFileListing).toSet
     } else {
@@ -287,5 +289,4 @@ object BuildUtility {
     // Info when task stopped (better log comprehension)
     logger info s"Finished custom task: $taskName"
   }
-
 }

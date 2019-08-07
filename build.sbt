@@ -65,7 +65,7 @@ libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 
 // Socket.io
-libraryDependencies += "io.socket" % "socket.io-client"% "1.0.0"
+libraryDependencies += "io.socket" % "socket.io-client" % "1.0.0"
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
@@ -83,6 +83,7 @@ lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin director
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
 lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
+lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for plugin developers, fills deployDev folder.")
 lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
 
 pluginBuildFileName := "plugins.sbt"
@@ -97,6 +98,7 @@ fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.valu
 copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, apiProjectPath.value, libraryDependencies.value.toList)
 gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 Compile / packageBin := {
@@ -111,6 +113,7 @@ Compile / unmanagedJars := (crossTarget.value ** "chatoverflow-gui*.jar").classp
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Util task for bs, gets a dependency list kinda like "sbt dependencyList", but only includes deps required for runtime
+// Filters out all chatoverflow modules, because those are not actual dependencies.
 lazy val getDependencyList = Def.task[List[ModuleID]] {
   // only get deps required for runtime and not for anything else like testing
   val updateReport = update.value.configuration(ConfigRef("runtime"))
@@ -119,6 +122,8 @@ lazy val getDependencyList = Def.task[List[ModuleID]] {
     List()
   } else {
     updateReport.get.modules.map(m => m.module).toList
+      .filterNot(m => m.name == s"chatoverflow-api_$scalaMajorVersion" ||
+        m.name == s"chatoverflow_$scalaMajorVersion")
   }
 }
 

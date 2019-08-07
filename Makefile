@@ -15,11 +15,16 @@ simple_run:
 
 bootstrap_deploy:
 	sbt clean
-	sbt compile
 	sbt gui
 	sbt package copy
 	sbt bs "project bootstrapProject" assembly
 	sbt deploy
+
+bootstrap_deploy_dev:
+	sbt clean
+	sbt gui
+	sbt package copy
+	sbt deployDev
 
 create:
 	sbt create
@@ -28,6 +33,9 @@ create:
 
 deploy:
 	sbt deploy
+
+deploy_dev:
+	sbt deployDev
 
 fetch:
 	sbt fetch

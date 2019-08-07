@@ -33,6 +33,7 @@ project/plugins/project/
 /bin/
 /lib/
 /deploy/
+/deployDev/
 /wiki/
 
 # Plugin Data

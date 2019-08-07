@@ -70,12 +70,12 @@ object BootstrapUtility {
 
     logger info "Updating and modifying dependencies..."
 
-    // Modify dependencies: Remove ChatOverflow and opus-java, add scala library
+    // Modify dependencies: Remove opus-java, add scala library
     // opus-java is a virtual package which instructs sbt or any other build tool to get opus-java-api and opus-java-native.
     // Therefore it doesn't have a jar that needs to be downloaded and sbt includes the requested dependencies in the dependencyList.
     // So we can just ignore it as it can't be resolved and only need to include the requested deps in our xml.
     // Check https://github.com/discord-java/opus-java#opus-java-1 for more information on this.
-    val excludedDeps = List("chatoverflow", "chatoverflow-api", "opus-java")
+    val excludedDeps = List("opus-java")
     val filteredDeps = dependencyList.filter(d => !excludedDeps.contains(d.nameWithoutScalaVersion))
 
     val modifiedDependencies = filteredDeps ++
@@ -92,57 +92,112 @@ object BootstrapUtility {
   }
 
   /**
-    * Prepares the environemnt for deployment. Should be called after package and assembly task.
-    *
-    * @param logger              the sbt logger
-    * @param scalaLibraryVersion the scala library major version
-    */
+   * Prepares the environment for deployment. Should be called after package and assembly task.
+   *
+   * @param logger              the sbt logger
+   * @param scalaLibraryVersion the scala library major version
+   */
   def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
-    // Assuming, before this: clean, bs, assembly bootstrapProject, package
+    // Assuming, before this: clean, gui, bs, bootstrapProject/assembly, package
     // Assuming: Hardcoded "bin/" and "deploy/" folders
-    // Assuming: A folder called "deployment-files" with all additional files (license, bat, etc.)
+    // Assuming: A folder called "deployment-files/end-user/" with all additional files (license, bat, etc.)
 
     withTaskInfo("PREPARE DEPLOYMENT", logger) {
 
       logger info "Started deployment process."
 
-      // First step: Preparing bin folder
-      logger info "Preparing 'bin/' folder."
-      createOrEmptyFolder("bin/")
-
-      // Second step: Preparing deploy folder, copying bin folder, bootstrap launcher, etc.
-      logger info "Preparing 'deploy/' folder."
+      // First step: Create directory
       createOrEmptyFolder("deploy/")
-      createOrEmptyFolder("deploy/bin/")
 
-      // Third step: Copying chat overflow files
-      logger info "Copying chat overflow files..."
-
-      val sourceJarDirectories = List(s"target/scala-$scalaLibraryVersion/",
-        s"api/target/scala-$scalaLibraryVersion/")
-
+      // Second step: Create bin directories and copy all binaries
       val targetJarDirectories = List("bin", "deploy/bin")
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = true)
 
-      for (sourceDirectory <- sourceJarDirectories) {
-        copyJars(sourceDirectory, targetJarDirectories, logger)
-      }
-
-      // Fourth step: Copy bootstrap launcher
+      // Third step: Copy bootstrap launcher
       copyJars(s"bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
 
       // Last step: Copy additional files
       logger info "Copying additional deployment files..."
-      val deploymentFiles = new File("deployment-files/")
+      val deploymentFiles = new File("deployment-files/end-user/")
       if (!deploymentFiles.exists()) {
         logger warn "Unable to find deployment files."
       } else {
-        for (deploymentFile <- deploymentFiles.listFiles()) {
-          Files.copy(Paths.get(deploymentFile.getAbsolutePath),
-            Paths.get(s"deploy/${deploymentFile.getName}"))
-          logger info s"Finished copying additional deployment file '${deploymentFile.getName}'."
-        }
+        sbt.IO.copyDirectory(deploymentFiles, new File("deploy/"))
+        logger info s"Finished copying additional deployment files."
       }
     }
+  }
+
+  /**
+   * Prepares the environment for a deployment for plugin developers.
+   * Should be called after package and apiProject/packagedArtifacts task.
+   *
+   * @param logger              the sbt logger
+   * @param scalaLibraryVersion the scala library major version
+   * @param apiProjectPath      the path to the api project. Used to copy the api into the deployDev directory
+   * @param dependencies        the dependencies of the framework. Used to create a sbt file with them.
+   */
+  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String, dependencies: List[ModuleID]): Unit = {
+    // Assuming, before this: clean, gui and package
+    // Assuming: Hardcoded "bin/" and "deployDev/" folders
+    // Assuming: A folder called "deployment-files/plugin-dev/" with more additional files for plugin developers
+
+    withTaskInfo("PREPARE DEV DEPLOYMENT", logger) {
+
+      logger info "Started deployment process for plugin dev environment."
+
+      // First step: Create directory
+      createOrEmptyFolder("deployDev/")
+
+      // Second step: Copy all binaries
+      val targetJarDirectories = List("bin", "deployDev/bin")
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = false)
+
+      // Third step: Copy the api
+      sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
+      sbt.IO.delete(new File("deployDev/api/target")) // otherwise compiled code would end up in the zip
+
+      // Fourth step: Copy required meta-build files
+      val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
+        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala",
+        "dependencies.sbt")
+
+      for (filepath <- requiredBuildFiles) {
+        val origFile = new File(s"project/$filepath")
+        val deployFile = new File(s"deployDev/project/$filepath")
+        sbt.IO.copyFile(origFile, deployFile)
+      }
+
+      // Fifth step: Create sbt files containing all dependencies
+      val depFile = new SbtFile(dependencies)
+      sbt.IO.write(new File("deployDev/dependencies.sbt"), depFile.toString)
+
+      // Last step: Copy additional files
+      val devDeploymentFiles = new File("deployment-files/plugin-dev/")
+      if (!devDeploymentFiles.exists()) {
+        logger warn "Unable to find dev deployment files."
+      } else {
+        sbt.IO.copyDirectory(devDeploymentFiles, new File("deployDev/"))
+        logger info "Finished copying additional dev deployment files."
+      }
+    }
+  }
+
+  private def prepareBinDirectories(logger: ManagedLogger, targetDirs: List[String], scalaLibraryVersion: String, copyApi: Boolean): Unit = {
+    // First prepare all bin folders
+    targetDirs.foreach(d => {
+      logger info s"Preparing '$d' folder."
+      createOrEmptyFolder(d)
+    })
+
+    // Then copy all binary files
+    logger info "Copying chat overflow files..."
+    val sourceJarDirectories = if (copyApi)
+      List(s"target/scala-$scalaLibraryVersion/", s"api/target/scala-$scalaLibraryVersion/")
+    else
+      List(s"target/scala-$scalaLibraryVersion/")
+
+    sourceJarDirectories.foreach(d => copyJars(d, targetDirs, logger))
   }
 
   /**
@@ -155,18 +210,18 @@ object BootstrapUtility {
         if (file.isFile) {
           file.delete()
         } else {
-            createOrEmptyFolder(file.getAbsolutePath)
-            file.delete()
+          createOrEmptyFolder(file.getAbsolutePath)
+          file.delete()
         }
       }
     } else {
-      folder.mkdir()
+      folder.mkdirs()
     }
   }
 
   /**
-   * Copies all jar files from the source to all target directories.
-   */
+    * Copies all jar files from the source to all target directories.
+    */
   private def copyJars(sourceDirectory: String, targetDirectories: List[String], logger: ManagedLogger): Unit = {
     val candidates = new File(sourceDirectory)
       .listFiles().filter(f => f.isFile && f.getName.toLowerCase.endsWith(".jar"))
