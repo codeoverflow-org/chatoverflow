@@ -159,7 +159,8 @@ object BootstrapUtility {
 
       // Fourth step: Copy required meta-build files
       val requiredBuildFiles = Set("BuildUtility.scala", "build.properties", "Plugin.scala", "PluginCreateWizard.scala",
-        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala")
+        "PluginLanguage.scala", "PluginMetadata.scala", "SbtFile.scala", "APIUtility.scala", "RequirementsFile.scala",
+        "dependencies.sbt")
 
       for (filepath <- requiredBuildFiles) {
         val origFile = new File(s"project/$filepath")
