@@ -21,6 +21,7 @@ project/plugins/project/
 /plugins-public/
 /plugins-private/
 /gui/
+/setup/
 
 # Plugin Framework
 /plugins/
@@ -36,7 +37,7 @@ project/plugins/project/
 /wiki/
 
 # Plugin Data
-data/
+/data/
 
-# Built gui
-/src/main/resources/chatoverflow-gui
+# Log Output
+/log/
