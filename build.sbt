@@ -99,6 +99,13 @@ bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$
 deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
 gui := BuildUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
+Compile / packageBin := {
+  BuildUtility(streams.value.log).packageGUITask(guiProjectPath.value, scalaMajorVersion, crossTarget.value)
+  (Compile / packageBin).value
+}
+
+Compile / unmanagedJars := (crossTarget.value ** "chatoverflow-gui*.jar").classpath
+
 // ---------------------------------------------------------------------------------------------------------------------
 // UTIL
 // ---------------------------------------------------------------------------------------------------------------------
@@ -117,4 +124,3 @@ lazy val getDependencyList = Def.task[List[ModuleID]] {
 
 // Clears the built GUI dirs on clean
 cleanFiles += baseDirectory.value / guiProjectPath.value / "dist"
-cleanFiles += baseDirectory.value / "src" / "main" / "resources" / "chatoverflow-gui"

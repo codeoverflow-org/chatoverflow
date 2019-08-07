@@ -40,6 +40,3 @@ project/plugins/project/
 
 # Log Output
 /log/
-
-# Built gui
-/src/main/resources/chatoverflow-gui

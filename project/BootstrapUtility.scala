@@ -165,19 +165,15 @@ object BootstrapUtility {
   }
 
   /**
-    * Copies ONE jar file from the source to all target directories. Useful for single packaged jar files.
-    */
+   * Copies all jar files from the source to all target directories.
+   */
   private def copyJars(sourceDirectory: String, targetDirectories: List[String], logger: ManagedLogger): Unit = {
     val candidates = new File(sourceDirectory)
       .listFiles().filter(f => f.isFile && f.getName.toLowerCase.endsWith(".jar"))
-    if (candidates.length != 1) {
-      logger warn s"Unable to identify jar file in $sourceDirectory"
-    } else {
-      for (targetDirectory <- targetDirectories) {
-        Files.copy(Paths.get(candidates.head.getAbsolutePath),
-          Paths.get(s"$targetDirectory/${candidates.head.getName}"))
-        logger info s"Finished copying file '${candidates.head.getAbsolutePath}' to '$targetDirectory'."
-      }
+    for (targetDirectory <- targetDirectories; file <- candidates) {
+      Files.copy(Paths.get(file.getAbsolutePath),
+        Paths.get(s"$targetDirectory/${file.getName}"))
+      logger info s"Finished copying file '${file.getAbsolutePath}' to '$targetDirectory'."
     }
   }
 }
