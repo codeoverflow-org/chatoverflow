@@ -9,5 +9,5 @@ import java.net.{URL, URLClassLoader}
  * @param urls Takes an array of urls an creates a simple URLClassLoader with it
  */
 class PluginClassLoader(urls: Array[URL]) extends URLClassLoader(urls) {
-  private[helper] override def addURL(url: URL): Unit = super.addURL(url) // just exposes this method to be package-private instead of protected
+  protected[helper] override def addURL(url: URL): Unit = super.addURL(url) // just exposes this method to be package-private instead of class internal protected
 }
