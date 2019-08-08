@@ -99,6 +99,11 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
 
         } else {
 
+          if (!areDependenciesAvailable) {
+            logger error "Dependencies have either failed to resolve and fetch or aren't done yet."
+            return false
+          }
+
           // This is set to false if any connector (aka input/output) is not ready.
           var allConnectorsReady = true
 
@@ -222,6 +227,16 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
       logger error s"Plugin instance '$instanceName' does not exist."
       new Requirements()
     }
+  }
+
+  /**
+   * Returns whether all dependencies are resolved and fetch which is required for the plugin to start.
+   *
+   * @return true if all dependencies are available, true if not done of failed.
+   */
+  def areDependenciesAvailable: Boolean = {
+    val opt = pluginType.getDependencyFuture.value
+    opt.isDefined && opt.get.isSuccess
   }
 
   /**

@@ -46,6 +46,9 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
             } else if (!pluginInstance.get.getRequirements.getAccess.isComplete) {
               ResultMessage(success = false, "Not all required requirements have been set.")
 
+            } else if (!pluginInstance.get.areDependenciesAvailable) {
+              ResultMessage(success = false, "Dependencies have either failed to resolve and fetch or aren't done yet. Check logs for further information.")
+
             } else if (!pluginInstance.get.start()) {
               ResultMessage(success = false, "Unable to start plugin.")
 
