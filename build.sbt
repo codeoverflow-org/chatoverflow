@@ -135,6 +135,7 @@ Compile / packageBin := {
 }
 
 Compile / unmanagedJars := (crossTarget.value ** "chatoverflow-gui*.jar").classpath
+packageBin / includePom := false
 
 // ---------------------------------------------------------------------------------------------------------------------
 // UTIL
