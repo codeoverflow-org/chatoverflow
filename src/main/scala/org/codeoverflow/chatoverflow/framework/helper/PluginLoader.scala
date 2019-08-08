@@ -10,6 +10,9 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ConfigurationBuilder
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 import scala.xml.{Node, SAXParseException, XML}
 
 /**
@@ -80,7 +83,8 @@ class PluginLoader(private val jar: File) extends WithLogger {
         majorString.toInt,
         minorString.toInt,
         PluginMetadata.fromXML(p),
-        cls
+        cls,
+        resolveDependencies(getString(p, "name"))
       ))
     } catch {
       // thrown by getString
@@ -143,5 +147,30 @@ class PluginLoader(private val jar: File) extends WithLogger {
         logger warn s"Can't load plugin from '${jar.getName}': only one plugin per jar file is allowed, not $count!"
         None
     }
+  }
+
+  /**
+   * Creates a future which gets all dependencies from the included dependencies.pom, if existing, fetches them
+   * and adds their jar files to the classloader.
+   *
+   * @param pluginName the name of the plugin, only used for logging
+   * @return a future of all required jars for this plugin
+   */
+  private def resolveDependencies(pluginName: String): Future[Seq[File]] = {
+    val pomIs = classloader.getResourceAsStream("dependencies.pom")
+    if (pomIs == null) {
+      return Future(Seq())
+    }
+
+    Future(CoursierUtils.parsePom(pomIs))
+      .map(dependencies => dependencies.filter(_.module.name.value != "chatoverflow-api_2.12"))
+      .map(dependencies => CoursierUtils.fetchDependencies(dependencies))
+      .andThen {
+        case Success(jarFiles) =>
+          jarFiles.foreach(jar => classloader.addURL(jar.toURI.toURL))
+          logger info s"Dependencies for the plugin $pluginName successfully resolved and fetched if missing."
+        case Failure(exception) =>
+          logger warn s"Couldn't resolve and fetch dependencies for the plugin in $pluginName: $exception"
+      }
   }
 }

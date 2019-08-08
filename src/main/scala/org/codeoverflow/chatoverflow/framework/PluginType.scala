@@ -1,25 +1,31 @@
 package org.codeoverflow.chatoverflow.framework
 
+import java.io.File
+
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow.api.plugin.{Plugin, PluginManager}
 import org.codeoverflow.chatoverflow.framework.PluginCompatibilityState.PluginCompatibilityState
 
+import scala.concurrent.Future
+
 /**
-  * A plugin type is a container for all information about a plugin, everything in the 'plugin.xml' and the actual class.
-  * The plugins functionality and meta information can be accessed through this interface.
-  *
-  * @param name            the name of the plugin, used for identifying
-  * @param author          the author of the plugin, used for identifying
-  * @param version         the version of the plugin
-  * @param majorAPIVersion the major api version, with which the plugin was developed
-  * @param minorAPIVersion the minor api version, with which the plugin was developed
-  * @param pluginClass     the class of the plugin, used to create instances of this plugin.
-  *                        Needs to have a constructor with the signature of one PluginManager,
-  *                        otherwise instances can't be created from it.
-  */
+ * A plugin type is a container for all information about a plugin, everything in the 'plugin.xml' and the actual class.
+ * The plugins functionality and meta information can be accessed through this interface.
+ *
+ * @param name               the name of the plugin, used for identifying
+ * @param author             the author of the plugin, used for identifying
+ * @param version            the version of the plugin
+ * @param majorAPIVersion    the major api version, with which the plugin was developed
+ * @param minorAPIVersion    the minor api version, with which the plugin was developed
+ * @param pluginClass        the class of the plugin, used to create instances of this plugin.
+ *                           Needs to have a constructor with the signature of one PluginManager,
+ *                           otherwise instances can't be created from it.
+ * @param pluginDependencies A future that completes when all dependencies, that the plugin has, are available and
+ *                           that returns a seq of the required dependencies files in the local coursier cache.
+ */
 class PluginType(name: String, author: String, version: String, majorAPIVersion: Int, minorAPIVersion: Int,
-                 metadata: PluginMetadata, pluginClass: Class[_ <: Plugin]) extends WithLogger {
+                 metadata: PluginMetadata, pluginClass: Class[_ <: Plugin], pluginDependencies: Future[Seq[File]]) extends WithLogger {
 
   private var pluginVersionState = PluginCompatibilityState.Untested
 
@@ -126,4 +132,12 @@ class PluginType(name: String, author: String, version: String, majorAPIVersion:
     * @return the PluginMetadata instance of this plugin
     */
   def getMetadata: PluginMetadata = metadata
+
+  /**
+   * Returns the future that will result in a sequence of jar files that represents the dependencies
+   * of this plugin including all sub-dependencies.
+   *
+   * @return the dependency future
+   */
+  def getDependencyFuture: Future[Seq[File]] = pluginDependencies
 }
