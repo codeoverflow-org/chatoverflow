@@ -100,7 +100,7 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
         } else {
 
           if (!areDependenciesAvailable) {
-            logger error "Dependencies have either failed to resolve and fetch or aren't done yet."
+            logger error "Dependencies have failed to resolve and fetch."
             return false
           }
 
@@ -230,9 +230,9 @@ class PluginInstance(val instanceName: String, pluginType: PluginType) extends W
   }
 
   /**
-   * Returns whether all dependencies are resolved and fetch which is required for the plugin to start.
+   * Returns whether all dependencies are resolved and fetched which is required for the plugin to start.
    *
-   * @return true if all dependencies are available, true if not done of failed.
+   * @return true if all dependencies are available, true if it has failed.
    */
   def areDependenciesAvailable: Boolean = {
     val opt = pluginType.getDependencyFuture.value

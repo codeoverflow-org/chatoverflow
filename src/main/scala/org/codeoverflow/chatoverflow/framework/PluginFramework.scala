@@ -7,6 +7,10 @@ import org.codeoverflow.chatoverflow.framework.helper.PluginLoader
 import org.codeoverflow.chatoverflow.framework.manager.PluginManagerStub
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.util.Success
 
 /**
   * The plugin framework holds all plugin types important from the jar files in the plugin folder.
@@ -62,6 +66,8 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
       logger warn s"PluginType directory '$pluginDirectory' does not exist!"
     } else {
 
+      val futures = ListBuffer[Future[_]]()
+
       // Get (new) jar file urls
       val jarFiles = getNewJarFiles(pluginDirectory)
       logger info s"Found ${jarFiles.length} new plugins."
@@ -81,22 +87,27 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
           } else {
 
             // Try to test the initiation of the plugin
-            try {
-              plugin.createPluginInstance(new PluginManagerStub)
-              logger info s"Successfully tested instantiation of plugin '${plugin.getName}'"
-              pluginTypes += plugin
-            } catch {
-              // Note that we catch not only exceptions, but also errors like NoSuchMethodError. Deep stuff
-              case _: Error => logger warn s"Error while test init of plugin '${plugin.getName}'."
-              case _: Exception => logger warn s"Exception while test init of plugin '${plugin.getName}'."
+            futures += plugin.getDependencyFuture andThen {
+              case Success(_) =>
+                try {
+                  plugin.createPluginInstance(new PluginManagerStub)
+                  logger info s"Successfully tested instantiation of plugin '${plugin.getName}'"
+                  pluginTypes += plugin
+                } catch {
+                  // Note that we catch not only exceptions, but also errors like NoSuchMethodError. Deep stuff
+                  case _: Error => logger warn s"Error while test init of plugin '${plugin.getName}'."
+                  case _: Exception => logger warn s"Exception while test init of plugin '${plugin.getName}'."
+                }
             }
           }
         }
       }
-    }
 
-    logger info s"Loaded ${pluginTypes.length} plugin types in total: " +
-      s"${pluginTypes.map(pt => s"${pt.getName} (${pt.getAuthor})").mkString(", ")}"
+      futures.foreach(f => Await.ready(f, 10.seconds))
+
+      logger info s"Loaded ${pluginTypes.length} plugin types in total: " +
+        s"${pluginTypes.map(pt => s"${pt.getName} (${pt.getAuthor})").mkString(", ")}"
+    }
   }
 
   /**
