@@ -24,6 +24,7 @@ abstract class Connector(val sourceIdentifier: String) extends WithLogger {
   protected var requiredCredentialKeys: List[String]
   protected var optionalCredentialKeys: List[String]
   protected var running = false
+  protected implicit val identifier: String = hashCode().toString
 
   private var instanceCount = 0
 

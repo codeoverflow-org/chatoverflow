@@ -1,27 +1,28 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 
+import org.codeoverflow.chatoverflow.requirement.impl.EventManager
 import org.pircbotx.hooks.ListenerAdapter
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
-
-import scala.collection.mutable.ListBuffer
 
 /**
   * The twitch chat listener class holds the handlers to react to messages using the IRC bot.
   */
-class TwitchChatListener extends ListenerAdapter {
+class TwitchChatListener extends ListenerAdapter with EventManager {
 
-  private val messageEventListener = ListBuffer[MessageEvent => Unit]()
-  private val unknownEventListener = ListBuffer[UnknownEvent => Unit]()
+//  private val messageEventListener = ListBuffer[MessageEvent => Unit]()
+//  private val unknownEventListener = ListBuffer[UnknownEvent => Unit]()
 
   override def onMessage(event: MessageEvent): Unit = {
-    messageEventListener.foreach(listener => listener(event))
+//    messageEventListener.foreach(listener => listener(event))
+    call(event)
   }
 
   override def onUnknown(event: UnknownEvent): Unit = {
-    unknownEventListener.foreach(listener => listener(event))
+    call(event)
+//    unknownEventListener.foreach(listener => listener(event))
   }
 
-  def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
+/*  def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
     messageEventListener += listener
   }
 
@@ -35,6 +36,6 @@ class TwitchChatListener extends ListenerAdapter {
 
   def removeUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
     unknownEventListener -= listener
-  }
+  }*/
 
 }

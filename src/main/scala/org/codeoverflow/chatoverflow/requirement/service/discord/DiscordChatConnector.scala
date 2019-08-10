@@ -5,12 +5,10 @@ import java.util.function.Consumer
 
 import javax.security.auth.login.LoginException
 import net.dv8tion.jda.core.entities.{Message, MessageEmbed, TextChannel}
-import net.dv8tion.jda.core.events.message.react.{MessageReactionAddEvent, MessageReactionRemoveEvent}
-import net.dv8tion.jda.core.events.message.{MessageDeleteEvent, MessageReceivedEvent, MessageUpdateEvent}
 import net.dv8tion.jda.core.requests.RestAction
 import net.dv8tion.jda.core.{JDA, JDABuilder, MessageBuilder}
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.connector.Connector
+import org.codeoverflow.chatoverflow.connector.EventConnector
 import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor
 import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor.LoadBinaryFile
 
@@ -19,7 +17,7 @@ import org.codeoverflow.chatoverflow.connector.actor.FileSystemActor.LoadBinaryF
   *
   * @param sourceIdentifier the unique source identifier (in this implementation only for identifying)
   */
-class DiscordChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
+class DiscordChatConnector(override val sourceIdentifier: String) extends EventConnector(sourceIdentifier) with WithLogger {
   private val discordChatListener = new DiscordChatListener
 
   private var jda: Option[JDA] = None
@@ -32,35 +30,7 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends Connec
   private val defaultFailureHandler: Consumer[_ >: Throwable] =
     throwable => logger warn s"Rest action for connector $sourceIdentifier failed: ${throwable.getMessage}"
 
-  def addMessageReceivedListener(listener: MessageReceivedEvent => Unit): Unit =
-    discordChatListener.addMessageReceivedListener(listener)
-
-  def addMessageUpdateListener(listener: MessageUpdateEvent => Unit): Unit =
-    discordChatListener.addMessageUpdateEventListener(listener)
-
-  def addMessageDeleteListener(listener: MessageDeleteEvent => Unit): Unit =
-    discordChatListener.addMessageDeleteEventListener(listener)
-
-  def addReactionAddEventListener(listener: MessageReactionAddEvent => Unit): Unit =
-    discordChatListener.addReactionAddEventListener(listener)
-
-  def addReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit =
-    discordChatListener.addReactionDelEventListener(listener)
-
-  def removeMessageReceivedListener(listener: MessageReceivedEvent => Unit): Unit =
-    discordChatListener.removeMessageReceivedListener(listener)
-
-  def removeMessageUpdateListener(listener: MessageUpdateEvent => Unit): Unit =
-    discordChatListener.removeMessageUpdateEventListener(listener)
-
-  def removeMessageDeleteListener(listener: MessageDeleteEvent => Unit): Unit =
-    discordChatListener.removeMessageDeleteEventListener(listener)
-
-  def removeReactionAddEventListener(listener: MessageReactionAddEvent => Unit): Unit =
-    discordChatListener.removeReactionAddEventListener(listener)
-
-  def removeReactionDelEventListener(listener: MessageReactionRemoveEvent => Unit): Unit =
-    discordChatListener.removeReactionDelEventListener(listener)
+  discordChatListener.registerEventHandler((event, ct) => call(event)(ct, ct))
 
   /**
     * Connects to discord

@@ -32,12 +32,9 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
   private var currentChannel: Option[String] = None
   private var ignoreOwnMessages = false
 
-  private val onMessageFn = onMessage _
-  private val onUnknownFn = onUnknown _
-
   override def start(): Boolean = {
-    sourceConnector.get.addMessageEventListener(onMessageFn)
-    sourceConnector.get.addUnknownEventListener(onUnknownFn)
+    sourceConnector.get.registerEventHandler(onMessage _)
+    sourceConnector.get.registerEventHandler(onUnknown _)
     true
   }
 
@@ -116,8 +113,7 @@ class TwitchChatInputImpl extends EventInputImpl[TwitchEvent, chat.TwitchChatCon
     * @return true if stopping was successful
     */
   override def stop(): Boolean = {
-    sourceConnector.get.removeMessageEventListener(onMessageFn)
-    sourceConnector.get.removeUnknownEventListener(onUnknownFn)
+    sourceConnector.get.unregisterAllEventListeners
     true
   }
 }

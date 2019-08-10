@@ -1,9 +1,8 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.connector.Connector
+import org.codeoverflow.chatoverflow.connector.EventConnector
 import org.pircbotx.cap.EnableCapHandler
-import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 import org.pircbotx.{Configuration, PircBotX}
 
 import scala.collection.mutable.ListBuffer
@@ -13,7 +12,7 @@ import scala.collection.mutable.ListBuffer
   *
   * @param sourceIdentifier the name to the twitch account
   */
-class TwitchChatConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
+class TwitchChatConnector(override val sourceIdentifier: String) extends EventConnector(sourceIdentifier) with WithLogger {
   private val twitchChatListener = new TwitchChatListener
   private val connectionListener = new TwitchChatConnectListener(onConnect)
   private val oauthKey = "oauth"
@@ -23,21 +22,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
   private var status: Option[(Boolean, String)] = None
   private val channels = ListBuffer[String]()
 
-  def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
-    twitchChatListener.addMessageEventListener(listener)
-  }
-
-  def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
-    twitchChatListener.addUnknownEventListener(listener)
-  }
-
-  def removeMessageEventListener(listener: MessageEvent => Unit): Unit = {
-    twitchChatListener.removeMessageEventListener(listener)
-  }
-
-  def removeUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
-    twitchChatListener.removeUnknownEventListener(listener)
-  }
+  twitchChatListener.registerEventHandler((event, ct) => call(event)(ct, ct)) // passes all events from the twitch chat to the in/outputs
 
   def joinChannel(channel: String): Unit = {
     bot.send().joinChannel(channel)
