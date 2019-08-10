@@ -108,6 +108,8 @@ Compile / packageBin := {
 
 Compile / unmanagedJars := (crossTarget.value ** "chatoverflow-gui*.jar").classpath
 
+fork in run := true // Start ChatOverflow in it's own java process when starting it with 'sbt run'
+
 // ---------------------------------------------------------------------------------------------------------------------
 // UTIL
 // ---------------------------------------------------------------------------------------------------------------------
