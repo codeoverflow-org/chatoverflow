@@ -5,10 +5,10 @@ labels: 'enhancement'
 
 ---
 
-<!-- If you don't need any of these sections, just remove them...-->
+<!-- If you don't need any of these sections, just remove them... -->
 
 ### Description
-<!-- Give a detailed description of the enhacement -->
+<!-- Give a detailed description of the enhancement -->
 
 
 ### References
@@ -25,6 +25,6 @@ https://github.com/codeoverflow-org/chatoverflow/blob/e42c17d5524f82c83c7111943d
 <!-- Final checklist:
 
 Please make sure that this enhancement hasn't already been suggested.
-The issues page hase a nice search and filter function for that.
+The issues page has a nice search and filter function for that.
 
 -->
