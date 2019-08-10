@@ -19,14 +19,10 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
   private val DATE_FORMATTER = new DateTimeFormatterBuilder()
     .parseCaseInsensitive().append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).appendOffset("+HHMM", "Z").toFormatter
 
-  private val onFollowFn = onFollow _
-  private val onSubscriptionFn = onSubscription _
-  private val onDonationFn = onDonation _
-
   override def start(): Boolean = {
-    sourceConnector.get.addFollowEventListener(onFollowFn)
-    sourceConnector.get.addSubscriptionEventListener(onSubscriptionFn)
-    sourceConnector.get.addDonationEventListener(onDonationFn)
+    sourceConnector.get.registerEventHandler(onFollow _)
+    sourceConnector.get.registerEventHandler(onSubscription _)
+    sourceConnector.get.registerEventHandler(onDonation _)
     true
   }
 
@@ -88,9 +84,7 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
   }
 
   override def stop(): Boolean = {
-    sourceConnector.get.removeFollowEventListener(onFollowFn)
-    sourceConnector.get.removeSubscriptionEventListener(onSubscriptionFn)
-    sourceConnector.get.removeDonationEventListener(onDonationFn)
+    sourceConnector.get.unregisterAllEventListeners
     true
   }
 }

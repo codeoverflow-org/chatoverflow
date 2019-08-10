@@ -4,7 +4,7 @@ import java.util.Calendar
 
 import io.socket.client.{IO, Socket}
 import org.codeoverflow.chatoverflow.WithLogger
-import org.codeoverflow.chatoverflow.connector.Connector
+import org.codeoverflow.chatoverflow.connector.EventConnector
 import org.json.JSONObject
 
 /**
@@ -12,7 +12,7 @@ import org.json.JSONObject
   *
   * @param sourceIdentifier the name of the tipeeestream account
   */
-class TipeeestreamConnector(override val sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
+class TipeeestreamConnector(override val sourceIdentifier: String) extends EventConnector(sourceIdentifier) with WithLogger {
   private val TIMEOUT = 10000
   private val SOCKET_URL = "https://sso-cf.tipeeestream.com"
   private val tipeeeStreamListener = new TipeeestreamListener
@@ -20,8 +20,10 @@ class TipeeestreamConnector(override val sourceIdentifier: String) extends Conne
   override protected var optionalCredentialKeys: List[String] = List()
   private var socket: Option[Socket] = None
 
+  tipeeeStreamListener.registerEventHandler((event, ct) => call(event)(ct, ct))
+
   override def start(): Boolean = {
-    //RestAPI doesn't need stratup methods
+    // RestAPI doesn't need startup methods
     startSocket()
   }
 
@@ -80,20 +82,15 @@ class TipeeestreamConnector(override val sourceIdentifier: String) extends Conne
     obj
   }
 
-  def addSubscriptionEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.addSubscriptionEventListener(listener)
-
-  def addDonationEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.addDonationEventListener(listener)
-
-  def addFollowEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.addFollowEventListener(listener)
-
-  def removeSubscriptionEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.removeSubscriptionEventListener(listener)
-
-  def removeDonationEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.removeDonationEventListener(listener)
-
-  def removeFollowEventListener(listener: JSONObject => Unit): Unit = tipeeeStreamListener.removeFollowEventListener(listener)
-
   override def stop(): Boolean = {
     socket.foreach(_.close())
     true
   }
+}
+
+object TipeeestreamConnector {
+  private[tipeeestream] sealed class TipeeestreamEventJSON(json: JSONObject)
+  private[tipeeestream] case class SubscriptionEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
+  private[tipeeestream] case class DonationEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
+  private[tipeeestream] case class FollowEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
 }
