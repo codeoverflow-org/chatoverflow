@@ -39,7 +39,10 @@ pluginFolderNames := List("plugins-public", "plugins-private")
 pluginTargetFolderNames := List("plugins", s"target/scala-$scalaMajorVersion/plugins")
 apiProjectPath := "api"
 
-create := PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
-fetch := BuildUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
+
+import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
+
+create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
+fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
-copy := BuildUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
+copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)

@@ -1,13 +1,15 @@
+package org.codeoverflow.chatoverflow.build.deployment
+
 import sbt.internal.util.ManagedLogger
 
 import scala.xml.Node
 
 /**
-  * A dependency holds all information of a library like name, version and maven url.
-  *
-  * @param dependencyString the input string from the 'dependencyList' sbt command
-  * @param logger           the sbt logger
-  */
+ * A dependency holds all information of a library like name, version and maven url.
+ *
+ * @param dependencyString the input string from the 'dependencyList' sbt command
+ * @param logger           the sbt logger
+ */
 class Dependency(dependencyString: String, logger: ManagedLogger) {
   var nameWithoutScalaVersion = ""
   var version = ""
@@ -20,10 +22,10 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
   }
 
   /**
-    * Converts the dependency to its xml representation, ready to be saved.
-    *
-    * @return a xml node called 'dependency'
-    */
+   * Converts the dependency to its xml representation, ready to be saved.
+   *
+   * @return a xml node called 'dependency'
+   */
   def toXML: Node = {
     <dependency>
       <name>
@@ -39,9 +41,9 @@ class Dependency(dependencyString: String, logger: ManagedLogger) {
   }
 
   /**
-    * This constructor-alike function reads the console output of the 'dependencyList' sbt command
-    * and fills all required information into the dependency object
-    */
+   * This constructor-alike function reads the console output of the 'dependencyList' sbt command
+   * and fills all required information into the dependency object
+   */
   private def create(): Unit = {
     val DependencyRegex = "([^:]+):([^:_]+)(_[^:]+)?:([^:]+)".r
 

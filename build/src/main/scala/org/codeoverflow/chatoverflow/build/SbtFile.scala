@@ -1,5 +1,8 @@
+package org.codeoverflow.chatoverflow.build
+
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 
+import org.codeoverflow.chatoverflow.build.plugins.Plugin
 import sbt.librarymanagement.{CrossVersion, ModuleID}
 
 /**
@@ -15,16 +18,16 @@ import sbt.librarymanagement.{CrossVersion, ModuleID}
 class SbtFile(val name: String, val version: String, val plugins: List[Plugin], val apiProjectPath: String,
               val defineRoot: Boolean, dependencies: List[ModuleID]) {
   /**
-    * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
-    *
-    * @param name    the name of a sbt project
-    * @param version the version of a sbt project
-    */
+   * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
+   *
+   * @param name    the name of a sbt project
+   * @param version the version of a sbt project
+   */
   def this(name: String, version: String) = this(name, version, List(), "", false, List())
 
   /**
-    * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
-    */
+   * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
+   */
   def this() = this("", "")
 
   /**
@@ -35,11 +38,11 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
   def this(dependencies: List[ModuleID]) = this("", "", List(), "", false, dependencies)
 
   /**
-    * Tries to save the sbt files content into a defined directory.
-    *
-    * @param pathAndFileName the path of the sbt file (incl. file name)
-    * @return true, if the save process was successful
-    */
+   * Tries to save the sbt files content into a defined directory.
+   *
+   * @param pathAndFileName the path of the sbt file (incl. file name)
+   * @return true, if the save process was successful
+   */
   def save(pathAndFileName: String): Boolean = {
 
     val buildFile = new File(pathAndFileName)
@@ -57,10 +60,10 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
   }
 
   /**
-    * Returns the string representation of the sbt files content in valid sbt/scala syntax
-    *
-    * @return a multiline string with all defined attributes
-    */
+   * Returns the string representation of the sbt files content in valid sbt/scala syntax
+   *
+   * @return a multiline string with all defined attributes
+   */
   override def toString: String = {
 
     val sbtContent = new StringBuilder("// GENERATED FILE USING THE CHAT OVERFLOW PLUGIN FRAMEWORK\n")
