@@ -131,8 +131,10 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends Connect
     * This stops the activity of the connector, e.g. by closing the platform connection.
     */
   override def stop(): Boolean = {
-    bot.sendIRC().quitServer()
-    bot.close()
+    if (bot.isConnected) {
+      bot.sendIRC().quitServer()
+      bot.close()
+    }
     status = None
     channels.clear()
     true
