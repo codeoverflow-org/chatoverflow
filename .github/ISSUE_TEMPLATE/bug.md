@@ -5,7 +5,7 @@ labels: 'bug'
 
 ---
 
-<!-- If you don't need any of these sections, just remove them...-->
+<!-- If you don't need any of these sections, just remove them... -->
 
 ### Description
 <!-- Give a detailed description of what is wrong -->
@@ -18,7 +18,7 @@ reproduced really helps fixing it. -->
 
 ### Error Log 
 <!-- If the console contains some information that could 
-help identifing the problem paste them in the next empty line --> 
+help identifying the problem paste them in the next empty line --> 
 ```
 
 ```
@@ -35,7 +35,7 @@ https://github.com/codeoverflow-org/chatoverflow/blob/e42c17d5524f82c83c7111943d
 
 <!-- Final checklist:
 
-Please make sure that your error hasn't already been reportet.
-The issues page hase a nice search and filter function for that.
+Please make sure that your error hasn't already been reported.
+The issues page has a nice search and filter function for that.
 
 -->
