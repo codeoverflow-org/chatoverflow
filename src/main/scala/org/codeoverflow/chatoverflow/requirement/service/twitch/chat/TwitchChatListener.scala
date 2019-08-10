@@ -9,33 +9,11 @@ import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
   */
 class TwitchChatListener extends ListenerAdapter with EventManager {
 
-//  private val messageEventListener = ListBuffer[MessageEvent => Unit]()
-//  private val unknownEventListener = ListBuffer[UnknownEvent => Unit]()
-
   override def onMessage(event: MessageEvent): Unit = {
-//    messageEventListener.foreach(listener => listener(event))
     call(event)
   }
 
   override def onUnknown(event: UnknownEvent): Unit = {
     call(event)
-//    unknownEventListener.foreach(listener => listener(event))
   }
-
-/*  def addMessageEventListener(listener: MessageEvent => Unit): Unit = {
-    messageEventListener += listener
-  }
-
-  def addUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
-    unknownEventListener += listener
-  }
-
-  def removeMessageEventListener(listener: MessageEvent => Unit): Unit = {
-    messageEventListener -= listener
-  }
-
-  def removeUnknownEventListener(listener: UnknownEvent => Unit): Unit = {
-    unknownEventListener -= listener
-  }*/
-
 }
