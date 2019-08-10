@@ -24,6 +24,7 @@ bootstrap_deploy_dev:
 	sbt clean
 	sbt gui
 	sbt package copy
+	sbt buildProject/package
 	sbt deployDev
 
 create:
