@@ -7,31 +7,29 @@ import java.util.Currency
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.User
 import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.tipeeestream.{TipeeestreamDonation, TipeeestreamFollow, TipeeestreamProvider, TipeeestreamSubscription}
-import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream.{TipeeestreamFollowEvent, TipeeestreamDonationEvent, TipeeestreamEvent, TipeeestreamSubscriptionEvent}
+import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream.{TipeeestreamDonationEvent, TipeeestreamEvent, TipeeestreamFollowEvent, TipeeestreamSubscriptionEvent}
 import org.codeoverflow.chatoverflow.api.io.input.event.TipeeestreamEventInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.tipeeestream.TipeeestreamConnector
-import org.json.{JSONException, JSONObject}
+import org.codeoverflow.chatoverflow.requirement.service.tipeeestream.TipeeestreamConnector._
+import org.json.JSONException
 
 @Impl(impl = classOf[TipeeestreamEventInput], connector = classOf[TipeeestreamConnector])
 class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, TipeeestreamConnector] with TipeeestreamEventInput with WithLogger {
   private val DATE_FORMATTER = new DateTimeFormatterBuilder()
     .parseCaseInsensitive().append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).appendOffset("+HHMM", "Z").toFormatter
 
-  private val onFollowFn = onFollow _
-  private val onSubscriptionFn = onSubscription _
-  private val onDonationFn = onDonation _
-
   override def start(): Boolean = {
-    sourceConnector.get.addFollowEventListener(onFollowFn)
-    sourceConnector.get.addSubscriptionEventListener(onSubscriptionFn)
-    sourceConnector.get.addDonationEventListener(onDonationFn)
+    sourceConnector.get.registerEventHandler(onFollow _)
+    sourceConnector.get.registerEventHandler(onSubscription _)
+    sourceConnector.get.registerEventHandler(onDonation _)
     true
   }
 
-  private def onDonation(event: JSONObject): Unit = {
+  private def onDonation(eventJson: DonationEventJSON): Unit = {
     try {
+      val event = eventJson.json
       val parameter = event.getJSONObject("parameters")
       val user = new User(parameter.getString("username"))
       val message = parameter.getString("formattedMessage")
@@ -50,8 +48,9 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
     }
   }
 
-  private def onSubscription(event: JSONObject): Unit = {
+  private def onSubscription(eventJson: SubscriptionEventJSON): Unit = {
     try {
+      val event = eventJson.json
       val parameter = event.getJSONObject("parameters")
       val user = new User(parameter.getString("username"))
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
@@ -69,8 +68,9 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
     }
   }
 
-  private def onFollow(event: JSONObject): Unit = {
+  private def onFollow(eventJson: FollowEventJSON): Unit = {
     try {
+      val event = eventJson.json
       val parameter = event.getJSONObject("parameters")
       val user = new User(parameter.getString("username"))
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
@@ -88,9 +88,7 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
   }
 
   override def stop(): Boolean = {
-    sourceConnector.get.removeFollowEventListener(onFollowFn)
-    sourceConnector.get.removeSubscriptionEventListener(onSubscriptionFn)
-    sourceConnector.get.removeDonationEventListener(onDonationFn)
+    sourceConnector.get.unregisterAllEventListeners
     true
   }
 }

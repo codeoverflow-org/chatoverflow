@@ -5,29 +5,21 @@ import java.time.temporal.ChronoUnit
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
-import org.codeoverflow.chatoverflow.connector.Connector
+import org.codeoverflow.chatoverflow.connector.EventConnector
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 @Deprecated
-class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIdentifier) with WithLogger {
+class MockUpChatConnector(sourceIdentifier: String) extends EventConnector(sourceIdentifier) with WithLogger {
 
   private val mockUpFolder = "src/main/resources/mockup"
   private val defaultDelay = 100
 
   private val parser = new ChatMessageParser()
-  private val messageListener = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon] => Unit]()
   private var messages: List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = _
   private var elements: List[MockupElement] = _
   private var time: OffsetDateTime = OffsetDateTime.now
-
-  def addMessageEventListener(listener: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon] => Unit): Unit = {
-    messageListener += listener
-  }
-
-  def addPrivateMessageEventListener(listener: ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon] => Unit): Unit = {
-  }
 
   def simulateChat(): Unit = {
     val step = 100
@@ -36,7 +28,7 @@ class MockUpChatConnector(sourceIdentifier: String) extends Connector(sourceIden
 
       val lastMessages = messages.filter(msg => msg.getTime.isAfter(currentTime.plus(step, ChronoUnit.MILLIS)) && !msg.getTime.isAfter(currentTime))
 
-      lastMessages.foreach(msg => messageListener.foreach(listener => listener(msg)))
+      lastMessages.foreach(msg => call(msg))
 
       Thread.sleep(step)
     }

@@ -9,6 +9,8 @@ import scala.reflect.ClassTag
 
 abstract class OutputImpl[C <: Connector](implicit ct: ClassTag[C]) extends Connection[C] with Output with WithLogger {
 
+  protected implicit val identifier: String = hashCode().toString
+
   /**
     * Init this connection, checks if teh source connector is defined, and can be inited, then calls start
     *

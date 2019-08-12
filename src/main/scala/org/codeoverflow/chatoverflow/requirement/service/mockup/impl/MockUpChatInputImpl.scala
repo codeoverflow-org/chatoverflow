@@ -2,6 +2,7 @@ package org.codeoverflow.chatoverflow.requirement.service.mockup.impl
 
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
+import java.util
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.chat.{ChatEmoticon, ChatMessage, ChatMessageAuthor, TextChannel}
@@ -19,7 +20,6 @@ import scala.collection.mutable.ListBuffer
 class MockUpChatInputImpl extends EventInputImpl[MockupEvent, MockUpChatConnector] with MockUpChatInput with WithLogger {
 
   private val messages: ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
-  private val privateMessages: ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = ListBuffer[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]]()
 
   override def getLastMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = {
     val currentTime = OffsetDateTime.now
@@ -29,9 +29,7 @@ class MockUpChatInputImpl extends EventInputImpl[MockupEvent, MockUpChatConnecto
 
 
   override def getLastPrivateMessages(lastMilliseconds: Long): java.util.List[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]] = {
-    val currentTime = OffsetDateTime.now
-
-    privateMessages.filter(_.getTime.isAfter(currentTime.minus(lastMilliseconds, ChronoUnit.MILLIS))).toList.asJava
+    new util.ArrayList() // Not yet implemented
   }
 
   override def serialize(): String = getSourceIdentifier
@@ -43,7 +41,10 @@ class MockUpChatInputImpl extends EventInputImpl[MockupEvent, MockUpChatConnecto
     *
     * @return true if starting the input was successful, false if some problems occurred
     */
-  override def start(): Boolean = true
+  override def start(): Boolean = {
+    sourceConnector.get.registerEventHandler[ChatMessage[ChatMessageAuthor, TextChannel, ChatEmoticon]](onMessage)
+    true
+  }
 
   /**
     * Stops the input, called before source connector will shutdown
