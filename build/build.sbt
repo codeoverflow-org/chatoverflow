@@ -1,4 +1,5 @@
 name := "chatoverflow-build"
+version := "0.3"
 sbtPlugin := true
 
 // JSON lib (Jackson) used for parsing the GUI version in the package.json file
