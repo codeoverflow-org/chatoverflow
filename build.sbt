@@ -89,6 +89,9 @@ libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
 // Socket.io
 libraryDependencies += "io.socket" % "socket.io-client" % "1.0.0"
 
+// Coursier
+libraryDependencies += "io.get-coursier" %% "coursier" % "2.0.0-RC3-2"
+
 // ---------------------------------------------------------------------------------------------------------------------
 // PLUGIN FRAMEWORK DEFINITIONS
 // ---------------------------------------------------------------------------------------------------------------------
@@ -135,6 +138,7 @@ Compile / packageBin := {
 }
 
 Compile / unmanagedJars := (crossTarget.value ** "chatoverflow-gui*.jar").classpath
+packageBin / includePom := false
 
 fork in run := true // Start ChatOverflow in it's own java process when starting it with 'sbt run'
 
