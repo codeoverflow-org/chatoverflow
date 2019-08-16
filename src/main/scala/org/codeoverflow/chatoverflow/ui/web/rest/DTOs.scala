@@ -21,6 +21,8 @@ object DTOs {
 
   case class Types(pluginTypes: Seq[PluginType], requirementTypes: RequirementTypes, connectorTypes: Seq[String])
 
+  case class ConnectorMetadata(found: Boolean, displayName: String, description: String, wikiUrl: String, icon: String)
+
   case class RequirementTypes(input: Seq[String], output: Seq[String], parameter: Seq[String])
 
   case class APIAndSpecificType(interface: String, implementation: String, connector: String, found: Boolean)

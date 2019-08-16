@@ -1,0 +1,8 @@
+<connector>
+    <display>Twitch Chat</display>
+    <description>TODO</description>
+    <wiki>https://github.com/codeoverflow-org/chatoverflow/wiki/Twitch-Chat</wiki>
+    <icon48>
+        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABEklEQVRoge3X0Q2CMBRA0QthGpzCIXQC9wB3cSXn0Y9ColJoi32PvqT3R4JNOGmaQpvb+cFUDzwxUvtxfTlMsSPz8B44HQlJbYabmm2AbvpdgzdakECv3xstBpcJOLi5ZQIOfj0asad5qZirDQ8pM7PwLjwkqsV2xfZWmjp+kdkZr3DtKly7CteuwrWrcO3MwnN9ZKWeTf8+y5qd8QoXbPDdLB0+AKPvj5Lhq2jgXip8Ew2MJcKDaChvqUShIfwC8p3GffleKFuI1L7QIDfjomiQgYujIT9cBQ154WpoyAdXRUM+ePBBkUWhoax9PBoNbh9P+aiP3dd3YVKSnHExNMjBRdEgAxdHQ364ChrywtXQAG9A2SgNqLuDfQAAAABJRU5ErkJggg==
+    </icon48>
+</connector>
