@@ -1,4 +1,4 @@
-name := "chatoverflow-build"
+name := "chatoverflow-meta-build"
 version := "0.3"
 sbtPlugin := true
 
