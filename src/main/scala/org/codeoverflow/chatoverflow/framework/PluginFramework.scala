@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.Success
+import scala.util.{Success, Try}
 
 /**
   * The plugin framework holds all plugin types important from the jar files in the plugin folder.
@@ -104,7 +104,7 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
       }
 
       // If plugins aren't done within this timeout they can still fetch everything in the background, they just won't be included in this summary
-      futures.foreach(f => Await.ready(f, 5.seconds))
+      Try(futures.foreach(f => Await.ready(f, 5.seconds))) // Await.ready throws a exception if the timeout is hit, ignore that!
 
       logger info s"Loaded ${pluginTypes.length} plugin types in total: " +
         s"${pluginTypes.map(pt => s"${pt.getName} (${pt.getAuthor})").mkString(", ")}"
