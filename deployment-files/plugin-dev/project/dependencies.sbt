@@ -1,1 +1,1 @@
-Compile / unmanagedJars := (file("./bin") ** "chatoverflow-build*.jar").classpath
+Compile / unmanagedJars := (file("./bin") ** "chatoverflow-meta-build*.jar").classpath
