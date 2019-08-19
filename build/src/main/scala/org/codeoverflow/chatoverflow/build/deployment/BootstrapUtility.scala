@@ -114,7 +114,7 @@ object BootstrapUtility {
 
       // Second step: Create bin directories and copy all binaries
       val targetJarDirectories = List("bin", "deploy/bin")
-      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = true, copyBuild = false)
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = true)
 
       // Third step: Copy bootstrap launcher
       copyJars(s"bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
@@ -152,9 +152,13 @@ object BootstrapUtility {
       // First step: Create directory
       createOrEmptyFolder("deployDev/")
 
-      // Second step: Copy all binaries
+      // Second step: Copy framework, GUI and build-code jars
       val targetJarDirectories = List("bin", "deployDev/bin")
-      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = false, copyBuild = true)
+      prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = false)
+
+      createOrEmptyFolder("deployDev/project/lib")
+      val buildCodeTargetDirectories = List("bin", "deployDev/project/lib")
+      copyJars(s"build/target/scala-$scalaLibraryVersion/sbt-1.0", buildCodeTargetDirectories, logger)
 
       // Third step: Copy the api
       sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
@@ -175,7 +179,7 @@ object BootstrapUtility {
     }
   }
 
-  private def prepareBinDirectories(logger: ManagedLogger, targetDirs: List[String], scalaLibraryVersion: String, copyApi: Boolean, copyBuild: Boolean): Unit = {
+  private def prepareBinDirectories(logger: ManagedLogger, targetDirs: List[String], scalaLibraryVersion: String, copyApi: Boolean): Unit = {
     // First prepare all bin folders
     targetDirs.foreach(d => {
       logger info s"Preparing '$d' folder."
@@ -187,8 +191,7 @@ object BootstrapUtility {
 
     val sourceJarDirectories = List(
       Some(s"target/scala-$scalaLibraryVersion/"),
-      if (copyApi) Some(s"api/target/scala-$scalaLibraryVersion/") else None,
-      if (copyBuild) Some(s"build/target/scala-$scalaLibraryVersion/sbt-1.0") else None
+      if (copyApi) Some(s"api/target/scala-$scalaLibraryVersion/") else None
     ).flatten
 
     sourceJarDirectories.foreach(d => copyJars(d, targetDirs, logger))

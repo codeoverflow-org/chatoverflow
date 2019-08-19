@@ -46,3 +46,5 @@ create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolde
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
+
+packageBin / includePom := false
