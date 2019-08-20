@@ -42,4 +42,26 @@ object BuildUtils {
    * @return true if running on any windows version, false otherwise
    */
   def isRunningOnWindows: Boolean = System.getProperty("os.name").toLowerCase().contains("win")
+
+  /**
+   * Returns the used Java version, e.g. 1.8 or 10.
+   */
+  def getJavaVersion: Double = {
+    System.getProperty("java.specification.version").toDouble
+  }
+
+  /**
+   * Returns required javac options to compile Java sources against Java 8.
+   * This ensures that the developer can use a newer Java version and the produced class files are still executable
+   * by end-users that have a older Java version e.g. Java 8. (Java 8 is minimum)
+   * @return
+   */
+  def getJava8CrossOptions: Seq[String] = {
+    // --release flag didn't exist in those versions yet, Java 8 doesn't need any cross-compiling options
+    // and lower versions than 8 aren't supported anyway.
+    if (getJavaVersion < 9)
+      Seq()
+    else
+      Seq("--release", "8") // please compile against Java 8
+  }
 }

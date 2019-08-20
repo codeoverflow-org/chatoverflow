@@ -33,6 +33,9 @@ inThisBuild(List(
   retrieveManaged := false)
 )
 
+import org.codeoverflow.chatoverflow.build.BuildUtils
+javacOptions ++= BuildUtils.getJava8CrossOptions
+
 // Link the bootstrap launcher
 lazy val bootstrapProject = project in file("bootstrap")
 
