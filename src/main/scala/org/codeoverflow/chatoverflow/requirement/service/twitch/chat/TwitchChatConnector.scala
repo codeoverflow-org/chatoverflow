@@ -61,6 +61,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends EventCo
         .setServerPassword(password.getOrElse(""))
         .addListener(twitchChatListener)
         .addListener(connectionListener)
+        .setAutoReconnect(true)
         .buildConfiguration()
     } else {
       logger error "No credentials set!"
