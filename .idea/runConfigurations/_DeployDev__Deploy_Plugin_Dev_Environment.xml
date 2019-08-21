@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="[DeployDev] Generate Bootstrap Launcher and deploy plugin dev environment" type="Application" factoryName="Application">
+  <configuration default="false" name="[DeployDev] Deploy Plugin Dev Environment" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
     <module name="ChatOverflow" />
     <method v="2">
