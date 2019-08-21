@@ -36,7 +36,7 @@ class GUIServlet extends ScalatraServlet with WithLogger {
 
   get("/*") {
     if (jarFilePath.isEmpty) {
-      ActionResult(500, "GUI couldn't be found on the classpath! Has the GUI been built?", Map())
+      ActionResult(500, "GUI couldn't be found on the classpath! Has the GUI been built?", Map("Cache-Control" -> "no-cache,no-store"))
     } else {
       val jarFile = new JarFile(new File(new URI(jarFilePath.get)))
 
