@@ -1,0 +1,8 @@
+<connector>
+    <display>Sample</display>
+    <description>The Sample service is just an expample on how a connector should look like.</description>
+    <wiki>https://github.com/codeoverflow-org/chatoverflow/wiki/Sample</wiki>
+    <icon48>
+        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAABFklEQVR4Ae2WtUEFARAFBykAlzqQDnBvCKcH3D3DIpwQUtzdybgEWyTB98veoX+mgDl9d/wTShhHEMYpwQOqkRfW4DL5yBsLcJXpd4EZXMV5F3BwFXnv/w0kM8Q5EoTnDJGEDtEcIAaPiEalETHahsq2OXCGyjVi9nsDN78+cPvrA3deB8oof3LYGvBNKrOISZ/f7kgWEKM1qKQjZgtQmTMHZlDpMgccVPrNgUtUdry9RJmI2Tzt62w//mrtRVtHTI5R8tlUNLH4a8dOvjewSqO+tJbAOqn60toC2yT5vbQKYcgnZutLaw1sBbS0KgfIB/YGsLQHqLQiH1jHR9QH8/ObwKEpcEg86CQzwkVQgQsGSSbED+Uep2BdxQhMU3gAAAAASUVORK5CYII=
+    </icon48>
+</connector>
