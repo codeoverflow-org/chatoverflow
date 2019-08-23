@@ -17,7 +17,7 @@ trait EventManager {
    * @tparam T the type/class of the event
    */
   protected def call[T: ClassTag](eventValue: T)(implicit classTag: ClassTag[T]): Unit = {
-    eventHandlers.foreach(_.handle(eventValue))
+    eventHandlers.foreach(_.handle(eventValue)(classTag))
   }
 
   /**
@@ -65,7 +65,7 @@ trait EventManager {
      * @param eventValue    the value of the event
      * @param eventClassTag the class tag to get the class of the event
      */
-    def handle(eventValue: Any)(implicit eventClassTag: ClassTag[T]): Unit
+    def handle[E](eventValue: E)(implicit eventClassTag: ClassTag[E]): Unit
   }
 
   /**
@@ -77,7 +77,7 @@ trait EventManager {
    * @tparam T the type of the event that this handler wants to handle
    */
   private case class SingleEventHandler[T: ClassTag](override val identifier: String, handler: T => Unit)(implicit ct: ClassTag[T]) extends EventHandler[T](identifier)(ct, ct) {
-    override def handle(eventValue: Any)(implicit eventClassTag: ClassTag[T]): Unit = {
+    override def handle[E](eventValue: E)(implicit eventClassTag: ClassTag[E]): Unit = {
       if (ct.runtimeClass.isAssignableFrom(eventClassTag.runtimeClass))
         handler.asInstanceOf[T => Unit].apply(eventValue.asInstanceOf[T])
     }
@@ -91,7 +91,7 @@ trait EventManager {
    * @tparam T the type of the event that this handler wants to handle
    */
   private case class AllEventHandler[T: ClassTag](override val identifier: String, handler: (Any, ClassTag[Any]) => Unit) extends EventHandler[T](identifier) {
-    override def handle(eventValue: Any)(implicit eventClassTag: ClassTag[T]): Unit = {
+    override def handle[E](eventValue: E)(implicit eventClassTag: ClassTag[E]): Unit = {
       handler(eventValue, eventClassTag.asInstanceOf[ClassTag[Any]])
     }
   }
