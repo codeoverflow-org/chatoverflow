@@ -30,7 +30,7 @@ class DiscordChatConnector(override val sourceIdentifier: String) extends EventC
   private val defaultFailureHandler: Consumer[_ >: Throwable] =
     throwable => logger warn s"Rest action for connector $sourceIdentifier failed: ${throwable.getMessage}"
 
-  discordChatListener.registerEventHandler((event, ct) => call(event)(ct, ct))
+  discordChatListener.registerEventHandler((event, ct) => call(event)(ct))
 
   /**
     * Connects to discord

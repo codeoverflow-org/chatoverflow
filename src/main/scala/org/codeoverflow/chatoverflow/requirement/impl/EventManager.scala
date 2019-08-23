@@ -13,11 +13,10 @@ trait EventManager {
    * Fires a event and calls all registered handlers.
    *
    * @param eventValue the actual value of the event.
-   * @param classTag   a class tag to be able to have access to the class of the event after type erasure.
    * @tparam T the type/class of the event
    */
-  protected def call[T: ClassTag](eventValue: T)(implicit classTag: ClassTag[T]): Unit = {
-    eventHandlers.foreach(_.handle(eventValue)(classTag))
+  protected def call[T: ClassTag](eventValue: T): Unit = {
+    eventHandlers.foreach(_.handle(eventValue))
   }
 
   /**
@@ -52,13 +51,13 @@ trait EventManager {
   }
 
   /**
-   * A instance containg all required information about a event handler with a method to actually handle events.
+   * A instance containing all required information about a event handler with a method to actually handle events.
    *
    * @param identifier the identifier used by the unregister method
    * @param ct         the class tag to get a instance of the class of type T at runtime
    * @tparam T the type of the event that this handler wants to handle
    */
-  private abstract class EventHandler[T: ClassTag](val identifier: String)(implicit val ct: ClassTag[T]) {
+  private abstract class EventHandler[T](val identifier: String)(implicit val ct: ClassTag[T]) {
     /**
      * Handles the passed event value. Also has to determine if the handler actually wants to handle this event
      *
@@ -76,7 +75,7 @@ trait EventManager {
    * @param ct         the class tag to get a instance of the class of type T at runtime
    * @tparam T the type of the event that this handler wants to handle
    */
-  private case class SingleEventHandler[T: ClassTag](override val identifier: String, handler: T => Unit)(implicit ct: ClassTag[T]) extends EventHandler[T](identifier)(ct, ct) {
+  private case class SingleEventHandler[T](override val identifier: String, handler: T => Unit)(implicit ct: ClassTag[T]) extends EventHandler[T](identifier) {
     override def handle[E](eventValue: E)(implicit eventClassTag: ClassTag[E]): Unit = {
       if (ct.runtimeClass.isAssignableFrom(eventClassTag.runtimeClass))
         handler.asInstanceOf[T => Unit].apply(eventValue.asInstanceOf[T])

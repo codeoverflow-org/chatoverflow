@@ -20,7 +20,7 @@ class TipeeestreamConnector(override val sourceIdentifier: String) extends Event
   override protected var optionalCredentialKeys: List[String] = List()
   private var socket: Option[Socket] = None
 
-  tipeeeStreamListener.registerEventHandler((event, ct) => call(event)(ct, ct))
+  tipeeeStreamListener.registerEventHandler((event, ct) => call(event)(ct))
 
   override def start(): Boolean = {
     // RestAPI doesn't need startup methods

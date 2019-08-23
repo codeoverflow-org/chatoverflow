@@ -22,7 +22,7 @@ class TwitchChatConnector(override val sourceIdentifier: String) extends EventCo
   private var status: Option[(Boolean, String)] = None
   private val channels = ListBuffer[String]()
 
-  twitchChatListener.registerEventHandler((event, ct) => call(event)(ct, ct)) // passes all events from the twitch chat to the in/outputs
+  twitchChatListener.registerEventHandler((event, ct) => call(event)(ct)) // passes all events from the twitch chat to the in/outputs
 
   def joinChannel(channel: String): Unit = {
     bot.send().joinChannel(channel)
