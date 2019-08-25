@@ -136,11 +136,11 @@ deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaM
 gui := new GUIUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 Compile / packageBin := {
-  new GUIUtility(streams.value.log).packageGUITask(guiProjectPath.value, scalaMajorVersion, crossTarget.value)
+  new GUIUtility(streams.value.log).packageGUITask(guiProjectPath.value, crossTarget.value)
   (Compile / packageBin).value
 }
 
-Compile / unmanagedJars := (crossTarget.value ** "chatoverflow-gui*.jar").classpath
+Compile / unmanagedJars := new GUIUtility(streams.value.log).getGUIJarClasspath(guiProjectPath.value, crossTarget.value)
 packageBin / includePom := false
 
 fork in run := true // Start ChatOverflow in it's own java process when starting it with 'sbt run'

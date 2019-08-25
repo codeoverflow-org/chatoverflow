@@ -5,7 +5,8 @@ import java.util.jar.Manifest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
-import sbt.internal.util.ManagedLogger
+import sbt.Keys.Classpath
+import sbt.internal.util.{Attributed, ManagedLogger}
 import sbt.util.{FileFunction, FilesInfo}
 
 import scala.io.Source
@@ -88,7 +89,7 @@ class GUIUtility(logger: ManagedLogger) {
     }
   }
 
-  def packageGUITask(guiProjectPath: String, scalaMajorVersion: String, crossTargetDir: File): Unit = {
+  def packageGUITask(guiProjectPath: String, crossTargetDir: File): Unit = {
     val dir = new File(guiProjectPath, "dist")
     if (!dir.exists()) {
       logger info "GUI hasn't been compiled. Won't create a jar for it."
@@ -100,9 +101,16 @@ class GUIUtility(logger: ManagedLogger) {
     // contains tuples with the actual file as the first value and the name with directory in the jar as the second value
     val jarEntries = files.map(file => file -> s"/chatoverflow-gui/${dir.toURI.relativize(file.toURI).toString}")
 
-    val guiVersion = getGUIVersion(guiProjectPath).getOrElse("unknown")
+    sbt.IO.jar(jarEntries, getGUIJarFile(guiProjectPath, crossTargetDir), new Manifest())
+  }
 
-    sbt.IO.jar(jarEntries, new File(crossTargetDir, s"chatoverflow-gui_$scalaMajorVersion-$guiVersion.jar"), new Manifest())
+  def getGUIJarClasspath(guiProjectPath: String, crossTargetDir: File): Classpath = {
+    Attributed.blankSeq(Seq(getGUIJarFile(guiProjectPath, crossTargetDir)))
+  }
+
+  private def getGUIJarFile(guiProjectPath: String, crossTargetDir: File): File = {
+    val guiVersion = getGUIVersion(guiProjectPath).getOrElse("unknown")
+    new File(crossTargetDir, s"chatoverflow-gui-$guiVersion.jar")
   }
 
   private def getGUIVersion(guiProjectPath: String): Option[String] = {
