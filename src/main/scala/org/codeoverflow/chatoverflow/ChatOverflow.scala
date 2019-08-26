@@ -112,15 +112,20 @@ class ChatOverflow(val pluginFolderPath: String,
     * Saves all settings and credentials to the corresponding files in the config folder.
     */
   def save(): Unit = {
-    val currentTime = System.currentTimeMillis()
+    if (loaded) {
+      val currentTime = System.currentTimeMillis()
 
-    // Start by saving credentials
-    credentialsService.save()
+      // Start by saving credentials
+      credentialsService.save()
 
-    // Save connectors and plugin instances (Note: Less work then loading)
-    configService.save(pluginInstanceRegistry)
+      // Save connectors and plugin instances (Note: Less work then loading)
+      configService.save(pluginInstanceRegistry)
 
-    logger info s"Saving took ${System.currentTimeMillis() - currentTime} ms."
+      logger info s"Saving took ${System.currentTimeMillis() - currentTime} ms."
+    } else {
+      // If the framework isn't loaded it would also override anything with defaults when saving
+      logger info "Framework hasn't been loaded. Nothing has to be saved."
+    }
   }
 
 }
