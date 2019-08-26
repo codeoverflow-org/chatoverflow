@@ -9,12 +9,7 @@
       </pattern>
     </extension>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Clean (sbt clean)" run_configuration_type="SbtRunConfiguration" />
-      <option name="Make" enabled="true" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Fetch plugins (sbt fetch)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Reload (sbt reload)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="List plugin versions (sbt version)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Package and copy plugins (sbt package copy)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Advanced Build (sbt clean compile fetch reload version package copy)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
 </component>

@@ -1,36 +1,19 @@
-.PHONY: advanced_run simple_run bootstrap_deploy create deploy fetch version package_copy reload clean git_pull
+.PHONY: advanced_run simple_run bootstrap_deploy bootstrap_deploy_dev create deploy deploy_dev fetch version package_copy gui reload clean git_pull
 
 advanced_run:
-	sbt clean
-	sbt compile
-	sbt gui
-	sbt fetch
-	sbt reload
-	sbt version
-	sbt package copy
+	sbt clean compile gui fetch reload version package copy
 
 simple_run:
-	sbt compile
 	sbt package copy
 
 bootstrap_deploy:
-	sbt clean
-	sbt gui
-	sbt package copy
-	sbt bs "project bootstrapProject" assembly
-	sbt deploy
+	sbt clean gui package bs bootstrapProject/assembly deploy
 
 bootstrap_deploy_dev:
-	sbt clean
-	sbt gui
-	sbt package copy
-	sbt buildProject/package
-	sbt deployDev
+	sbt clean gui package buildProject/package deployDev
 
 create:
-	sbt create
-	sbt fetch
-	sbt reload
+	sbt create fetch reload
 
 deploy:
 	sbt deploy
@@ -46,6 +29,9 @@ version:
 
 package_copy:
 	sbt package_copy
+
+gui:
+	sbt gui
 
 reload:
 	sbt reload

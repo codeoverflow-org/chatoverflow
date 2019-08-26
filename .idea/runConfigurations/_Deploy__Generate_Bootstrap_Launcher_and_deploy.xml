@@ -3,12 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
     <module name="ChatOverflow" />
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Clean (sbt clean)" run_configuration_type="SbtRunConfiguration" />
-      <option name="Make" enabled="true" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Build GUI (sbt gui)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Package and copy plugins (sbt package copy)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Bootstrap Assembly (sbt bs assembly)" run_configuration_type="SbtRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Deploy (sbt deploy)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Full Deploy (sbt clean gui package bs bootstrapProject/assembly deploy)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
 </component>
