@@ -29,7 +29,6 @@ project/plugins/project/
 /config/
 
 # resources of the bootstrap project
-/bootstrap/src/main/resources/
 /bin/
 /lib/
 /deploy/

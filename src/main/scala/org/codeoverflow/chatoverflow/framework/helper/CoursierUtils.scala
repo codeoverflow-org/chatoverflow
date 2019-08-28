@@ -4,7 +4,7 @@ import java.io.{File, InputStream}
 
 import coursier.Fetch
 import coursier.cache.{CacheLogger, FileCache}
-import coursier.core.Dependency
+import coursier.core.{Configuration, Dependency}
 import coursier.maven.PomParser
 import org.codeoverflow.chatoverflow.WithLogger
 
@@ -37,7 +37,9 @@ object CoursierUtils extends WithLogger {
     val parser = coursier.core.compatibility.xmlParseSax(pomFile.mkString, new PomParser)
 
     parser.project match {
-      case Right(deps) => deps.dependencies.map(_._2)
+      case Right(deps) => deps.dependencies
+        .filterNot(_._1 == Configuration.provided) // Provided deps are... well provided and no download is required
+        .map(_._2)
       case Left(errorMsg) => throw new IllegalArgumentException(s"Pom couldn't be parsed: $errorMsg")
     }
   }

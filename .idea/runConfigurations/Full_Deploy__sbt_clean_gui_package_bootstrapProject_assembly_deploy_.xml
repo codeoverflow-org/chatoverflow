@@ -1,19 +1,21 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Bootstrap Assembly (sbt bs assembly)" type="SbtRunConfiguration" factoryName="sbt Task">
+  <configuration default="false" name="Full Deploy (sbt clean gui package bootstrapProject/assembly deploy)" type="SbtRunConfiguration" factoryName="sbt Task">
     <!-- for IntelliJ < 2019.2-->
-    <setting name="tasks" value="bs &quot;project bootstrapProject&quot; assembly" />
+    <setting name="tasks" value="clean gui package bootstrapProject/assembly deploy" />
     <setting name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
     <setting name="workingDir" value="$PROJECT_DIR$" />
-    
+    <setting name="useSbtShell" value="false" />
+
     <!-- for IntelliJ >= 2019.2 -->
     <option name="allowRunningInParallel" value="false" />
-    <option name="tasks" value="bs &quot;project bootstrapProject&quot; assembly" />
+    <option name="tasks" value="clean gui package bootstrapProject/assembly deploy" />
     <option name="useSbtShell" value="false" />
     <option name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
     <option name="workingDir" value="$PROJECT_DIR$" />
 
     <!-- used by all IntelliJ versions -->
-    <envs />
-    <method />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
   </configuration>
 </component>

@@ -54,9 +54,9 @@ libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.22"
 
 // Scalatra (REST, ...)
 libraryDependencies ++= Seq(
-  "org.scalatra" %% "scalatra" % "2.6.+",
-  "org.scalatra" %% "scalatra-scalate" % "2.6.+",
-  "org.scalatra" %% "scalatra-specs2" % "2.6.+",
+  "org.scalatra" %% "scalatra" % "2.6.5",
+  "org.scalatra" %% "scalatra-scalate" % "2.6.5",
+  "org.scalatra" %% "scalatra-specs2" % "2.6.5",
   "ch.qos.logback" % "logback-classic" % "1.2.3" % "provided",
   "org.eclipse.jetty" % "jetty-webapp" % "9.4.7.v20170914" % "provided",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
@@ -86,8 +86,8 @@ libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
 libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 
-//Serial Communication
-libraryDependencies += "com.fazecast" % "jSerialComm" % "[2.0.0,3.0.0)"
+// Serial Communication
+libraryDependencies += "com.fazecast" % "jSerialComm" % "2.5.1"
 
 // Socket.io
 libraryDependencies += "io.socket" % "socket.io-client" % "1.0.0"
@@ -110,7 +110,6 @@ lazy val guiProjectPath = settingKey[String]("The path of the Angular gui.")
 lazy val create = TaskKey[Unit]("create", "Creates a new plugin. Interactive command using the console.")
 lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin directories, builds the plugin build file.")
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
-lazy val bs = TaskKey[Unit]("bs", "Updates the bootstrap project with current dependencies and chat overflow jars.")
 lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
 lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for plugin developers, fills deployDev folder.")
 lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
@@ -123,16 +122,15 @@ guiProjectPath := "gui"
 
 
 import org.codeoverflow.chatoverflow.build.GUIUtility
-import org.codeoverflow.chatoverflow.build.deployment.BootstrapUtility
+import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
 import org.codeoverflow.chatoverflow.build.plugins.{PluginUtility, PluginCreateWizard}
 
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
-bs := BootstrapUtility.bootstrapGenTask(streams.value.log, s"$scalaMajorVersion$scalaMinorVersion", getDependencyList.value)
-deploy := BootstrapUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
-deployDev := BootstrapUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, apiProjectPath.value, libraryDependencies.value.toList)
+deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion)
+deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion, apiProjectPath.value, libraryDependencies.value.toList)
 gui := new GUIUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 Compile / packageBin := {
@@ -141,28 +139,8 @@ Compile / packageBin := {
 }
 
 Compile / unmanagedJars := new GUIUtility(streams.value.log).getGUIJarClasspath(guiProjectPath.value, crossTarget.value)
-packageBin / includePom := false
 
 fork in run := true // Start ChatOverflow in it's own java process when starting it with 'sbt run'
-
-// ---------------------------------------------------------------------------------------------------------------------
-// UTIL
-// ---------------------------------------------------------------------------------------------------------------------
-
-// Util task for bs, gets a dependency list kinda like "sbt dependencyList", but only includes deps required for runtime
-// Filters out all chatoverflow modules, because those are not actual dependencies.
-lazy val getDependencyList = Def.task[List[ModuleID]] {
-  // only get deps required for runtime and not for anything else like testing
-  val updateReport = update.value.configuration(ConfigRef("runtime"))
-
-  if (updateReport.isEmpty) {
-    List()
-  } else {
-    updateReport.get.modules.map(m => m.module).toList
-      .filterNot(m => m.name == s"chatoverflow-api_$scalaMajorVersion" ||
-        m.name == s"chatoverflow_$scalaMajorVersion")
-  }
-}
 
 // Clears the built GUI dir on clean
 cleanFiles += baseDirectory.value / guiProjectPath.value / "dist"
