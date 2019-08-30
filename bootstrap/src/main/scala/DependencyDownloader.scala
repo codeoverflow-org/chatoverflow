@@ -13,7 +13,7 @@ import scala.io.Source
 object DependencyDownloader {
   private val pomFile = "dependencies.pom"
   private val logger = RefreshLogger.create(System.out, FileTypeRefreshDisplay.create())
-  private val cache = FileCache().withLocation("lib").noCredentials.withLogger(logger)
+  private val cache = FileCache().noCredentials.withLogger(logger)
 
   private def getPomIs: InputStream = classloader.getResourceAsStream(pomFile)
 
