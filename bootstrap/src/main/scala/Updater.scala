@@ -44,7 +44,7 @@ object Updater {
 
     val current = releases.get.find(_.tag_name == version.get)
     if (current.isEmpty) {
-      println("Couldn't find used release on GitHub. Skipping update check.")
+      println(s"Couldn't find used release '${version.get}' on GitHub. Skipping update check.")
       return None
     }
 
