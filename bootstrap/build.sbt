@@ -7,9 +7,6 @@ assemblyJarName in assembly := "ChatOverflow.jar"
 // JLine is used for terminal width
 libraryDependencies += "org.jline" % "jline-terminal-jansi" % "3.11.0"
 
-// HTTP lib for the Updater
-libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.3"
-
 // JSON Lib to read the json provided by GitHub Releases
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.2"
 

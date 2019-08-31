@@ -1,3 +1,7 @@
+import org.fusesource.jansi.internal.CLibrary
+
+import scala.io.StdIn
+
 object Main {
 
   /**
@@ -14,7 +18,23 @@ object Main {
       println("A new update is available!")
       println(s"Current version: ${Updater.getCurrentVersion.get}")
       println(s"Newest version: ${update.get.tag_name}")
-      println(s"Go download it at ${update.get.html_url}")
+
+      if (CLibrary.isatty(CLibrary.STDIN_FILENO) == 1) {
+        print(s"Do you want to download and install the update? [y/N] ")
+        val in = StdIn.readLine
+
+        if (in.toLowerCase == "y") {
+          val file = Updater.downloadUpdate(update.get)
+          if (file.isDefined) {
+            Updater.installUpdate(file.get)
+            Updater.restartBootstrapLauncher(args)
+            return
+          }
+        }
+      } else {
+        println("Currently running in a non-interactive session. Please run in an interactive session to auto-update\n" +
+          s"or download and install manually from ${update.get.html_url}")
+      }
     } else {
       println("No new update is available.")
     }

@@ -57,7 +57,7 @@ object Bootstrap {
     *
     * @return the path to the java runtime or none, if the file was not found
     */
-  private def createJavaPath(): Option[String] = {
+  def createJavaPath(): Option[String] = {
 
     // Check validity of java.home path first
     if (!new File(javaHomePath).exists()) {
