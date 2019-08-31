@@ -1,14 +1,16 @@
 import java.io.File
-import java.net.URL
-import java.nio.file.Files
+import java.net.{URL, URLClassLoader}
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.nio.file.{Files, Paths}
 import java.util.Date
 import java.util.zip.ZipFile
 
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
+import org.fusesource.jansi.internal.CLibrary
+import org.json4s.jackson.JsonMethods.parse
+import org.json4s.{DefaultFormats, Formats}
 
 import scala.collection.JavaConverters._
-import scala.io.Source
+import scala.io.{Source, StdIn}
 import scala.sys.process._
 
 /**
@@ -16,12 +18,55 @@ import scala.sys.process._
  * Uses GitHub releases to find new versions and to download them.
  */
 object Updater {
-  private val versionFileName = "/version.txt"
+  private val versionFileName = "version.txt"
+  private val launcherJar = "ChatOverflow-Launcher.jar"
+  private val launcherMainClass = "Bootstrap"
+  private val classLoader = new URLClassLoader(Array(
+    Paths.get(launcherJar).toUri.toURL
+  ), getClass.getClassLoader.getParent)
   private val ghBase = "https://api.github.com"
   private val acceptHeader = "Accept" -> "application/vnd.github.v3+json"
   private implicit val jsonFormats: Formats = DefaultFormats
 
   private val repo = "codeoverflow-org/chatoverflow" // Can be changed for testing purposes
+
+  /**
+   * Updater entry point.
+   * Checks for updates and if available and accepted by the user, installs it.
+   * Starts the Bootstrap Launcher
+   *
+   * @param args arguments for the launcher
+   */
+  def main(args: Array[String]): Unit = {
+    println("Starting ChatOverflow Bootstrap Updater.")
+
+    println("Checking for updates...")
+    val update = Updater.searchForUpdates
+    if (update.isDefined) {
+      println("A new update is available!")
+      println(s"Current version: ${Updater.getCurrentVersion.get}")
+      println(s"Newest version: ${update.get.tag_name}")
+
+      if (CLibrary.isatty(CLibrary.STDIN_FILENO) == 1) {
+        print(s"Do you want to download and install the update? [y/N] ")
+        val in = StdIn.readLine
+
+        if (in.toLowerCase == "y") {
+          val file = Updater.downloadUpdate(update.get)
+          if (file.isDefined) {
+            Updater.installUpdate(file.get)
+          }
+        }
+      } else {
+        println("Currently running in a non-interactive session. Please run in an interactive session to auto-update\n" +
+          s"or download and install manually from ${update.get.html_url}")
+      }
+    } else {
+      println("No new update is available.")
+    }
+
+    startLauncher(args)
+  }
 
   /**
    * Searches for any updates that are newer than the local version.
@@ -121,10 +166,7 @@ object Updater {
       if (out.isDirectory) {
         out.mkdirs()
       } else {
-        if (out.exists())
-          out.delete()
-
-        Files.copy(is, out.toPath)
+        Files.copy(is, out.toPath, REPLACE_EXISTING)
       }
 
       is.close()
@@ -134,30 +176,12 @@ object Updater {
   }
 
   /**
-   * Restarts the Bootstrap Launcher inorder to use the new version
-   *
-   * @param args the args to pass to the bootstrap launcher
-   */
-  def restartBootstrapLauncher(args: Array[String]): Unit = {
-    println("Restarting Bootstrap Launcher to use new version.")
-
-    val javaPath = Bootstrap.createJavaPath()
-    if (javaPath.isDefined) {
-      val command = List(javaPath.get, "-jar", "ChatOverflow.jar") ++ args
-      new java.lang.ProcessBuilder(command: _*)
-        .inheritIO().start().waitFor()
-    } else {
-      println("Can't automatically restart Bootstrap Launcher. Please do it yourself.")
-    }
-  }
-
-  /**
    * Gets the local installed version, e.g. 0.3-prealpha.
    *
    * @return if successfully the version, otherwise None.
    */
   def getCurrentVersion: Option[String] = {
-    val is = getClass.getResourceAsStream(versionFileName)
+    val is = classLoader.getResourceAsStream(versionFileName)
     if (is == null)
       None
     else
@@ -165,23 +189,38 @@ object Updater {
   }
 
   /**
+   * Loads the class of the Launcher with the class loader and starts it.
+   *
+   * @param args the args to pass to the Bootstrap Launcher
+   */
+  def startLauncher(args: Array[String]): Unit = {
+    try {
+      val cls = classLoader.loadClass(launcherMainClass)
+      val mainMethod = cls.getMethod("main", classOf[Array[String]])
+      mainMethod.invoke(null, args)
+    } catch {
+      case e: Throwable => println(s"Launcher jar is invalid: couldn't get main method: $e")
+    }
+  }
+
+  /**
    * Metadata about a release of ChatOverflow on GitHub.
    * Note that the variables of this class doesn't represent all the metadata we get by the GitHub API,
    * you can add more metadata by adding a variable with the name that the metadata has in the json object.
    *
-   * @param tag_name the name of the git tag, which this release refers to
-   * @param html_url the url to the release on GitHub
+   * @param tag_name     the name of the git tag, which this release refers to
+   * @param html_url     the url to the release on GitHub
    * @param published_at the date, when this release was published
-   * @param assets all assets attached to this release
+   * @param assets       all assets attached to this release
    */
   case class Release(tag_name: String, html_url: String, published_at: Date, assets: List[ReleaseAsset])
 
   /**
    * A file asset of a release.
    *
-   * @param name the name of the file
+   * @param name                 the name of the file
    * @param browser_download_url the url, where it can be downloaded
-   * @param size the size of the file in bytes
+   * @param size                 the size of the file in bytes
    */
   case class ReleaseAsset(name: String, browser_download_url: String, size: Int)
 

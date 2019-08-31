@@ -37,7 +37,12 @@ import org.codeoverflow.chatoverflow.build.BuildUtils
 javacOptions ++= BuildUtils.getJava8CrossOptions
 
 // Link the bootstrap launcher
-lazy val bootstrapProject = project in file("bootstrap")
+lazy val bootstrapLauncherProject = project in file("bootstrap/launcher")
+lazy val bootstrapUpdaterProject = project in file("bootstrap/updater")
+lazy val bootstrapProject = (project in file("bootstrap"))
+  .aggregate(bootstrapLauncherProject, bootstrapUpdaterProject).settings(
+  name := "chatoverflow-bootstrap"
+)
 
 // not actually used. Just required to say IntelliJ to mark the build directory as a sbt project, otherwise it wouldn't detect it.
 lazy val buildProject = project in file("build")
@@ -123,7 +128,7 @@ guiProjectPath := "gui"
 
 import org.codeoverflow.chatoverflow.build.GUIUtility
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
-import org.codeoverflow.chatoverflow.build.plugins.{PluginUtility, PluginCreateWizard}
+import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,

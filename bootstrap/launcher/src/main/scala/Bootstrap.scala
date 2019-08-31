@@ -21,11 +21,12 @@ object Bootstrap {
   )
 
   /**
+   * Launcher entry point.
    * Validates installation, downloads dependencies and start ChatOverflow.
    *
    * @param args the arguments, which are passed to ChatOverflow
    */
-  def start(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     if (testValidity()) {
       println("Valid ChatOverflow installation. Checking libraries...")
 
