@@ -1,7 +1,7 @@
 import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import java.nio.file.{Files, Paths}
+import java.nio.file.{FileSystemException, Files, Paths}
 import java.util.Date
 import java.util.zip.ZipFile
 
@@ -21,9 +21,7 @@ object Updater {
   private val versionFileName = "version.txt"
   private val launcherJar = "ChatOverflow-Launcher.jar"
   private val launcherMainClass = "Bootstrap"
-  private val classLoader = new URLClassLoader(Array(
-    Paths.get(launcherJar).toUri.toURL
-  ), getClass.getClassLoader.getParent)
+  private var classLoader = getLauncherLoader
   private val ghBase = "https://api.github.com"
   private val acceptHeader = "Accept" -> "application/vnd.github.v3+json"
   private implicit val jsonFormats: Formats = DefaultFormats
@@ -158,19 +156,31 @@ object Updater {
     val binFiles = new File("bin").listFiles.filter(_.getName.endsWith(".jar"))
     binFiles.foreach(_.delete())
 
+    classLoader.close() // release locks of jars on windows
+    classLoader = null
+
     val zip = new ZipFile(zipFile)
-    zip.entries().asScala.foreach(entry => {
+    zip.entries().asScala
+      .foreach(entry => {
       val is = zip.getInputStream(entry)
       val out = new File(".", entry.getName)
 
       if (out.isDirectory) {
         out.mkdirs()
       } else {
-        Files.copy(is, out.toPath, REPLACE_EXISTING)
+        try {
+          Files.copy(is, out.toPath, REPLACE_EXISTING)
+        } catch {
+          case _: FileSystemException if entry.getName == "ChatOverflow.jar" =>
+          // Updater couldn't be updated, because Windows holds file locks on executing files like the updater.
+          // Skip update of it, it shouldn't change anyway. We can update it on *nix system in the case we reeeeealy need to.
+        }
       }
 
       is.close()
     })
+
+    classLoader = getLauncherLoader
 
     println("Update installed.")
   }
@@ -202,6 +212,10 @@ object Updater {
       case e: Throwable => println(s"Launcher jar is invalid: couldn't get main method: $e")
     }
   }
+
+  private def getLauncherLoader = new URLClassLoader(Array(
+    Paths.get(launcherJar).toUri.toURL
+  ), getClass.getClassLoader.getParent)
 
   /**
    * Metadata about a release of ChatOverflow on GitHub.
