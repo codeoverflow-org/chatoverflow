@@ -1,4 +1,4 @@
-import java.io.File
+import java.io.{BufferedInputStream, File, FileInputStream}
 import java.net.{URL, URLClassLoader}
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.{FileSystemException, Files, Paths}
@@ -160,7 +160,7 @@ object Updater {
       in.close()
     }
 
-    println("Update successfully downloaded")
+    println("Update successfully downloaded.")
     Some(temp)
   }
 
@@ -192,8 +192,20 @@ object Updater {
             Files.copy(is, out.toPath, REPLACE_EXISTING)
           } catch {
             case _: FileSystemException if entry.getName == "ChatOverflow.jar" =>
-            // Updater couldn't be updated, because Windows holds file locks on executing files like the updater.
-            // Skip update of it, it shouldn't change anyway. We can update it on *nix system in the case we reeeeealy need to.
+              // Updater couldn't be updated, because Windows holds file locks on executing files including the updater.
+              // Skip update of it, it shouldn't change anyway. We can update it on *nix system in the case we reeeeealy need to.
+              // If it has changed and we can't auto-update, we do recommend the user to update the updater manually, but it is to the user to decide.
+              val currentIs = new BufferedInputStream(new FileInputStream("ChatOverflow.jar"))
+              val currentHash = Stream.continually(currentIs.read).takeWhile(_ != -1).map(_.toByte).hashCode()
+              val newIs = new BufferedInputStream(zip.getInputStream(entry))
+              val newHash = Stream.continually(newIs.read).takeWhile(_ != -1).map(_.toByte).hashCode()
+
+              if (currentHash != newHash) {
+                println("The ChatOverflow updater has been updated and we can't update it for you when running on Windows.\n" +
+                  "It's highly recommended to override the 'ChatOverflow.jar' of your installation with the new version\n" +
+                  s"that can be found in the zip file at $zipFile.\n ChatOverflow may still work fine with this version," +
+                  "but we can't guarantee that.")
+              }
           }
         }
 
@@ -202,8 +214,8 @@ object Updater {
 
     // Re-set the executable flag for *nix systems
     new File(".").listFiles()
-        .filter(f => f.isFile && f.getName.startsWith("ChatOverflow."))
-        .foreach(_.setExecutable(true))
+      .filter(f => f.isFile && f.getName.startsWith("ChatOverflow."))
+      .foreach(_.setExecutable(true))
 
     // Reload all jar files, so that the launcher can be loaded
     classLoader = getLauncherLoader
