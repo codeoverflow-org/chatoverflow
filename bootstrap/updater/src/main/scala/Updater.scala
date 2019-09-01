@@ -178,6 +178,7 @@ object Updater {
     classLoader.close() // release locks of jars on windows
     classLoader = null
 
+    // Extract zip
     val zip = new ZipFile(zipFile)
     zip.entries().asScala
       .foreach(entry => {
@@ -199,6 +200,12 @@ object Updater {
         is.close()
       })
 
+    // Re-set the executable flag for *nix systems
+    new File(".").listFiles()
+        .filter(f => f.isFile && f.getName.startsWith("ChatOverflow."))
+        .foreach(_.setExecutable(true))
+
+    // Reload all jar files, so that the launcher can be loaded
     classLoader = getLauncherLoader
 
     println("Update installed.")
