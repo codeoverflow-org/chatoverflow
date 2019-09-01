@@ -2,16 +2,17 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.{FileSystemException, Files, Paths}
+import java.text.DecimalFormat
 import java.util.Date
 import java.util.zip.ZipFile
 
+import me.tongfei.progressbar.{ProgressBar, ProgressBarBuilder, ProgressBarStyle}
 import org.fusesource.jansi.internal.CLibrary
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.{DefaultFormats, Formats}
 
 import scala.collection.JavaConverters._
 import scala.io.{Source, StdIn}
-import scala.sys.process._
 
 /**
  * Contains all logic to update the local installation of ChatOverflow.
@@ -142,7 +143,22 @@ object Updater {
     val url = new URL(zipFile.get.browser_download_url)
     val temp = Files.createTempFile("ChatOverflow", update.tag_name).toFile
 
-    url #> temp !!
+    val connection = url.openConnection()
+    val pbb = new ProgressBarBuilder()
+      .setStyle(ProgressBarStyle.ASCII)
+      .setUnit("MB", 1000 * 1000)
+      .setInitialMax(zipFile.get.size)
+      .showSpeed(new DecimalFormat("0.0"))
+
+    val in = ProgressBar.wrap(connection.getInputStream, pbb)
+    try {
+      if (temp.exists())
+        temp.delete()
+
+      Files.copy(in, temp.toPath)
+    } finally {
+      in.close()
+    }
 
     println("Update successfully downloaded")
     Some(temp)
@@ -165,23 +181,23 @@ object Updater {
     val zip = new ZipFile(zipFile)
     zip.entries().asScala
       .foreach(entry => {
-      val is = zip.getInputStream(entry)
-      val out = new File(".", entry.getName)
+        val is = zip.getInputStream(entry)
+        val out = new File(".", entry.getName)
 
-      if (out.isDirectory) {
-        out.mkdirs()
-      } else {
-        try {
-          Files.copy(is, out.toPath, REPLACE_EXISTING)
-        } catch {
-          case _: FileSystemException if entry.getName == "ChatOverflow.jar" =>
-          // Updater couldn't be updated, because Windows holds file locks on executing files like the updater.
-          // Skip update of it, it shouldn't change anyway. We can update it on *nix system in the case we reeeeealy need to.
+        if (out.isDirectory) {
+          out.mkdirs()
+        } else {
+          try {
+            Files.copy(is, out.toPath, REPLACE_EXISTING)
+          } catch {
+            case _: FileSystemException if entry.getName == "ChatOverflow.jar" =>
+            // Updater couldn't be updated, because Windows holds file locks on executing files like the updater.
+            // Skip update of it, it shouldn't change anyway. We can update it on *nix system in the case we reeeeealy need to.
+          }
         }
-      }
 
-      is.close()
-    })
+        is.close()
+      })
 
     classLoader = getLauncherLoader
 
