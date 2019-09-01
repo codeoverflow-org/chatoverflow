@@ -1,5 +1,4 @@
 import java.io.File
-import java.net.URLClassLoader
 import java.nio.file.Paths
 
 /**
@@ -8,17 +7,13 @@ import java.nio.file.Paths
 object Bootstrap {
 
   // Working directory of the bootstrap launcher
-  val currentFolderPath: String = Paths.get("").toAbsolutePath.toString
+  private val currentFolderPath: String = Paths.get("").toAbsolutePath.toString
 
   // Java home path (jre installation folder)
-  val javaHomePath: String = System.getProperty("java.home")
+  private val javaHomePath: String = System.getProperty("java.home")
 
   // Chat Overflow Launcher / Main class (should not change anymore)
-  val chatOverflowMainClass = "org.codeoverflow.chatoverflow.Launcher"
-
-  val classloader = new URLClassLoader(
-    new File("bin").listFiles().filter(_.getName.endsWith(".jar")).map(_.toURI.toURL)
-  )
+  private val chatOverflowMainClass = "org.codeoverflow.chatoverflow.Launcher"
 
   /**
    * Launcher entry point.
@@ -58,7 +53,7 @@ object Bootstrap {
     *
     * @return the path to the java runtime or none, if the file was not found
     */
-  def createJavaPath(): Option[String] = {
+  private def createJavaPath(): Option[String] = {
 
     // Check validity of java.home path first
     if (!new File(javaHomePath).exists()) {
