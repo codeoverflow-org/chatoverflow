@@ -23,7 +23,7 @@ object Updater {
   private val launcherMainClass = "Bootstrap"
   private var classLoader = getLauncherLoader
   private val ghBase = "https://api.github.com"
-  private val acceptHeader = "Accept" -> "application/vnd.github.v3+json"
+  private val acceptHeader = "Accept" -> "application/vnd.github.v3+json" // ensures that we always get the GitHub v3 API
   private implicit val jsonFormats: Formats = DefaultFormats
 
   private val repo = "codeoverflow-org/chatoverflow" // Can be changed for testing purposes
@@ -128,7 +128,10 @@ object Updater {
    * @return None, if no zip file is attached to the release. When successful returns the temp file.
    */
   def downloadUpdate(update: Release): Option[File] = {
-    val zipFile = update.assets.find(_.name.endsWith(".zip"))
+    val zipFile = update.assets.find(e => {
+      val n = e.name
+      n.endsWith(".zip") && !n.contains("plugin") && !n.contains("dev") // Tries to eliminate zips of the plugin dev environment
+    })
     if (zipFile.isEmpty) {
       println("Release doesn't contain a zip file, seems invalid. Skipping update and starting with old version.")
       return None
