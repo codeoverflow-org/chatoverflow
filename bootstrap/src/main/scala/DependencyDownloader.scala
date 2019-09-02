@@ -35,7 +35,7 @@ object DependencyDownloader {
         deps.dependencies
           .filterNot(_._1 == Configuration.provided) // Provided deps are... well provided and no download is required
           .map(_._2)
-          .filter(_.module.name.value != "chatoverflow-api_2.12") // We already have the api locally inside the bin directory
+          .filter(_.module.name.value != "chatoverflow-api") // We already have the api locally inside the bin directory
       case Left(errorMsg) =>
         println(s"Pom containing all required dependencies for the framework couldn't be parsed: $errorMsg")
         Seq()

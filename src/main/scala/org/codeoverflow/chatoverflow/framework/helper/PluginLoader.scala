@@ -163,7 +163,7 @@ class PluginLoader(private val jar: File) extends WithLogger {
     }
 
     Future(CoursierUtils.parsePom(pomIs))
-      .map(dependencies => dependencies.filter(_.module.name.value != "chatoverflow-api_2.12"))
+      .map(dependencies => dependencies.filter(_.module.name.value != "chatoverflow-api"))
       .map(dependencies => CoursierUtils.fetchDependencies(dependencies))
       .andThen {
         case Success(jarFiles) =>
