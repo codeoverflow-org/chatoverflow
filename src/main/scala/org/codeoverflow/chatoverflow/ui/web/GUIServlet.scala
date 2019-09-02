@@ -1,6 +1,6 @@
 package org.codeoverflow.chatoverflow.ui.web
 
-import java.io.File
+import java.io.{BufferedInputStream, File}
 import java.net.URI
 import java.util.jar.JarFile
 
@@ -8,8 +8,6 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.Loader
 import org.scalatra.{ActionResult, ScalatraServlet}
-
-import scala.io.Source
 
 /**
  * A servlet to serve the GUI files of the chatoverflow-gui dir from the classpath.
@@ -51,7 +49,12 @@ class GUIServlet extends ScalatraServlet with WithLogger {
         ActionResult(404, s"Requested file '$path' couldn't be found in the GUI jar!", Map())
       } else {
         contentType = MimeTypes.getDefaultMimeByExtension(entry.getName)
-        Source.fromInputStream(jarFile.getInputStream(entry)).mkString
+        val is = new BufferedInputStream(jarFile.getInputStream(entry))
+        val os = response.getOutputStream
+
+        Stream.continually(is.read)
+          .takeWhile(_ != -1)
+          .foreach(os.write)
       }
 
       response.setHeader("Cache-Control", "no-cache,no-store")
