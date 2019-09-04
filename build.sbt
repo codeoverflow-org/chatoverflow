@@ -83,7 +83,7 @@ libraryDependencies ++= Seq(
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 
 // JDA
-resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
+resolvers += "jcenter-bintray" at "https://jcenter.bintray.com"
 libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 
 // Serial Communication
