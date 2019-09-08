@@ -38,7 +38,8 @@ object Bootstrap {
           println("Found java installation. Starting ChatOverflow...")
 
           // Start chat overflow!
-          val process = new java.lang.ProcessBuilder(javaPath.get, "-cp", s"bin/*${deps.mkString(File.pathSeparator, File.pathSeparator, "")}", chatOverflowMainClass)
+          val command = List(javaPath.get, "-cp", s"bin/*${deps.mkString(File.pathSeparator, File.pathSeparator, "")}", chatOverflowMainClass) ++ args
+          val process = new java.lang.ProcessBuilder(command: _*)
             .inheritIO().start()
 
           val exitCode = process.waitFor()
