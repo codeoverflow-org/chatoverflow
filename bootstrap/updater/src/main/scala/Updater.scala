@@ -20,7 +20,7 @@ import scala.io.{Source, StdIn}
  */
 object Updater {
   private val versionFileName = "version.txt"
-  private val launcherJar = "ChatOverflow-Launcher.jar"
+  private val launcherJar = "bin/ChatOverflow-Launcher.jar"
   private val launcherMainClass = "Bootstrap"
   private var classLoader = getLauncherLoader
   private val ghBase = "https://api.github.com"

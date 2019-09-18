@@ -37,7 +37,7 @@ object DeploymentUtility {
       prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = true)
 
       // Third step: Copy bootstrap launcher
-      copyJars(s"bootstrap/launcher/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
+      copyJars(s"bootstrap/launcher/target/scala-$scalaLibraryVersion/", List("deploy/bin/"), logger)
       copyJars(s"bootstrap/updater/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
 
       // Last step: Copy additional files
