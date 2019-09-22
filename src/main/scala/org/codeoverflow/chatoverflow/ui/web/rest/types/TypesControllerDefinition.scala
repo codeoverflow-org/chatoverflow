@@ -27,7 +27,7 @@ trait TypesControllerDefinition extends SwaggerSupport with TagSupport with Auth
       tags controllerTag)
   val getConnectorsMetadata: OperationBuilder =
     (apiOperation[Map[String, ConnectorMetadata]]("getConnectorsMetadata")
-      summary "Shows the metadata of all connectors, if found."
+      summary "Shows the types of all connectors. If available, also the metadata is showed."
       description "Shows a map of connector type string and metadata with display name, description, wiki url and base64 encoded icon."
       parameter authHeader
       tags controllerTag)
