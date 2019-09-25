@@ -12,16 +12,29 @@ import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.streamelements.StreamElementsConnector
 import org.codeoverflow.chatoverflow.requirement.service.streamelements.StreamElementsConnector._
-import org.json.JSONObject
+import org.json.{JSONException, JSONObject}
+
+import scala.reflect.ClassTag
 
 @Impl(impl = classOf[StreamElementsEventInput], connector = classOf[StreamElementsConnector])
 class StreamElementsEventInputImpl extends EventInputImpl[StreamElementsEvent, StreamElementsConnector] with StreamElementsEventInput {
 
   override def start(): Boolean = {
-    sourceConnector.get.registerEventHandler(onFollow _)
-    sourceConnector.get.registerEventHandler(onSubscription _)
-    sourceConnector.get.registerEventHandler(onDonation _)
+    sourceConnector.get.registerEventHandler(handleExceptions(onFollow))
+    sourceConnector.get.registerEventHandler(handleExceptions(onSubscription))
+    sourceConnector.get.registerEventHandler(handleExceptions(onDonation))
     true
+  }
+
+  private def handleExceptions[T: ClassTag](handler: T => Unit): T => Unit = event => {
+    try {
+      handler(event)
+    } catch {
+      case e@(_: JSONException | _: IllegalArgumentException) =>
+        val jsonClass = implicitly[ClassTag[T]].runtimeClass
+        logger warn s"Error while parsing follow json of type ${jsonClass.getSimpleName}:"
+        logger warn s"${e.getClass.getName} - ${e.getMessage}"
+    }
   }
 
   private def onFollow(event: FollowEventJSON): Unit = {
