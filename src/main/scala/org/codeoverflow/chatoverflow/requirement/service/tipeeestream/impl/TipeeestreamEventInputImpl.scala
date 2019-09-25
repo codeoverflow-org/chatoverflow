@@ -6,8 +6,8 @@ import java.util.Currency
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.User
-import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.tipeeestream.{TipeeestreamDonation, TipeeestreamFollow, TipeeestreamProvider, TipeeestreamSubscription}
-import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream.{TipeeestreamDonationEvent, TipeeestreamEvent, TipeeestreamFollowEvent, TipeeestreamSubscriptionEvent}
+import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.tipeeestream._
+import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream._
 import org.codeoverflow.chatoverflow.api.io.input.event.TipeeestreamEventInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
@@ -24,6 +24,7 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
     sourceConnector.get.registerEventHandler(onFollow _)
     sourceConnector.get.registerEventHandler(onSubscription _)
     sourceConnector.get.registerEventHandler(onDonation _)
+    sourceConnector.get.registerEventHandler(onCheer _)
     true
   }
 
@@ -77,6 +78,26 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
       val provider = TipeeestreamProvider.parse(event.getString("origin"))
       val follow = new TipeeestreamFollow(user, time, provider)
       call(new TipeeestreamFollowEvent(follow))
+    } catch {
+      case e: JSONException =>
+        logger warn "Error while parsing follow json:"
+        logger warn s"${e.getClass.getName} - ${e.getMessage}"
+      case e: IllegalArgumentException =>
+        logger warn "Error while parsing follow json:"
+        logger warn s"${e.getClass.getName} - ${e.getMessage}"
+    }
+  }
+
+  private def onCheer(eventJson: CheerEventJSON): Unit = {
+    try {
+      val event = eventJson.json
+      val parameter = event.getJSONObject("parameters")
+      val user = new User(parameter.getString("username"))
+      val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
+      val amount = event.getInt("formattedAmount")
+      val message = parameter.getString("formattedMessage")
+      val cheer = new TipeeestreamCheer(user, amount, message, time)
+      call(new TipeeestreamCheerEvent(cheer))
     } catch {
       case e: JSONException =>
         logger warn "Error while parsing follow json:"
