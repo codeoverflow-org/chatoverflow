@@ -6,6 +6,7 @@ import java.util.{Currency, Locale}
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.User
+import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.SubscriptionTier
 import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.tipeeestream._
 import org.codeoverflow.chatoverflow.api.io.event.stream.tipeeestream._
 import org.codeoverflow.chatoverflow.api.io.input.event.TipeeestreamEventInput
@@ -58,7 +59,15 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
       val resub = parameter.optInt("resub", 0)
       val provider = TipeeestreamProvider.parse(event.optString("origin"))
-      val sub = new TipeeestreamSubscription(user, resub, time, provider)
+      val gifted = parameter.has("gifter")
+      val donor = if (gifted) new User(parameter.getString("gifter")) else null
+      val tier = SubscriptionTier.parse({
+        if (parameter.optInt("twitch_prime") == 1)
+          0
+        else
+          parameter.optInt("plan", 1000) / 1000
+      })
+      val sub = new TipeeestreamSubscription(user, time, resub, tier, gifted, donor, provider)
       call(new TipeeestreamSubscriptionEvent(sub))
     } catch {
       case e: JSONException =>
