@@ -2,7 +2,7 @@ package org.codeoverflow.chatoverflow.requirement.service.tipeeestream.impl
 
 import java.time.OffsetDateTime
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
-import java.util.Currency
+import java.util.{Currency, Locale}
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.dto.User
@@ -33,9 +33,10 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
       val event = eventJson.json
       val parameter = event.getJSONObject("parameters")
       val user = new User(parameter.getString("username"))
-      val message = parameter.getString("formattedMessage")
+      val message = parameter.optString("formattedMessage")
       val amount = parameter.getDouble("amount").toFloat
-      val currency = Currency.getInstance(parameter.getString("currency"))
+      val currency = if (parameter.has("currency")) Currency.getInstance(parameter.getString("currency"))
+      else Currency.getInstance(Locale.getDefault)
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
       val donation = new TipeeestreamDonation(user, amount, currency, time, message)
       call(new TipeeestreamDonationEvent(donation))
@@ -55,8 +56,8 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
       val parameter = event.getJSONObject("parameters")
       val user = new User(parameter.getString("username"))
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
-      val resub = parameter.getInt("resub")
-      val provider = TipeeestreamProvider.parse(event.getString("origin"))
+      val resub = parameter.optInt("resub", 0)
+      val provider = TipeeestreamProvider.parse(event.optString("origin"))
       val sub = new TipeeestreamSubscription(user, resub, time, provider)
       call(new TipeeestreamSubscriptionEvent(sub))
     } catch {
@@ -75,7 +76,7 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
       val parameter = event.getJSONObject("parameters")
       val user = new User(parameter.getString("username"))
       val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
-      val provider = TipeeestreamProvider.parse(event.getString("origin"))
+      val provider = TipeeestreamProvider.parse(event.optString("origin"))
       val follow = new TipeeestreamFollow(user, time, provider)
       call(new TipeeestreamFollowEvent(follow))
     } catch {
