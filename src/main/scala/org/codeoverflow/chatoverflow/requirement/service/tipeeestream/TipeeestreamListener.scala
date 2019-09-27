@@ -15,6 +15,7 @@ class TipeeestreamListener extends EventManager {
     Option(eventType match {
       case "subscription" => call(SubscriptionEventJSON(event))
       case "donation" => call(DonationEventJSON(event))
+      case "superchat" => call(DonationEventJSON(event))
       case "follow" => call(FollowEventJSON(event))
       case "cheer" => call(CheerEventJSON(event))
       case "raid" => call(RaidEventJSON(event))
