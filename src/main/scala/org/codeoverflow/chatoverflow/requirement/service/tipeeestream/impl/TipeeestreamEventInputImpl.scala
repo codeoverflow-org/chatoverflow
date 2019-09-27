@@ -29,6 +29,7 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
     sourceConnector.get.registerEventHandler(handleExceptions(onDonation))
     sourceConnector.get.registerEventHandler(handleExceptions(onCheer))
     sourceConnector.get.registerEventHandler(handleExceptions(onRaid))
+    sourceConnector.get.registerEventHandler(handleExceptions(onHost))
     true
   }
 
@@ -102,11 +103,21 @@ class TipeeestreamEventInputImpl extends EventInputImpl[TipeeestreamEvent, Tipee
     val user = new User(parameter.getString("username"))
     val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
     val message = parameter.getString("formattedMessage")
-    val viewers = event.getInt("formattedAmount")
+    val viewers = parameter.getInt("viewers")
     val raid = new TipeeestreamRaid(user, message, viewers, time)
     call(new TipeeestreamRaidEvent(raid))
   }
 
+  private def onHost(eventJson: HostEventJSON): Unit = {
+    val event = eventJson.json
+    val parameter = event.getJSONObject("parameters")
+    val user = new User(parameter.getString("username"))
+    val time = OffsetDateTime.parse(event.getString("created_at"), DATE_FORMATTER)
+    val message = parameter.getString("formattedMessage")
+    val viewers = parameter.getInt("viewers")
+    val host = new TipeeestreamHost(user, message, viewers, time)
+    call(new TipeeestreamHostEvent(host))
+  }
 
   override def stop(): Boolean = {
     sourceConnector.get.unregisterAllEventListeners

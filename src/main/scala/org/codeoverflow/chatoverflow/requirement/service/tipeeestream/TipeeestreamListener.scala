@@ -18,6 +18,7 @@ class TipeeestreamListener extends EventManager {
       case "follow" => call(FollowEventJSON(event))
       case "cheer" => call(CheerEventJSON(event))
       case "raid" => call(RaidEventJSON(event))
+      case "hosting" => call(HostEventJSON(event))
       case _ =>
     })
   }

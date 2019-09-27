@@ -96,4 +96,5 @@ object TipeeestreamConnector {
   private[tipeeestream] case class FollowEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
   private[tipeeestream] case class CheerEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
   private[tipeeestream] case class RaidEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
+  private[tipeeestream] case class HostEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
 }
