@@ -97,4 +97,7 @@ object StreamElementsConnector {
     private[streamelements] case class SubscriptionEventJSON(json: JSONObject) extends StreamElementsEventJSON(json)
     private[streamelements] case class DonationEventJSON(json: JSONObject) extends StreamElementsEventJSON(json)
     private[streamelements] case class FollowEventJSON(json: JSONObject) extends StreamElementsEventJSON(json)
+    private[streamelements] case class CheerEventJSON(json: JSONObject) extends StreamElementsEventJSON(json)
+    private[streamelements] case class HostEventJSON(json: JSONObject) extends StreamElementsEventJSON(json)
+    private[streamelements] case class RaidEventJSON(json: JSONObject) extends StreamElementsEventJSON(json)
 }

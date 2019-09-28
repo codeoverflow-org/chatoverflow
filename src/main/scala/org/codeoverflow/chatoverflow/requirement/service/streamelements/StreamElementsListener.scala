@@ -31,6 +31,9 @@ class StreamElementsListener extends EventManager {
         case "subscription" => call(SubscriptionEventJSON(json))
         case "tip" => call(DonationEventJSON(json))
         case "follow" => call(FollowEventJSON(json))
+        case "cheer" => call(CheerEventJSON(json))
+        case "host" => call(HostEventJSON(json))
+        case "raid" => call(RaidEventJSON(json))
         case _ =>
       }
     }

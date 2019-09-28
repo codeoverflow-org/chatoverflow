@@ -6,8 +6,8 @@ import java.util.Currency
 
 import org.codeoverflow.chatoverflow.api.io.dto.User
 import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.SubscriptionTier
-import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.streamelements.{StreamElementsDonation, StreamElementsFollow, StreamElementsProvider, StreamElementsSubscription}
-import org.codeoverflow.chatoverflow.api.io.event.stream.streamelements.{StreamElementsDonationEvent, StreamElementsEvent, StreamElementsFollowEvent, StreamElementsSubscriptionEvent}
+import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.streamelements._
+import org.codeoverflow.chatoverflow.api.io.event.stream.streamelements._
 import org.codeoverflow.chatoverflow.api.io.input.event.StreamElementsEventInput
 import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
@@ -24,6 +24,9 @@ class StreamElementsEventInputImpl extends EventInputImpl[StreamElementsEvent, S
     sourceConnector.get.registerEventHandler(handleExceptions(onFollow))
     sourceConnector.get.registerEventHandler(handleExceptions(onSubscription))
     sourceConnector.get.registerEventHandler(handleExceptions(onDonation))
+    sourceConnector.get.registerEventHandler(handleExceptions(onCheer))
+    sourceConnector.get.registerEventHandler(handleExceptions(onRaid))
+    sourceConnector.get.registerEventHandler(handleExceptions(onHost))
     true
   }
 
@@ -84,9 +87,48 @@ class StreamElementsEventInputImpl extends EventInputImpl[StreamElementsEvent, S
       data.getDouble("amount").toFloat,
       Currency.getInstance(data.getString("currency")),
       parseTime(json),
-      data.getString("message")
+      data.optString("message")
     )
     call(new StreamElementsDonationEvent(donation))
+  }
+
+  private def onCheer(event: CheerEventJSON): Unit = {
+    val json = event.json
+    val data = json.getJSONObject("data")
+
+    val cheer = new StreamElementsCheer(
+      parseUser(data),
+      data.getInt("amount"),
+      data.optString("message"),
+      parseTime(json)
+    )
+    call(new StreamElementsCheerEvent(cheer))
+  }
+
+  private def onRaid(event: RaidEventJSON): Unit = {
+    val json = event.json
+    val data = json.getJSONObject("data")
+
+    val raid = new StreamElementsRaid(
+      parseUser(data),
+      data.optString("message"),
+      data.getInt("amount"),
+      parseTime(json)
+    )
+    call(new StreamElementsRaidEvent(raid))
+  }
+
+  private def onHost(event: HostEventJSON): Unit = {
+    val json = event.json
+    val data = json.getJSONObject("data")
+
+    val host = new StreamElementsHost(
+      parseUser(data),
+      data.optString("message"),
+      data.getInt("amount"),
+      parseTime(json)
+    )
+    call(new StreamElementsHostEvent(host))
   }
 
   override def stop(): Boolean = {
@@ -96,7 +138,7 @@ class StreamElementsEventInputImpl extends EventInputImpl[StreamElementsEvent, S
 
   // Common methods for JSON processing:
 
-  private def parseProvider(json: JSONObject): StreamElementsProvider = StreamElementsProvider.parse(json.getString("provider"))
+  private def parseProvider(json: JSONObject): StreamElementsProvider = StreamElementsProvider.parse(json.optString("provider"))
 
   private def parseUser(json: JSONObject): User = {
     val username = json.getString("username")
