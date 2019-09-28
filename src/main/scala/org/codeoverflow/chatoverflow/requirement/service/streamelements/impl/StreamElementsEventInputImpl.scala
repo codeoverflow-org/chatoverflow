@@ -5,6 +5,7 @@ import java.time.{LocalDateTime, OffsetDateTime, ZoneOffset}
 import java.util.Currency
 
 import org.codeoverflow.chatoverflow.api.io.dto.User
+import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.SubscriptionTier
 import org.codeoverflow.chatoverflow.api.io.dto.stat.stream.streamelements.{StreamElementsDonation, StreamElementsFollow, StreamElementsProvider, StreamElementsSubscription}
 import org.codeoverflow.chatoverflow.api.io.event.stream.streamelements.{StreamElementsDonationEvent, StreamElementsEvent, StreamElementsFollowEvent, StreamElementsSubscriptionEvent}
 import org.codeoverflow.chatoverflow.api.io.input.event.StreamElementsEventInput
@@ -53,12 +54,23 @@ class StreamElementsEventInputImpl extends EventInputImpl[StreamElementsEvent, S
     val json = event.json
     val data = json.getJSONObject("data")
 
+    val gifted = data.optBoolean("gifted", false)
     val sub = new StreamElementsSubscription(
       parseUser(data),
-      data.getDouble("amount").toInt,
       parseTime(json),
-      parseProvider(json),
-      data.optBoolean("gifted", false)
+      data.optDouble("amount", 1).toInt,
+      {
+        // (judging based on the events from the event simulator that can be seen in the browser console)
+        // "plan" can be either a string or a number, so we need to handle both cases
+        val plan = Option(data.opt("plan")).getOrElse("1000").toString
+        if (plan.toLowerCase == "prime")
+          SubscriptionTier.PRIME
+        else
+          SubscriptionTier.parse(plan.toInt / 1000)
+      },
+      gifted,
+      if (gifted) new User(data.optString("sender")) else null,
+      parseProvider(json)
     )
     call(new StreamElementsSubscriptionEvent(sub))
   }
