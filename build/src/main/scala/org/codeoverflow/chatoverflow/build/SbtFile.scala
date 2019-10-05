@@ -102,9 +102,8 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
     }
 
     if (dependencies.nonEmpty) {
-      sbtContent append "\nresolvers += \"jcenter-bintray\" at \"http://jcenter.bintray.com\"\n"
+      sbtContent append "\nresolvers += \"jcenter-bintray\" at \"https://jcenter.bintray.com\"\n"
 
-      // Note that the %% in the string are required to escape the string formatter and will turn into a single %
       val depString = dependencies.map(m => renderModuleID(m)).mkString("  ", ",\n  ", "")
 
       sbtContent append s"libraryDependencies ++= Seq(\n$depString\n)\n"
@@ -119,6 +118,7 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
   private def renderModuleID(m: ModuleID): String = {
     var formatString = ""
 
+    // Note that the %% in the string are required to escape the string formatter and will turn into a single %
     if (m.crossVersion == CrossVersion.binary)
       formatString += "\"%s\" %%%% \"%s\" %% \"%s\""
     else

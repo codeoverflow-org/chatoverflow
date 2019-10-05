@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -jar ChatOverflow.jar
+java -jar ChatOverflow.jar "$@"

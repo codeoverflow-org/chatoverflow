@@ -1,3 +1,3 @@
 @ECHO OFF
 
-java -jar ChatOverflow.jar
+java -jar ChatOverflow.jar %*

@@ -35,7 +35,8 @@ class TipeeestreamConnector(override val sourceIdentifier: String) extends Event
   private def startSocket(): Boolean = {
     @volatile var connected: Option[Boolean] = None
     val thread = Thread.currentThread
-    socket = Some(IO.socket(SOCKET_URL).connect())
+    val url = s"$SOCKET_URL?access_token=${credentials.get.getValue("apiKey").get}"
+    socket = Some(IO.socket(url).connect())
     socket.get.on(Socket.EVENT_CONNECT, (_: Any) => {
       logger info "Connected to TipeeeStream Socket.io"
       socket.get.emit("join-room", AUTH_OBJECT)
@@ -93,4 +94,7 @@ object TipeeestreamConnector {
   private[tipeeestream] case class SubscriptionEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
   private[tipeeestream] case class DonationEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
   private[tipeeestream] case class FollowEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
+  private[tipeeestream] case class CheerEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
+  private[tipeeestream] case class RaidEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
+  private[tipeeestream] case class HostEventJSON(json: JSONObject) extends TipeeestreamEventJSON(json)
 }

@@ -9,6 +9,9 @@
 name := "ChatOverflow"
 version := "0.3"
 
+// This task has to be overwritten, because sbt will only look in source files for main classes, but the class is in a jar.
+Compile / discoveredMainClasses := Seq("org.codeoverflow.chatoverflow.Launcher")
+
 // One version for all sub projects. Use "retrieveManaged := true" to download and show all library dependencies.
 val scalaMajorVersion = "2.12"
 val scalaMinorVersion = ".5"
@@ -42,9 +45,10 @@ apiProjectPath := "api"
 
 import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
-create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
+create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
 
 packageBin / includePom := false
+fork in run := true // Start ChatOverflow in it's own java process when starting it with 'sbt run'
