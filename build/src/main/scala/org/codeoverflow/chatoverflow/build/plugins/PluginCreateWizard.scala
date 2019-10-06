@@ -5,9 +5,12 @@ import java.io.File
 import org.codeoverflow.chatoverflow.build.BuildUtils
 import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
 import org.codeoverflow.chatoverflow.build.plugins.PluginCreateWizard.askForInput
+import sbt.Keys._
 import sbt.internal.util.ManagedLogger
+import sbt.{Def, Task}
 
 import scala.annotation.tailrec
+import scala.util.Try
 
 class PluginCreateWizard(logger: ManagedLogger) {
 
@@ -16,7 +19,7 @@ class PluginCreateWizard(logger: ManagedLogger) {
    *
    * @param pluginFolderNames All folder names, containing plugin source code. Defined in build.sbt.
    */
-  def createPluginTask(pluginFolderNames: List[String]): Unit = {
+  def createPluginTask(pluginFolderNames: List[String], apiVersion: Option[(Int, Int)]): Unit = {
     withTaskInfo("CREATE PLUGIN", logger) {
 
       // Plugin folders have to be defined in the build.sbt file first
@@ -66,12 +69,18 @@ class PluginCreateWizard(logger: ManagedLogger) {
 
       // In case we couldn't figure out the api version, maybe because the api project didn't exist, we ask the user for it.
       val api = {
-        val validate = (s: String) => s.nonEmpty && s.forall(_.isDigit) // not empty and must be a valid number
-        val major = askForInput("Please specify the current major version of the api. Check api/build.sbt for it.",
+        // not empty and must be a valid number, can be skipped if a default is available
+        val validate = (s: String) => s.nonEmpty && s.forall(_.isDigit) || apiVersion.isDefined
+        val major = askForInput("Please specify the major version of the api. " +
+          (if (apiVersion.isEmpty) "Check api/build.sbt for it."
+          else s"Default is the current version (${apiVersion.get._1})."),
           "Major api version", validate, "Api version must be a number")
-        val minor = askForInput("Please specify the current minor version of the api. Check api/build.sbt for it.",
+        val minor = askForInput(s"Please specify the minor version of the api. " +
+          (if (apiVersion.isEmpty) "Check api/build.sbt for it."
+          else s"Default is the current version (${apiVersion.get._2})."),
           "Minor api version", validate, "Api version must be a number")
-        (major.toInt, minor.toInt)
+
+        (if (major.isEmpty) apiVersion.get._1 else major.toInt, if (minor.isEmpty) apiVersion.get._2 else minor.toInt)
       }
 
       // Plugin metadata
@@ -154,5 +163,29 @@ object PluginCreateWizard {
 
     if (input.isEmpty) default
     else input
+  }
+
+  /**
+   * Gets the version of the api, if loaded by sbt.
+   *
+   * @return a tuple with major and minor version
+   */
+  def getApiVersion: Def.Initialize[Task[Option[(Int, Int)]]] = Def.task {
+    val apiVersion: Option[String] = Def.taskDyn {
+      val apiProject = buildStructure.value.allProjectRefs.find(_.project == "apiProject")
+      if (apiProject.isDefined)
+        Def.task[Option[String]] {
+          Some((apiProject.get / version).value)
+        }
+      else
+        Def.task[Option[String]] {
+          None // Api hasn't been loaded, probably not fetched
+        }
+    }.value
+
+    apiVersion.flatMap(ver => Try {
+      val parts = ver.split("[.-]") // Also split at '-' to get rid of suffixes like -SNAPSHOT
+      (parts.head.toInt, parts(1).toInt)
+    }.toOption)
   }
 }

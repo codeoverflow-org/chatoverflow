@@ -125,7 +125,7 @@ import org.codeoverflow.chatoverflow.build.GUIUtility
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
 import org.codeoverflow.chatoverflow.build.plugins.{PluginUtility, PluginCreateWizard}
 
-create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
+create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)
