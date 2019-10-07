@@ -82,7 +82,29 @@ object Bootstrap {
     * Checks, if the installation is valid
     */
   private def testValidity(): Boolean = {
-    // The only validity check for now is the existence of a bin folder
-    new File(currentFolderPath + "/bin").exists()
+    // The first check is the existence of a bin folder
+    val binDir = new File(currentFolderPath + "/bin")
+    check(binDir.exists() && binDir.isDirectory, "The bin directory doesn't exist") && {
+      // Next are the existence of a framework, api and gui jar
+      val jars = binDir.listFiles().filter(_.getName.endsWith(".jar"))
+
+      check(jars.exists(_.getName.toLowerCase.startsWith("chatoverflow_")), "There is no api jar in the bin directory.") &&
+        check(jars.exists(_.getName.toLowerCase.startsWith("chatoverflow-api")), "There is no api jar in the bin directory.") &&
+        check(jars.exists(_.getName.toLowerCase.startsWith("chatoverflow-gui")),
+          "Note: No gui jar detected. The ChatOverflow gui won't be usable.", required = false)
+    }
+  }
+
+  /**
+   * Helper method for [[Bootstrap.testValidity()]]. Checks condition, prints description if the condition is false and
+   * returns false if the condition is false and the check is required.
+   */
+  private def check(condition: Boolean, description: String, required: Boolean = true): Boolean = {
+    if (condition) {
+      true
+    } else {
+      println(description)
+      !required
+    }
   }
 }

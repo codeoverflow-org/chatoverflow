@@ -247,7 +247,13 @@ object Updater {
       val mainMethod = cls.getMethod("main", classOf[Array[String]])
       mainMethod.invoke(null, args)
     } catch {
-      case e: Throwable => println(s"Launcher jar is invalid: couldn't get main method: $e")
+      case _: ClassNotFoundException =>
+        if (!new File(launcherJar).exists)
+          println("Launcher jar is non existent. Seems like your installation is invalid.")
+        else
+          println(s"Main class of the launcher $launcherMainClass couldn't be found.")
+      case _: NoSuchMethodException => println(s"Launcher jar is invalid: couldn't get main method.")
+      case e: Throwable => println(s"Launcher jar is invalid: $e")
     }
   }
 

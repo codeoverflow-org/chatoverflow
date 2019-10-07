@@ -15,9 +15,11 @@ object DependencyDownloader {
   private val cache = FileCache().noCredentials.withLogger(logger)
 
   // Classloader containing all jars, used to get the dependencies from the framework jar
-  private val classloader = new URLClassLoader(
-    new File("bin").listFiles().filter(_.getName.endsWith(".jar")).map(_.toURI.toURL)
-  )
+  private val jarFiles = {
+    val jarsOpt = Option(new File("bin").listFiles())
+    jarsOpt.getOrElse(Array()).filter(_.getName.endsWith(".jar")).map(_.toURI.toURL)
+  }
+  private val classloader = new URLClassLoader(jarFiles)
 
   private def getPomIs: InputStream = classloader.getResourceAsStream(pomFile)
 
