@@ -1,0 +1,8 @@
+<connector>
+    <display>File</display>
+    <description>The file service allows you to perform file operations in the data folder. These operations include reading and writing to the data folder and creating sub-folders.</description>
+    <wiki>https://github.com/codeoverflow-org/chatoverflow/wiki/File</wiki>
+    <icon48>
+        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAiUlEQVR4Ae2WsRlBARgDjwkA2NYegBHAPACABQAl5FO9nyp3fa4N5g1jqgw4cP9ijYRkWcpoaKKhk7GJCfffJs7cQzwwoBIbUNdkYwNqF+ESGthHB9T/B64OfCjcHPhQuCfUAQdSDogfpB0QhWXo/BKh8+vbUmIVNr+iCEqVEcfE40f6VDHGvPAAX+KUfElOL5MAAAAASUVORK5CYII=
+    </icon48>
+</connector>

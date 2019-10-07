@@ -88,7 +88,7 @@ libraryDependencies ++= Seq(
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
 
 // JDA
-resolvers += "jcenter-bintray" at "http://jcenter.bintray.com"
+resolvers += "jcenter-bintray" at "https://jcenter.bintray.com"
 libraryDependencies += "net.dv8tion" % "JDA" % "3.8.3_463"
 
 // Serial Communication
@@ -130,7 +130,7 @@ import org.codeoverflow.chatoverflow.build.GUIUtility
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
 import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
-create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value)
+create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
 copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion)

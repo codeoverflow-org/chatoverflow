@@ -31,6 +31,19 @@ class TypeController(implicit val swagger: Swagger) extends JsonServlet with Typ
     }
   }
 
+  get("/connector/metadata", operation(getConnectorsMetadata)) {
+    authKeyRequired {
+      getConnectorTypes.map(typeString => typeString -> readConnectorMetadata(typeString))
+    }
+  }
+
+  get("/connector/metadata/:qualifiedConnectorType", operation(getConnectorMetadata)) {
+    authKeyRequired {
+      val qualifiedConnectorType = params("qualifiedConnectorType")
+      readConnectorMetadata(qualifiedConnectorType)
+    }
+  }
+
   get("/", operation(getTypes)) {
     authKeyRequired {
       Types(getPluginTypes, getRequirementTypes, getConnectorTypes)
@@ -77,5 +90,21 @@ class TypeController(implicit val swagger: Swagger) extends JsonServlet with Typ
   }
 
   private def getConnectorTypes = chatOverflow.typeRegistry.getConnectorTypes
+
+  private def readConnectorMetadata(typeString: String): ConnectorMetadata = {
+
+    val ressource = getClass.getResourceAsStream(s"/connector/${typeString.toLowerCase}.xml")
+
+    if (ressource == null) {
+      ConnectorMetadata(found = false, "", "", "", "")
+    } else {
+      val node = xml.Utility.trim(xml.XML.load(ressource))
+      ConnectorMetadata(found = true,
+        (node \ "display").text,
+        (node \ "description").text,
+        (node \ "wiki").text,
+        (node \ "icon48").text)
+    }
+  }
 
 }

@@ -11,14 +11,16 @@ class TipeeestreamListener extends EventManager {
     val event: JSONObject = json.getJSONObject("event")
     val eventType: String = event.getString("type")
 
-    val eventOption: Option[TipeeestreamEventJSON] = Option(eventType match {
-      case "subscription" => SubscriptionEventJSON(event)
-      case "donation" => DonationEventJSON(event)
-      case "follow" => FollowEventJSON(event)
-      case _ => null // gets None if converted to an option
+    // Fire events for connector if we are looking for that type of event
+    Option(eventType match {
+      case "subscription" => call(SubscriptionEventJSON(event))
+      case "donation" => call(DonationEventJSON(event))
+      case "superchat" => call(DonationEventJSON(event))
+      case "follow" => call(FollowEventJSON(event))
+      case "cheer" => call(CheerEventJSON(event))
+      case "raid" => call(RaidEventJSON(event))
+      case "hosting" => call(HostEventJSON(event))
+      case _ =>
     })
-
-    if (eventOption.isDefined)
-      call(eventOption.get) // send event to connector
   }
 }
