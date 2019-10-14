@@ -36,8 +36,12 @@ object Bootstrap {
 
           // Start chat overflow!
           val command = List(javaPath.get, "-cp", s"bin/*${deps.mkString(File.pathSeparator, File.pathSeparator, "")}", chatOverflowMainClass) ++ args
-          val process = new java.lang.ProcessBuilder(command: _*)
-            .inheritIO().directory(new File(conf.directory)).start()
+          val processBuilder = new java.lang.ProcessBuilder(command: _*)
+            .inheritIO().directory(new File(conf.directory))
+
+          processBuilder.environment().put("CHATOVERFLOW_BOOTSTRAP", "true")
+
+          val process = processBuilder.start()
 
           val exitCode = process.waitFor()
           println(s"ChatOverflow stopped with exit code: $exitCode")

@@ -46,13 +46,15 @@ object CLI {
     // They are also in here because it easier to pass through all args to the framework instead of filtering
     // used flags and their values out of the argument list. Actual parsing of these is done in then updater/launcher,
     // Check the CLI object of the bootstrap launcher/updater for further explanation.
-    note("\nBootstrap Launcher Options:")
+    if (System.getenv("CHATOVERFLOW_BOOTSTRAP") != null) {
+      note("\nBootstrap Launcher Options:")
 
-    opt[Unit]("ignore-updates")
-      .text("Ignores searching for updates and directly start ChatOverflow")
+      opt[Unit]("ignore-updates")
+        .text("Ignores searching for updates and directly start ChatOverflow")
 
-    opt[File]("directory")
-      .text("The directory in which ChatOverflow will be executed")
+      opt[File]("directory")
+        .text("The directory in which ChatOverflow will be executed")
+    }
 
     help("help").hidden().text("prints this usage text")
 
