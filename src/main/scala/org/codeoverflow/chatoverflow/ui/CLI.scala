@@ -1,5 +1,7 @@
 package org.codeoverflow.chatoverflow.ui
 
+import java.io.File
+
 import org.codeoverflow.chatoverflow.api.APIVersion
 
 /**
@@ -39,6 +41,18 @@ object CLI {
 
     opt[Unit]('f', "enableLogFile").action((_, c) =>
       c.copy(logFileOutput = true)).text("set this flag to enable logging to log files")
+
+    // These options only apply, if the framework is started through the Bootstrap Launcher
+    // They are also in here because it easier to pass through all args to the framework instead of filtering
+    // used flags and their values out of the argument list. Actual parsing of these is done in then updater/launcher,
+    // Check the CLI object of the bootstrap launcher/updater for further explanation.
+    note("\nBootstrap Launcher Options:")
+
+    opt[Unit]("ignore-updates")
+      .text("Ignores searching for updates and directly start ChatOverflow")
+
+    opt[File]("directory")
+      .text("The directory in which ChatOverflow will be executed")
 
     help("help").hidden().text("prints this usage text")
 

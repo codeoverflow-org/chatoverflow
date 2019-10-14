@@ -1,13 +1,11 @@
 import java.io.File
-import java.nio.file.Paths
+
+import CLI._
 
 /**
   * The bootstrap launcher downloads all required libraries and starts chat overflow with the correct parameters.
   */
 object Bootstrap {
-
-  // Working directory of the bootstrap launcher
-  private val currentFolderPath: String = Paths.get("").toAbsolutePath.toString
 
   // Java home path (jre installation folder)
   private val javaHomePath: String = System.getProperty("java.home")
@@ -22,10 +20,15 @@ object Bootstrap {
    * @param args the arguments, which are passed to ChatOverflow
    */
   def main(args: Array[String]): Unit = {
-    if (testValidity()) {
+    val conf: Config = ArgsParser.parse(args, Config()) match {
+      case Some(value) => value
+      case None => System.exit(1); null
+    }
+
+    if (testValidity(conf.directory)) {
       println("Valid ChatOverflow installation. Checking libraries...")
 
-      val deps = DependencyDownloader.fetchDependencies().map(u => new File(u.getFile))
+      val deps = new DependencyDownloader(conf.directory).fetchDependencies().map(u => new File(u.getFile))
       if (deps.nonEmpty) {
         val javaPath = createJavaPath()
         if (javaPath.isDefined) {
@@ -34,7 +37,7 @@ object Bootstrap {
           // Start chat overflow!
           val command = List(javaPath.get, "-cp", s"bin/*${deps.mkString(File.pathSeparator, File.pathSeparator, "")}", chatOverflowMainClass) ++ args
           val process = new java.lang.ProcessBuilder(command: _*)
-            .inheritIO().start()
+            .inheritIO().directory(new File(conf.directory)).start()
 
           val exitCode = process.waitFor()
           println(s"ChatOverflow stopped with exit code: $exitCode")
@@ -81,9 +84,9 @@ object Bootstrap {
   /**
     * Checks, if the installation is valid
     */
-  private def testValidity(): Boolean = {
+  private def testValidity(currentFolderPath: String): Boolean = {
     // The first check is the existence of a bin folder
-    val binDir = new File(currentFolderPath + "/bin")
+    val binDir = new File(s"$currentFolderPath/bin")
     check(binDir.exists() && binDir.isDirectory, "The bin directory doesn't exist") && {
       // Next are the existence of a framework, api and gui jar
       val jars = binDir.listFiles().filter(_.getName.endsWith(".jar"))

@@ -14,6 +14,9 @@ libraryDependencies += "io.get-coursier" %% "coursier" % "2.0.0-RC3-2" excludeAl
   ExclusionRule(organization = "com.github.alexarchambault", name = "argonaut-shapeless_6.2_2.12")
 )
 
+// Command Line Parsing
+libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
+
 fork := true
 
 packageBin / includePom := false

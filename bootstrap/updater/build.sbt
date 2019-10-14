@@ -11,4 +11,7 @@ libraryDependencies += "org.fusesource.jansi" % "jansi" % "1.18"
 // Progressbar is used to display progress of update zip download
 libraryDependencies += "me.tongfei" % "progressbar" % "0.7.4"
 
+// Command Line Parsing
+libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
+
 packageBin / includePom := false

@@ -9,14 +9,14 @@ import coursier.maven.{MavenRepository, PomParser}
 
 import scala.io.Source
 
-object DependencyDownloader {
+class DependencyDownloader(directory: String) {
   private val pomFile = "dependencies.pom"
   private val logger = RefreshLogger.create(System.out, FileTypeRefreshDisplay.create())
   private val cache = FileCache().noCredentials.withLogger(logger)
 
   // Classloader containing all jars, used to get the dependencies from the framework jar
   private val jarFiles = {
-    val jarsOpt = Option(new File("bin").listFiles())
+    val jarsOpt = Option(new File(s"$directory/bin").listFiles())
     jarsOpt.getOrElse(Array()).filter(_.getName.endsWith(".jar")).map(_.toURI.toURL)
   }
   private val classloader = new URLClassLoader(jarFiles)
