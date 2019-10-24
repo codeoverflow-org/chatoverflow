@@ -37,7 +37,12 @@ import org.codeoverflow.chatoverflow.build.BuildUtils
 javacOptions ++= BuildUtils.getJava8CrossOptions
 
 // Link the bootstrap launcher
-lazy val bootstrapProject = project in file("bootstrap")
+lazy val bootstrapLauncherProject = project in file("bootstrap/launcher")
+lazy val bootstrapUpdaterProject = project in file("bootstrap/updater")
+lazy val bootstrapProject = (project in file("bootstrap"))
+  .aggregate(bootstrapLauncherProject, bootstrapUpdaterProject).settings(
+  name := "chatoverflow-bootstrap"
+)
 
 // not actually used. Just required to say IntelliJ to mark the build directory as a sbt project, otherwise it wouldn't detect it.
 lazy val buildProject = project in file("build")
