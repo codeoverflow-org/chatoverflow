@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 name := "ChatOverflow"
-version := "0.3"
+version := "3.0.0"
 
 // This task has to be overwritten, because sbt will only look in source files for main classes, but the class is in a jar.
 Compile / discoveredMainClasses := Seq("org.codeoverflow.chatoverflow.Launcher")
