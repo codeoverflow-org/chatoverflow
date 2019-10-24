@@ -22,7 +22,7 @@
  */
 
 name := "ChatOverflow"
-version := "0.3"
+version := "3.0.0"
 mainClass := Some("org.codeoverflow.chatoverflow.Launcher")
 
 // One version for all sub projects. Use "retrieveManaged := true" to download and show all library dependencies.
@@ -123,7 +123,7 @@ guiProjectPath := "gui"
 
 import org.codeoverflow.chatoverflow.build.GUIUtility
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
-import org.codeoverflow.chatoverflow.build.plugins.{PluginUtility, PluginCreateWizard}
+import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
