@@ -22,6 +22,7 @@ project/plugins/project/
 /plugins-private/
 /gui/
 /setup/
+/launcher/
 
 # Plugin Framework
 /plugins/

@@ -22,8 +22,8 @@ object DeploymentUtility {
    */
   def prepareDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String): Unit = {
     // Assuming, before this: clean, gui, bs, bootstrapProject/assembly, package
-    // Assuming: Hardcoded "bin/" and "deploy/" folders
-    // Assuming: A folder called "deployment-files/end-user/" with all additional files (license, bat, etc.)
+    // Assuming: Hardcoded "bin/", "launcher/" and "deploy/" folders
+    // Assuming: A folder called "launcher/deployment-files/end-user/" with all additional files (license, bat, etc.)
 
     withTaskInfo("PREPARE DEPLOYMENT", logger) {
 
@@ -37,12 +37,12 @@ object DeploymentUtility {
       prepareBinDirectories(logger, targetJarDirectories, scalaLibraryVersion, copyApi = true)
 
       // Third step: Copy bootstrap launcher
-      copyJars(s"bootstrap/launcher/target/scala-$scalaLibraryVersion/", List("deploy/bin/"), logger)
-      copyJars(s"bootstrap/updater/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
+      copyJars(s"launcher/bootstrap/target/scala-$scalaLibraryVersion/", List("deploy/bin/"), logger)
+      copyJars(s"launcher/updater/target/scala-$scalaLibraryVersion/", List("deploy/"), logger)
 
       // Last step: Copy additional files
       logger info "Copying additional deployment files..."
-      val deploymentFiles = new File("deployment-files/end-user/")
+      val deploymentFiles = new File("launcher/deployment-files/end-user/")
       if (!deploymentFiles.exists()) {
         logger warn "Unable to find deployment files."
       } else {
@@ -63,8 +63,8 @@ object DeploymentUtility {
    */
   def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String, dependencies: List[ModuleID]): Unit = {
     // Assuming, before this: clean, gui, package and buildProject/package
-    // Assuming: Hardcoded "bin/", "deployDev/" and "build/" folders
-    // Assuming: A folder called "deployment-files/plugin-dev/" with more additional files for plugin developers
+    // Assuming: Hardcoded "bin/", "deployDev/", "launcher/" and "build/" folders
+    // Assuming: A folder called "launcher/deployment-files/plugin-dev/" with more additional files for plugin developers
 
     withTaskInfo("PREPARE DEV DEPLOYMENT", logger) {
 
@@ -90,7 +90,7 @@ object DeploymentUtility {
       sbt.IO.write(new File("deployDev/dependencies.sbt"), depFile.toString)
 
       // Last step: Copy additional files
-      val devDeploymentFiles = new File("deployment-files/plugin-dev/")
+      val devDeploymentFiles = new File("launcher/deployment-files/plugin-dev/")
       if (!devDeploymentFiles.exists()) {
         logger warn "Unable to find dev deployment files."
       } else {

@@ -7,7 +7,7 @@ simple_run:
 	sbt package copy
 
 bootstrap_deploy:
-	sbt clean gui package bootstrapProject/assembly deploy
+	sbt clean gui package launcherProject/assembly deploy
 
 bootstrap_deploy_dev:
 	sbt clean gui package buildProject/package deployDev
