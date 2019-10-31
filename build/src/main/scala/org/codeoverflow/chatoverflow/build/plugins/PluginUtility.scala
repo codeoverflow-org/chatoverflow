@@ -34,7 +34,7 @@ class PluginUtility(logger: ManagedLogger) {
       val allPlugins = getAllPlugins(pluginSourceFolderNames)
 
       // Create a sbt file with all plugin dependencies (sub projects)
-      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true, List())
+      val sbtFile = new SbtFile("", "", allPlugins, apiProjectPath, defineRoot = true)
 
       if (sbtFile.save(pluginBuildFileName)) {
         logger info s"Successfully updated plugin file at '$pluginBuildFileName'."
