@@ -38,7 +38,7 @@ copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.v
 deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log,
   scalaVersion.value.split('.').dropRight(1).mkString("."))
 deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log,
-  scalaVersion.value.split('.').dropRight(1).mkString("."), apiProjectPath.value, libraryDependencies.value.toList)
+  scalaVersion.value.split('.').dropRight(1).mkString("."), apiProjectPath.value)
 gui := new GUIUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 

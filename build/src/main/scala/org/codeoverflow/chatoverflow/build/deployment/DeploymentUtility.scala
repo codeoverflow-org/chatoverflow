@@ -4,9 +4,7 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
-import org.codeoverflow.chatoverflow.build.SbtFile
 import sbt.internal.util.ManagedLogger
-import sbt.librarymanagement.ModuleID
 
 /**
  * Holds the functionality to create end-user and plugin dev deployments.
@@ -59,9 +57,8 @@ object DeploymentUtility {
    * @param logger              the sbt logger
    * @param scalaLibraryVersion the scala library major version
    * @param apiProjectPath      the path to the api project. Used to copy the api into the deployDev directory
-   * @param dependencies        the dependencies of the framework. Used to create a sbt file with them.
    */
-  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String, dependencies: List[ModuleID]): Unit = {
+  def prepareDevDeploymentTask(logger: ManagedLogger, scalaLibraryVersion: String, apiProjectPath: String): Unit = {
     // Assuming, before this: clean, gui, package and buildProject/package
     // Assuming: Hardcoded "bin/", "deployDev/", "launcher/" and "build/" folders
     // Assuming: A folder called "launcher/deployment-files/plugin-dev/" with more additional files for plugin developers
@@ -85,9 +82,8 @@ object DeploymentUtility {
       sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
       sbt.IO.delete(new File("deployDev/api/target")) // otherwise compiled code would end up in the zip
 
-      // Fourth step: Create sbt files containing all dependencies
-      val depFile = new SbtFile(dependencies)
-      sbt.IO.write(new File("deployDev/dependencies.sbt"), depFile.toString)
+      // Fourth step: Copy sbt file containing dependencies
+      sbt.IO.copyFile(new File("dependencies.sbt"), new File("deployDev/dependencies.sbt"))
 
       // Last step: Copy additional files
       val devDeploymentFiles = new File("launcher/deployment-files/plugin-dev/")
