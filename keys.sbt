@@ -27,18 +27,16 @@ lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it usi
 // Tasks
 
 import org.codeoverflow.chatoverflow.build.GUIUtility
+import org.codeoverflow.chatoverflow.build.BuildUtils.scalaMajorVersion
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
 import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value)
-copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value,
-  scalaVersion.value.split('.').dropRight(1).mkString("."))
-deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log,
-  scalaVersion.value.split('.').dropRight(1).mkString("."))
-deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log,
-  scalaVersion.value.split('.').dropRight(1).mkString("."), apiProjectPath.value)
+copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion.value)
+deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion.value)
+deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion.value, apiProjectPath.value)
 gui := new GUIUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
 
 

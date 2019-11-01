@@ -2,6 +2,8 @@ package org.codeoverflow.chatoverflow.build
 
 import java.io.File
 
+import sbt.{Def, Task}
+import sbt.Keys.scalaVersion
 import sbt.internal.util.ManagedLogger
 
 object BuildUtils {
@@ -63,5 +65,12 @@ object BuildUtils {
       Seq()
     else
       Seq("--release", "8") // please compile against Java 8
+  }
+
+  /**
+   * A task that returns the major and minor version of the currently used version of scala, e.g. 2.12.
+   */
+  lazy val scalaMajorVersion: Def.Initialize[Task[String]] = Def.task {
+    scalaVersion.value.split('.').dropRight(1).mkString(".")
   }
 }
