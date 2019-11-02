@@ -3,6 +3,6 @@
     <description>The file service allows you to perform file operations in the data folder. These operations include reading and writing to the data folder and creating sub-folders.</description>
     <wiki>https://github.com/codeoverflow-org/chatoverflow/wiki/File</wiki>
     <icon48>
-        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAiUlEQVR4Ae2WsRlBARgDjwkA2NYegBHAPACABQAl5FO9nyp3fa4N5g1jqgw4cP9ijYRkWcpoaKKhk7GJCfffJs7cQzwwoBIbUNdkYwNqF+ESGthHB9T/B64OfCjcHPhQuCfUAQdSDogfpB0QhWXo/BKh8+vbUmIVNr+iCEqVEcfE40f6VDHGvPAAX+KUfElOL5MAAAAASUVORK5CYII=
+        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGVSURBVGhD7djPSwJBFAfwt7sKBV0K2hW6RCcRs7uH9NgtiCKif6H+gPJSUPQHBPUXBEURdO6XXbRbFGbSqTpEa1AXoUB3J5XXxjbrwUxntt7nsvMGD/N1niM7QAgh5F9T8OliZdbD9uV2Gp4LOry9eH6mESU6eRaY3U1i2Xbc4qzzzQH7ePkeSqaGU03rZAgVnw6WPzhpZfE1LLeXqGxNpbFsKz6AmRvCYUs6FYJroXIqwMC2sJJAdx+D/nBRHZkZ1eJztzjr4HZAOrVD5CFj2KcrN1Z2g+sO+QN8Kpkqu94/xMrBB2AMB/JhjxeDOHTwv4FFjQGzsQIIrrGm/gd+W3lBcX2j39fjnxZqwCOAvC3k5S/ugL/46hTyQi0kGgUQjQKIRgFEcwWwjpZ8F4haSDR3AD0i9OXlJ6iFROPfiVdDlVZv5tqmx7CCqacAVnXcDiih2B0OpaMYw9za+ACR8bFq0q9rCVlU16REJxJYOTxPnfr1+tVOGsy8Du+vYk+mrl4GRqSoxqaTWny+gLOEEEJIFcAHK5xv077X27IAAAAASUVORK5CYII=
     </icon48>
 </connector>
