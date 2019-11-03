@@ -23,7 +23,7 @@ class StreamElementsListener extends EventManager {
         // Youtube's superchat is like a donation/tip, a donation of money that the streamer gets.
         // To unify this across all platforms a Youtube sub is a Follow, a Youtube sponsor is a subscription and
         // a Youtube superchat is a donation.
-        case "subscription" if provider == "youtube" => call(FollowEventJSON(json))
+        case "subscriber" if provider == "youtube" => call(FollowEventJSON(json))
         case "sponsor" => call(SubscriptionEventJSON(json))
         case "superchat" => call(DonationEventJSON(json))
 
