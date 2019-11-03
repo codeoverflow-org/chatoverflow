@@ -23,10 +23,7 @@ object PomInclusionPlugin extends AutoPlugin {
   // Adds our custom task before the packageBin task
   override val projectSettings: Seq[Def.Setting[_]] =
     inConfig(Compile)(Seq(
-      Compile / packageBin := {
-        addPomToOutput.value
-        (Compile / packageBin).value
-      }
+      Compile / packageBin := (Compile / packageBin).dependsOn(addPomToOutput).value
     ))
 
   // Sets default values
