@@ -28,7 +28,7 @@ class StreamElementsListener extends EventManager {
         case "superchat" => call(DonationEventJSON(json))
 
         // Twitch
-        case "subscription" => call(SubscriptionEventJSON(json))
+        case "subscriber" => call(SubscriptionEventJSON(json))
         case "tip" => call(DonationEventJSON(json))
         case "follow" => call(FollowEventJSON(json))
         case "cheer" => call(CheerEventJSON(json))
