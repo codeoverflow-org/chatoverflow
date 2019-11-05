@@ -52,7 +52,7 @@ class GUIServlet extends ScalatraServlet with WithLogger {
         val is = new BufferedInputStream(jarFile.getInputStream(entry))
         val os = response.getOutputStream
 
-        Stream.continually(is.read)
+        Iterator.continually(is.read)
           .takeWhile(_ != -1)
           .foreach(os.write)
       }
