@@ -3,13 +3,15 @@ package org.codeoverflow.chatoverflow.build
 import java.io.File
 import java.util.jar.Manifest
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
 import sbt.Keys.Classpath
 import sbt.internal.util.{Attributed, ManagedLogger}
 import sbt.util.{FileFunction, FilesInfo}
 
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
+import scala.util.Try
 
 class GUIUtility(logger: ManagedLogger) {
 
@@ -99,7 +101,8 @@ class GUIUtility(logger: ManagedLogger) {
     val files = BuildUtils.getAllDirectoryChilds(dir)
 
     // contains tuples with the actual file as the first value and the name with directory in the jar as the second value
-    val jarEntries = files.map(file => file -> s"/chatoverflow-gui/${dir.toURI.relativize(file.toURI).toString}")
+    val jarEntries = files.map(file => file -> s"/chatoverflow-gui/${dir.toURI.relativize(file.toURI).toString}") ++
+          getVersionFiles(guiProjectPath).map(file => file -> s"/${file.getName}")
 
     sbt.IO.jar(jarEntries, getGUIJarFile(guiProjectPath, crossTargetDir), new Manifest())
   }
@@ -109,11 +112,11 @@ class GUIUtility(logger: ManagedLogger) {
   }
 
   private def getGUIJarFile(guiProjectPath: String, crossTargetDir: File): File = {
-    val guiVersion = getGUIVersion(guiProjectPath).getOrElse("unknown")
+    val guiVersion = getPackageJson(guiProjectPath).flatMap(json => getGUIVersion(json)).getOrElse("unknown")
     new File(crossTargetDir, s"chatoverflow-gui-$guiVersion.jar")
   }
 
-  private def getGUIVersion(guiProjectPath: String): Option[String] = {
+  private def getPackageJson(guiProjectPath: String): Option[JsonNode] = Try {
     val packageJson = new File(s"$guiProjectPath/package.json")
     if (!packageJson.exists()) {
       logger error "The package.json file of the GUI doesn't exist. Have you cloned the GUI in the correct directory?"
@@ -121,15 +124,55 @@ class GUIUtility(logger: ManagedLogger) {
     }
 
     val content = Source.fromFile(packageJson)
-    val version = new ObjectMapper().reader().readTree(content.mkString).get("version").asText()
+    val json = new ObjectMapper().reader().readTree(content.mkString)
 
     content.close()
+
+    Some(json)
+  }.getOrElse(None)
+
+  private def getGUIVersion(packageJson: JsonNode): Option[String] = {
+    val version = packageJson.get("version").asText()
 
     if (version.isEmpty) {
       logger warn "The GUI version couldn't be loaded from the package.json."
       None
     } else {
       Option(version)
+    }
+  }
+
+  private def getRestVersion(packageJson: JsonNode): Option[String] = {
+    val version = packageJson.get("dependencies").get("@codeoverflow-org/chatoverflow").asText()
+
+    if (version.isEmpty) {
+      logger warn "The used REST api version couldn't be loaded from the package.json."
+      None
+    } else {
+      Option(version)
+    }
+  }
+
+  private def getVersionFiles(guiProjectPath: String): List[File] = {
+    val json = getPackageJson(guiProjectPath)
+    if (json.isDefined) {
+      val files = ListBuffer[File]()
+      val tempDir = sbt.IO.createTemporaryDirectory
+
+      getGUIVersion(json.get).foreach {ver =>
+        val f = new File(tempDir, "version_gui.txt")
+        sbt.IO.write(f, ver)
+        files += f
+      }
+      getRestVersion(json.get).foreach {ver =>
+        val f = new File(tempDir, "version_gui_rest.txt")
+        sbt.IO.write(f, ver)
+        files += f
+      }
+
+      files.toList
+    } else {
+      List()
     }
   }
 }
