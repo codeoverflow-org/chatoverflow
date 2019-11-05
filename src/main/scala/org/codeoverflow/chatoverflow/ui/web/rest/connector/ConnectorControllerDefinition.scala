@@ -28,7 +28,7 @@ trait ConnectorControllerDefinition extends SwaggerSupport with TagSupport with 
       description "Creates a connector with given sourceIdentifier and connector type."
       tags controllerTag
       parameter authHeader
-      parameter bodyParam[ConnectorRef]("body").description("Requires platform specific source identifier and connector type."))
+      parameter bodyParam[ConnectorRef]("body").description("Requires platform specific source identifier (must not be empty) and connector type."))
   val deleteConnector: OperationBuilder =
     (apiOperation[ResultMessage]("deleteConnector")
       summary "Deletes a specific connector."

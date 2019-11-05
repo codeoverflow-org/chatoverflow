@@ -66,7 +66,7 @@ trait PluginInstanceControllerDefinition extends SwaggerSupport with TagSupport 
       description "Creates a new plugin instance with given name and plugin type."
       tags controllerTag
       parameter authHeader
-      parameter bodyParam[PluginInstanceRef]("body").description("Requires new instance name and PluginType (name and author)."))
+      parameter bodyParam[PluginInstanceRef]("body").description("Requires new instance name (must not be empty) and PluginType (name and author)."))
   val deleteInstance: OperationBuilder =
     (apiOperation[ResultMessage]("deleteInstance")
       summary "Removes a plugin instance."

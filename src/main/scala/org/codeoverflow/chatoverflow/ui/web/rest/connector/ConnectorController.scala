@@ -47,6 +47,9 @@ class ConnectorController(implicit val swagger: Swagger) extends JsonServlet wit
               if (connectorClass.isEmpty) {
                 ResultMessage(success = false, "Connector type not found.")
 
+              } else if (sourceIdentifier == "") {
+                ResultMessage(success = false, "Source identifier must not be empty.")
+
               } else if (!ConnectorRegistry.addConnector(sourceIdentifier, uniqueTypeString)) {
                 ResultMessage(success = false, "Unable to add connector.")
 
