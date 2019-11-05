@@ -3,7 +3,6 @@ package org.codeoverflow.chatoverflow
 import java.io.File
 import java.security.Policy
 
-import org.codeoverflow.chatoverflow.api.APIVersion
 import org.codeoverflow.chatoverflow.configuration.{ConfigurationService, CredentialsService}
 import org.codeoverflow.chatoverflow.connector.ConnectorRegistry
 import org.codeoverflow.chatoverflow.framework.PluginFramework
@@ -45,8 +44,9 @@ class ChatOverflow(val pluginFolderPath: String,
   def init(): Unit = {
     logger info "Minzig!"
     logger debug s"Starting Chat Overflow Framework. " +
-      s"API Version is '${APIVersion.MAJOR_VERSION}.${APIVersion.MINOR_VERSION}'. " +
-      s"For more information and updates, please visit: http://codeoverflow.org"
+      "For more information and updates, please visit: http://codeoverflow.org"
+
+    VersionInfo.logSummary()
 
     logger debug "Initialization started."
 

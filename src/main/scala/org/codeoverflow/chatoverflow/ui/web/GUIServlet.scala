@@ -6,8 +6,9 @@ import java.util.jar.JarFile
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.eclipse.jetty.http.MimeTypes
-import org.eclipse.jetty.util.Loader
 import org.scalatra.{ActionResult, ScalatraServlet}
+
+import scala.util.Try
 
 /**
  * A servlet to serve the GUI files of the chatoverflow-gui dir from the classpath.
@@ -16,40 +17,24 @@ import org.scalatra.{ActionResult, ScalatraServlet}
  */
 class GUIServlet extends ScalatraServlet with WithLogger {
 
-  private val jarFilePath = {
-    val res = Loader.getResource(s"/chatoverflow-gui/")
-
-    // directory couldn't be found
-    if (res == null) {
-      logger error "GUI couldn't be found on the classpath! Has the GUI been built?"
-      None
-    } else {
-      // remove the path inside the jar and only keep the file path to the jar file
-      val jarPath = res.getFile.split("!").head
-      logger info s"GUI jar file found at ${new File(".").toURI.relativize(new URI(jarPath))}"
-
-      Some(jarPath)
-    }
-  }
+  import GUIServlet.guiJar
 
   get("/*") {
-    if (jarFilePath.isEmpty) {
+    if (guiJar.isEmpty) {
       ActionResult(500, "GUI couldn't be found on the classpath! Has the GUI been built?", Map("Cache-Control" -> "no-cache,no-store"))
     } else {
-      val jarFile = new JarFile(new File(new URI(jarFilePath.get)))
-
       val path = if (requestPath == "/")
         "/index.html"
       else
         requestPath
 
-      val entry = jarFile.getEntry(s"/chatoverflow-gui$path")
+      val entry = guiJar.get.getEntry(s"/chatoverflow-gui$path")
 
       val res = if (entry == null) {
         ActionResult(404, s"Requested file '$path' couldn't be found in the GUI jar!", Map())
       } else {
         contentType = MimeTypes.getDefaultMimeByExtension(entry.getName)
-        val is = new BufferedInputStream(jarFile.getInputStream(entry))
+        val is = new BufferedInputStream(guiJar.get.getInputStream(entry))
         val os = response.getOutputStream
 
         Iterator.continually(is.read)
@@ -58,8 +43,19 @@ class GUIServlet extends ScalatraServlet with WithLogger {
       }
 
       response.setHeader("Cache-Control", "no-cache,no-store")
-      jarFile.close()
       res
     }
   }
+}
+
+/**
+ * This companion object holds a reference to the gui jar file.
+ */
+object GUIServlet extends WithLogger {
+  val guiJar: Option[JarFile] = Try {
+    val guiJarPath = getClass.getClassLoader.getResource("/chatoverflow-gui").getFile.split("!").head
+
+    logger info s"GUI jar file found at ${new File(".").toURI.relativize(new URI(guiJarPath))}"
+    new JarFile(new File(new URI(guiJarPath)))
+  }.toOption
 }
