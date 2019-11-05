@@ -51,7 +51,7 @@ trait ConfigControllerDefinition extends SwaggerSupport with TagSupport with Aut
       summary "Registers the user with the given password. Can only be called if there is no credentials file."
       description "Creates a credentials file with the given password. Acts like post(login) after this (returning an auth key)."
       tags controllerTag
-      parameter bodyParam[Password]("body").description("Requires the user framework password. The auth key is based on this input."))
+      parameter bodyParam[Password]("body").description("Requires the user framework password (must not be empty). The auth key is based on this input."))
 
   override def controllerTag: String = "config"
 

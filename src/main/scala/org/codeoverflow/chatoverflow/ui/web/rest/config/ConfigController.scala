@@ -90,6 +90,9 @@ class ConfigController(implicit val swagger: Swagger) extends JsonServlet with C
         } else if (chatOverflow.isLoaded) {
           ResultMessage(success = false, "Framework already loaded.")
 
+        } else if (password == "") {
+          ResultMessage(success = false, "Password must not be empty.")
+
         } else {
           chatOverflow.credentialsService.setPassword(password.toCharArray)
 

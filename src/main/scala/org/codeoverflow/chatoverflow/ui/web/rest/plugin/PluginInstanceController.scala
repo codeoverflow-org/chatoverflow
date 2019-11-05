@@ -228,6 +228,9 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
             } else if (!chatOverflow.pluginFramework.pluginExists(pluginName, pluginAuthor)) {
               ResultMessage(success = false, "Plugin type does not exist.")
 
+            } else if (instanceName == "") {
+              ResultMessage(success = false, "Instance name must not be empty.")
+
             } else {
               val pluginType = chatOverflow.pluginFramework.getPlugin(pluginName, pluginAuthor)
 
