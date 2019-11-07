@@ -102,7 +102,7 @@ class GUIUtility(logger: ManagedLogger) {
 
     // contains tuples with the actual file as the first value and the name with directory in the jar as the second value
     val jarEntries = files.map(file => file -> s"/chatoverflow-gui/${dir.toURI.relativize(file.toURI).toString}") ++
-          getVersionFiles(guiProjectPath).map(file => file -> s"/${file.getName}")
+      getVersionFiles(guiProjectPath).map(file => file -> s"/${file.getName}")
 
     sbt.IO.jar(jarEntries, getGUIJarFile(guiProjectPath, crossTargetDir), new Manifest())
   }
@@ -132,24 +132,32 @@ class GUIUtility(logger: ManagedLogger) {
   }.getOrElse(None)
 
   private def getGUIVersion(packageJson: JsonNode): Option[String] = {
-    val version = packageJson.get("version").asText()
+    if (packageJson.has("version")) {
+      val version = packageJson.get("version").asText()
 
-    if (version.isEmpty) {
-      logger warn "The GUI version couldn't be loaded from the package.json."
-      None
+      if (version.isEmpty) {
+        logger warn "The GUI version couldn't be loaded from the package.json."
+        None
+      } else {
+        Option(version)
+      }
     } else {
-      Option(version)
+      None
     }
   }
 
   private def getRestVersion(packageJson: JsonNode): Option[String] = {
-    val version = packageJson.get("dependencies").get("@codeoverflow-org/chatoverflow").asText()
+    if (packageJson.has("dependencies") && packageJson.get("dependencies").hasNonNull("@codeoverflow-org/chatoverflow")) {
+      val version = packageJson.get("dependencies").get("@codeoverflow-org/chatoverflow").asText()
 
-    if (version.isEmpty) {
-      logger warn "The used REST api version couldn't be loaded from the package.json."
-      None
+      if (version.isEmpty) {
+        logger warn "The used REST api version couldn't be loaded from the package.json."
+        None
+      } else {
+        Option(version)
+      }
     } else {
-      Option(version)
+      None
     }
   }
 
@@ -159,12 +167,12 @@ class GUIUtility(logger: ManagedLogger) {
       val files = ListBuffer[File]()
       val tempDir = sbt.IO.createTemporaryDirectory
 
-      getGUIVersion(json.get).foreach {ver =>
+      getGUIVersion(json.get).foreach { ver =>
         val f = new File(tempDir, "version_gui.txt")
         sbt.IO.write(f, ver)
         files += f
       }
-      getRestVersion(json.get).foreach {ver =>
+      getRestVersion(json.get).foreach { ver =>
         val f = new File(tempDir, "version_gui_rest.txt")
         sbt.IO.write(f, ver)
         files += f
