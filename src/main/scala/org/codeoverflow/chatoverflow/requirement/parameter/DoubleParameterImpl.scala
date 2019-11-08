@@ -4,6 +4,9 @@ import org.codeoverflow.chatoverflow.api.io.parameter.DoubleParameter
 import org.codeoverflow.chatoverflow.registry.Impl
 import java.lang.Double
 
+/**
+  * A parameter holding a double value.
+  */
 @Impl(impl = classOf[DoubleParameter])
 class DoubleParameterImpl extends DoubleParameter {
 

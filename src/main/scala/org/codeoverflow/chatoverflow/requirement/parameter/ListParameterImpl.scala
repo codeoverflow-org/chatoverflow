@@ -9,7 +9,9 @@ import org.codeoverflow.chatoverflow.registry.Impl
 
 import scala.collection.mutable.ListBuffer
 
-
+/**
+  * A parameter holding a List<String> value.
+  */
 @Impl(impl = classOf[ListParameter])
 class ListParameterImpl extends ListParameter {
   private var value: List[String] = null

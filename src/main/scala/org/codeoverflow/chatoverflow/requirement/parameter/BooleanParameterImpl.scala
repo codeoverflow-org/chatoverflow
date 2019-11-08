@@ -4,6 +4,9 @@ import org.codeoverflow.chatoverflow.api.io.parameter.BooleanParameter
 import org.codeoverflow.chatoverflow.registry.Impl
 import java.lang.Boolean
 
+/**
+  * A parameter holding a boolean value.
+  */
 @Impl(impl = classOf[BooleanParameter])
 class BooleanParameterImpl extends BooleanParameter {
   private var value: Boolean = null
