@@ -19,12 +19,12 @@ class ColorParameterImpl extends ColorParameter {
 
   override def deserialize(value: String): Unit = {
 
-    val hex3 = "^#([a-fA-F0-9]{6})$".r
-    val hex4 = "^#([a-fA-F0-9]{8})$".r
-    val int3 = "^(\\d+),(\\d+),(\\d+)$".r
-    val int4 = "^(\\d+),(\\d+),(\\d+),(\\d+)$".r
-    val float3 = "^(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?)$".r
-    val float4 = "^(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?)$".r
+    val hex3 = "^#([a-fA-F0-9]{6})$".r // Test if the value contains # and then 6 hexadecimal numbers
+    val hex4 = "^#([a-fA-F0-9]{8})$".r // Test if the value contains # and then 8 hexadecimal numbers
+    val int3 = "^(\\d+),(\\d+),(\\d+)$".r //Test if the value contains 3 ints
+    val int4 = "^(\\d+),(\\d+),(\\d+),(\\d+)$".r //Test if the value contains 4 ints
+    val float3 = "^(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?)$".r //Test if the value contains 3 floats
+    val float4 = "^(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?)$".r //Test if the value contains 4 floats
 
     try {
       value match {
