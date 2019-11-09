@@ -65,8 +65,7 @@ class RequirementsFile(requirementsDirectory: File, requirementType: String, fil
       requirement.file.getAbsolutePath.lastIndexOf(File.separator) + 1).replace(".java", "")
 
     val requiresValue = if (requirement.requires != "") requirement.requires else className
-
-    val generatedName = className.replace(requirementType, "")
+    val generatedName = if(requirementType.equalsIgnoreCase("parameter")) className else className.replace(requirementType, "")
 
     val methodNameValue = if (requirement.methodName != "") {
       requirement.methodName.replace(" ", "")
