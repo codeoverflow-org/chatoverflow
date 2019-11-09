@@ -18,13 +18,7 @@ class DoubleParameterImpl extends DoubleParameter {
 
   override def get(): Double = value
 
-  override def deserialize(value: String): Unit = {
-    try {
-      set(Double.valueOf(value))
-    } catch {
-      case _: Exception => print("Can't convert String to double")
-    }
-  }
+  override def deserialize(value: String): Unit = set(Double.valueOf(value))
 
   override def set(value: Double): Unit = this.value = value
 }

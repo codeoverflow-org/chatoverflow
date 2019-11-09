@@ -16,13 +16,7 @@ class IntegerParameterImpl extends IntegerParameter {
 
   override def get(): Integer = value
 
-  override def deserialize(value: String): Unit = {
-    try {
-      set(Integer.valueOf(value))
-    } catch {
-      case _: Exception => print("Can't convert String to int")
-    }
-  }
+  override def deserialize(value: String): Unit = set(Integer.valueOf(value))
 
   override def set(value: Integer): Unit = this.value = value
 

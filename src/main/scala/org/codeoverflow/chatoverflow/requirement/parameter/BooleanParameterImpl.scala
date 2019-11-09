@@ -17,9 +17,7 @@ class BooleanParameterImpl extends BooleanParameter {
 
   override def get(): Boolean = value
 
-  override def deserialize(value: String): Unit = {
-    set(Boolean.parseBoolean(value))
-  }
+  override def deserialize(value: String): Unit = set(Boolean.parseBoolean(value))
 
   override def set(value: Boolean): Unit = this.value = value
 

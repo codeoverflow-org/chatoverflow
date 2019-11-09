@@ -14,18 +14,16 @@ class MapParameterImpl extends MapParameter {
 
   override def getType: Class[java.util.Map[String, String]] = classOf[java.util.Map[String, String]]
 
-  override def serialize(): String = {
-    value.map({ case (key, value) => s"($key;$value)" }).mkString(",")
-  }
+  override def serialize(): String = value.map({ case (key, value) => s"($key;$value)" }).mkString(",")
 
   override def get(): java.util.Map[String, String] = value.asJava
 
   override def deserialize(value: String): Unit = {
     val kvpair = "\\((.+);(.+)\\)".r
     val konly = "\\((.+);\\)".r
-    set(value.split(",")
+    this.value = value.split(",")
       .map({ case kvpair(k, v) => (k -> v); case konly(k) => (k -> ""); case _ => ("" -> "") })
-      .toMap.asJava)
+      .toMap
   }
 
   override def set(value: java.util.Map[String, String]): Unit = this.value = value.asScala.toMap
