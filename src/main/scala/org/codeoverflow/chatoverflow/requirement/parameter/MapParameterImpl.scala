@@ -4,7 +4,6 @@ import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.api.io.parameter.MapParameter
 
 import collection.JavaConverters._
-import java.util.Map
 
 /**
   * A parameter holding a Map<String, String> value.
@@ -13,13 +12,13 @@ import java.util.Map
 class MapParameterImpl extends MapParameter {
   private var value: Map[String, String] = null
 
-  override def getType: Class[Map[String, String]] = classOf[Map[String, String]]
+  override def getType: Class[java.util.Map[String, String]] = classOf[java.util.Map[String, String]]
 
   override def serialize(): String = {
-    value.asScala.map({ case (key, value) => s"($key;$value)" }).mkString(",")
+    value.map({ case (key, value) => s"($key;$value)" }).mkString(",")
   }
 
-  override def get(): Map[String, String] = value
+  override def get(): java.util.Map[String, String] = value.asJava
 
   override def deserialize(value: String): Unit = {
     val kvpair = "\\((.+);(.+)\\)".r
@@ -29,6 +28,6 @@ class MapParameterImpl extends MapParameter {
       .toMap.asJava)
   }
 
-  override def set(value: Map[String, String]): Unit = this.value = value
+  override def set(value: java.util.Map[String, String]): Unit = this.value = value.asScala.toMap
 
 }
