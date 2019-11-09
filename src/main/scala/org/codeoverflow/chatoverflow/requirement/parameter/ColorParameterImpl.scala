@@ -40,6 +40,7 @@ class ColorParameterImpl extends ColorParameter {
       case int4(r, g, b, a) => set(new Color(r.toInt, g.toInt, b.toInt, a.toInt))
       case float3(r, g, b) => set(new Color(r.toFloat, g.toFloat, b.toFloat))
       case float4(r, g, b, a) => set(new Color(r.toFloat, g.toFloat, b.toFloat, a.toFloat))
+      case _ => throw new IllegalArgumentException("Could not convert String to color")
     }
 
   }
