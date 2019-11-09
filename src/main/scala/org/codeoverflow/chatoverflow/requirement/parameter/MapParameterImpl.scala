@@ -22,7 +22,7 @@ class MapParameterImpl extends MapParameter {
     val kvpair = "\\((.+);(.+)\\)".r
     val konly = "\\((.+);\\)".r
     this.value = value.split(",")
-      .map({ case kvpair(k, v) => (k -> v); case konly(k) => (k -> ""); case _ => ("" -> "") })
+      .map({ case kvpair(k, v) => (k -> v); case konly(k) => (k -> ""); case _ => throw new IllegalArgumentException("Could not convert String to Map")})
       .toMap
   }
 
