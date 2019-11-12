@@ -1,0 +1,24 @@
+notifications:
+  email: false
+branches:
+  only:
+    - master
+language: scala
+jdk: openjdk8
+scala:
+  - 2.12.5
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
+before_install:
+  - git clone https://github.com/codeoverflow-org/chatoverflow-api --branch master --single-branch --depth 1 api
+  - sbt ++$TRAVIS_SCALA_VERSION update fetch update
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION -Dfile.encoding=UTF8 doc
+  - chmod +x .scripts/update-docs.sh
+  - bash .scripts/update-docs.sh
+before_cache:
+  - rm -fv $HOME/.ivy2/.sbt.ivy.lock
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+  - find $HOME/.sbt        -name "*.lock"               -print -delete
