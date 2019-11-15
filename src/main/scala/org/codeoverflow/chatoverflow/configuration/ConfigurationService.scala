@@ -289,8 +289,8 @@ object ConfigurationService extends WithLogger {
 
             try {
               val reqContent = loadedRequirementType.get.newInstance().asInstanceOf[io.Serializable]
-              requirements.getAccess.setRequirementContent(requirementId, reqContent)
               reqContent.deserialize(content)
+              requirements.getAccess.setRequirementContent(requirementId, reqContent)
 
               logger info s"Created requirement content for '$requirementId' and deserialized its content."
               true
