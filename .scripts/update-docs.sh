@@ -12,7 +12,7 @@ git clone https://${REPO_TOKEN}@github.com/codeoverflow-org/chatoverflow-gh-page
 
 echo "Copying docs..."
 cp -fR target/scala-*/api docs/chatoverflow
-cp -fR api/target/scala-*/api docs/chatoverflow-api
+cp -fR api/target/api docs/chatoverflow-api
 cd docs
 
 echo "Updating wiki..."
