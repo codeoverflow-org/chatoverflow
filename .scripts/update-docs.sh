@@ -3,6 +3,10 @@ set -ev
 
 # Update the java-/scaladocs on https://github.com/codeoverflow-org/chatoverflow-gh-pages
 
+echo "Configuring git..."
+git config user.email "<>"
+git config user.name "Github Actions"
+
 echo "Cloning docs repo..."
 git clone https://${REPO_TOKEN}@github.com/codeoverflow-org/chatoverflow-gh-pages --branch master --single-branch --depth 1 docs
 
