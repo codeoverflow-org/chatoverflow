@@ -1,0 +1,68 @@
+# When a release is created this Actions automatically builds all deployments of ChatOverflow and uploades
+# the resulting zip files to the GitHub release.
+
+name: Generate Deployments And Upload To Releases
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  enduser-deployment:
+    name: End-User Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Clone other repositories
+        run: bash .scripts/checkout-repos.sh
+      - uses: olafurpg/setup-scala@v5
+        name: Install java & sbt
+        with:
+          java-version: openjdk@1.8
+
+      - name: Generate Deployment
+        run: sbt fetch reload gui package launcherProject/assembly deploy
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
+
+      # Temporarily save tag in an env var because the GitHub Actions syntax can't replace any stuff in strings
+      - run: echo "::set-env name=TAG::${GITHUB_REF##refs/tags/}"
+      - name: Create ZIP
+        run: cd deploy && zip ../ChatOverflow-${{ env.TAG }}.zip . -r
+
+      - name: Upload Artifact
+        uses: JasonEtco/upload-to-release@master
+        with:
+          args: ChatOverflow-${{ env.TAG }}.zip application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  plugindev-deployment:
+    name: Plugin-Dev Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Clone other repositories
+        run: bash .scripts/checkout-repos.sh
+      - uses: olafurpg/setup-scala@v5
+        name: Install java & sbt
+        with:
+          java-version: openjdk@1.8
+
+      - name: Generate Deployment
+        run: sbt fetch reload gui package buildProject/package deployDev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
+
+      # Temporarily save tag in an env var because the GitHub Actions syntax can't replace any stuff in strings
+      - run: echo "::set-env name=TAG::${GITHUB_REF##refs/tags/}"
+      - name: Create ZIP
+        run: cd deployDev && zip ../ChatOverflow-${{ env.TAG }}-plugin-dev-environment.zip . -r
+
+      - name: Upload Artifact
+        uses: JasonEtco/upload-to-release@master
+        with:
+          args: ChatOverflow-${{ env.TAG }}-plugin-dev-environment.zip application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
