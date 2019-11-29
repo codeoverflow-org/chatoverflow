@@ -1,6 +1,6 @@
 // Main project config
 name := "ChatOverflow"
-version := "3.0.0"
+version := "3.0.1"
 
 // Main class and sub projects
 mainClass := Some("org.codeoverflow.chatoverflow.Launcher")
