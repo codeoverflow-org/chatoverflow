@@ -1,5 +1,5 @@
 name := "chatoverflow-meta-build"
-version := "3.0.0"
+version := "4.0.0"
 sbtPlugin := true
 
 // With 2.12.5 the code doesn't compile when java >= 9 is used

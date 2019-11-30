@@ -1,0 +1,28 @@
+name: Javadoc Deploy
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  publish:
+    if: startsWith(github.repository, 'codeoverflow-org') # don't run this in forks
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Clone API
+      run: git clone https://github.com/codeoverflow-org/chatoverflow-api --branch master --single-branch --depth 1 api
+    - uses: olafurpg/setup-scala@v5
+      name: Install java & sbt
+      with:
+        java-version: openjdk@1.8
+
+    - name: Generate documentation
+      run: sbt -Dfile.encoding=UTF8 fetch reload update doc
+
+    - name: Publish documentation
+      run: bash .scripts/update-docs.sh
+      env:
+        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+
