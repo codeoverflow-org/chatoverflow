@@ -30,6 +30,9 @@ jobs:
       - name: Create ZIP
         run: cd deploy && zip ../ChatOverflow-${{ env.TAG }}.zip . -r
 
+      - name: Test Deployment
+        run: cd deploy && ./ChatOverflow.sh --help
+
       - name: Upload Artifact
         uses: JasonEtco/upload-to-release@master
         with:
@@ -59,6 +62,9 @@ jobs:
       - run: echo "::set-env name=TAG::${GITHUB_REF##refs/tags/}"
       - name: Create ZIP
         run: cd deployDev && zip ../ChatOverflow-${{ env.TAG }}-plugin-dev-environment.zip . -r
+
+      - name: Test Deployment
+        run: cd deployDev && sbt fetch reload "run --help"
 
       - name: Upload Artifact
         uses: JasonEtco/upload-to-release@master
