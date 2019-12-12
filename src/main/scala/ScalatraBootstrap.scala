@@ -5,7 +5,7 @@ import org.codeoverflow.chatoverflow.ui.web.rest.connector.ConnectorController
 import org.codeoverflow.chatoverflow.ui.web.rest.events.{EventsController, EventsDispatcher}
 import org.codeoverflow.chatoverflow.ui.web.rest.plugin.PluginInstanceController
 import org.codeoverflow.chatoverflow.ui.web.rest.types.TypeController
-import org.codeoverflow.chatoverflow.ui.web.{CodeOverflowSwagger, GUIServlet, OpenAPIServlet}
+import org.codeoverflow.chatoverflow.ui.web.{CodeOverflowSwagger, GUIServlet, HostingServlet, OpenAPIServlet}
 import org.scalatra._
 
 /**
@@ -30,6 +30,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new PluginInstanceController(), "/instances/*", "instances")
     context.mount(new ConnectorController(), "/connectors/*", "connectors")
     context.mount(new OpenAPIServlet(), "/api-docs")
+    context.mount(new HostingServlet(), "/data/*")
 
     context.mount(new GUIServlet(), "/*")
   }
