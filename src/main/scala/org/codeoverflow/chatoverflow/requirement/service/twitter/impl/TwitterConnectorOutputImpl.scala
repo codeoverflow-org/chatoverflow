@@ -1,6 +1,8 @@
 package org.codeoverflow.chatoverflow.requirement.service.twitter.impl
 
 
+import java.awt.image.BufferedImage
+
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.io.output.twitter.TwitterTweetOutput
 import org.codeoverflow.chatoverflow.registry.Impl
@@ -31,6 +33,17 @@ class TwitterConnectorOutputImpl extends OutputImpl[TwitterConnector] with Twitt
     val result = sourceConnector.get.sendTextTweet(status)
     if (result._1) {
       logger info s"Successfully send tweet: $status"
+      true
+    } else {
+      logger error s"Error sending tweet: ${result._2}"
+      false
+    }
+  }
+
+  override def sendImageTweet(status: String, image: BufferedImage): Boolean = {
+    val result = sourceConnector.get.sendImageTweet(status, image)
+    if (result._1) {
+      logger info s"Successfully send tweet with image: $status"
       true
     } else {
       logger error s"Error sending tweet: ${result._2}"
