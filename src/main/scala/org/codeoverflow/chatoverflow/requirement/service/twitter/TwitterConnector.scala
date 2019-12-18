@@ -3,6 +3,7 @@ package org.codeoverflow.chatoverflow.requirement.service.twitter
 import java.awt.image.BufferedImage
 
 import com.danielasfregola.twitter4s.TwitterRestClient
+import com.danielasfregola.twitter4s.entities.Tweet
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.Connector
 import org.codeoverflow.chatoverflow.connector.actor.TwitterActor
@@ -30,6 +31,10 @@ class TwitterConnector(override val sourceIdentifier: String) extends Connector(
 
   def sendImageTweet(status: String, image: BufferedImage): (Boolean, String) = twitterActor.??[(Boolean, String)](5) {
     SendImageTweet(client, status, image)
+  }.get
+
+  def searchTweet(query: String, since_id: Option[Long]) = twitterActor.??[(Boolean, String, Option[List[Tweet]])](5) {
+    SearchTweet(client, query, since_id)
   }.get
 
   def getClient: TwitterRestClient = client

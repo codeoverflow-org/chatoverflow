@@ -7,8 +7,10 @@ import akka.actor.Actor
 import akka.http.scaladsl.model.MediaType
 import akka.http.scaladsl.model.MediaType.NotCompressible
 import com.danielasfregola.twitter4s.TwitterRestClient
+import com.danielasfregola.twitter4s.entities.enums.ResultType
 import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken}
 import javax.imageio.ImageIO
+import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.connector.actor.TwitterActor._
 
 import scala.concurrent.Await
@@ -18,7 +20,7 @@ import scala.concurrent.duration._
 /**
   * The TwitterActor enables communication with the twitter REST-API over the twitter4s library
   */
-class TwitterActor extends Actor {
+class TwitterActor extends Actor with WithLogger {
 
   /**
     * Receives either GetRestClient or a SendTextTweet object, acts accordingly.
@@ -51,6 +53,14 @@ class TwitterActor extends Actor {
         sender ! (true, "")
       } catch {
         case e: Exception => sender ! (false, e)
+      }
+    case SearchTweet(client, query, since_id) =>
+      try {
+        val tweets = Await.result(client.searchTweet(query, count = 2, result_type = ResultType.Recent, since_id = since_id), 5 seconds)
+        logger debug s"Limit: " + tweets.rate_limit.remaining.toString + "/" + tweets.rate_limit.limit.toString + "(till " + tweets.rate_limit.reset.toString + ")"
+        sender ! (true, "", Option(tweets.data.statuses))
+      } catch {
+        case e: Exception => sender ! (false, e, None)
       }
   }
 
@@ -85,4 +95,6 @@ object TwitterActor {
    */
   case class SendImageTweet(client: TwitterRestClient, status: String, image: BufferedImage) extends ActorMessage
 
+
+  case class SearchTweet(client: TwitterRestClient, query: String, since_id: Option[Long] = None) extends ActorMessage
 }
