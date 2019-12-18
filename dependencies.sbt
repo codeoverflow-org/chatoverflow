@@ -46,3 +46,6 @@ libraryDependencies += "io.socket" % "socket.io-client" % "1.0.0"
 
 // Coursier
 libraryDependencies += "io.get-coursier" %% "coursier" % "2.0.0-RC5-4"
+
+// Twitter
+libraryDependencies += "com.danielasfregola" %% "twitter4s" % "6.2"

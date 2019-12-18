@@ -1,8 +1,14 @@
 package org.codeoverflow.chatoverflow.connector.actor
 
+import java.awt.image.BufferedImage
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+
 import akka.actor.Actor
+import akka.http.scaladsl.model.MediaType
+import akka.http.scaladsl.model.MediaType.NotCompressible
 import com.danielasfregola.twitter4s.TwitterRestClient
 import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken}
+import javax.imageio.ImageIO
 import org.codeoverflow.chatoverflow.connector.actor.TwitterActor._
 
 import scala.concurrent.Await
@@ -33,6 +39,19 @@ class TwitterActor extends Actor {
       } catch {
         case e: Exception => sender ! (false, e)
       }
+    case SendImageTweet(client, status, image) =>
+      try {
+        val os = new ByteArrayOutputStream()
+        ImageIO.write(image, "png", os)
+        val bytes = os.toByteArray
+        val is = new ByteArrayInputStream(bytes)
+        val mediaType = MediaType.image("png", NotCompressible, "png")
+        val upload = Await.result(client.uploadMediaFromInputStream(is, bytes.length, mediaType), 5 seconds)
+        Await.result(client.createTweet(status, media_ids = Seq(upload.media_id)), 5 second)
+        sender ! (true, "")
+      } catch {
+        case e: Exception => sender ! (false, e)
+      }
   }
 
 }
@@ -56,5 +75,14 @@ object TwitterActor {
     * @param status Text that should be tweeted
     */
   case class SendTextTweet(client: TwitterRestClient, status: String) extends ActorMessage
+
+  /**
+   * Sends a tweet with an image for the account the client is connected to
+   *
+   * @param client TwitterRestClient for the account the tweet should be posted on
+   * @param status Text that should be tweeted
+   * @param image  BufferedImage that should be tweeted
+   */
+  case class SendImageTweet(client: TwitterRestClient, status: String, image: BufferedImage) extends ActorMessage
 
 }
