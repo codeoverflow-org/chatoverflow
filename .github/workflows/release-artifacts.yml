@@ -21,9 +21,11 @@ jobs:
           java-version: openjdk@1.8
 
       - name: Generate Deployment
-        run: sbt fetch reload gui package launcherProject/assembly deploy
+        run: |
+          bash .scripts/authenticate-npm.sh
+          sbt fetch reload gui package launcherProject/assembly deploy
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Temporarily save tag in an env var because the GitHub Actions syntax can't replace any stuff in strings
       - run: echo "::set-env name=TAG::${GITHUB_REF##refs/tags/}"
@@ -54,9 +56,11 @@ jobs:
           java-version: openjdk@1.8
 
       - name: Generate Deployment
-        run: sbt fetch reload gui package buildProject/package deployDev
+        run: |
+          bash .scripts/authenticate-npm.sh
+          sbt fetch reload gui package buildProject/package deployDev
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Temporarily save tag in an env var because the GitHub Actions syntax can't replace any stuff in strings
       - run: echo "::set-env name=TAG::${GITHUB_REF##refs/tags/}"

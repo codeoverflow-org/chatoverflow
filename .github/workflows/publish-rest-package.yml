@@ -20,9 +20,9 @@ jobs:
           java-version: openjdk@1.8
 
       - name: Login to GPR
-        run: echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" > ~/.npmrc
+        run: bash .scripts/authenticate-npm.sh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
 
       - name: Compile ChatOverflow
         run: sbt fetch reload gui package
