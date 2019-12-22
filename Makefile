@@ -1,7 +1,7 @@
 .PHONY: advanced_run simple_run bootstrap_deploy bootstrap_deploy_dev create deploy deploy_dev fetch version package_copy gui reload clean git_pull
 
 advanced_run:
-	sbt clean compile gui fetch reload version package copy
+	sbt clean fetch reload compile gui version package copy
 
 simple_run:
 	sbt package copy

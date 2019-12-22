@@ -9,7 +9,7 @@
       </pattern>
     </extension>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Advanced Build (sbt clean compile gui fetch reload version package copy)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Advanced Build (sbt clean fetch reload compile gui version package copy)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
 </component>
