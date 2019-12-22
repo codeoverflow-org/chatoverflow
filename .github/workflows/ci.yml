@@ -1,0 +1,46 @@
+name: CI
+
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Clone other repositories
+        run: bash .scripts/checkout-repos.sh
+      - uses: olafurpg/setup-scala@v5
+        name: Install java & sbt
+        with:
+          java-version: openjdk@1.8
+
+      - name: Cache Ivy
+        uses: actions/cache@v1
+        with:
+          path: ~/.ivy2/cache
+          key: ChatOverflow-Ivy-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('**/build.properties') }}
+          restore-keys: |
+            ChatOverflow-Ivy-
+
+      - name: Cache sbt
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: ChatOverflow-sbt-${{ hashFiles('**/build.properties') }}
+          restore-keys: |
+            ChatOverflow-sbt-
+
+      - name: Cache NPM
+        uses: actions/cache@v1
+        with:
+          path: gui/node_modules
+          key: ChatOverflow-npm-${{ hashFiles('gui/package*.json') }}
+          restore-keys: |
+            ChatOverflow-npm-
+
+      - name: Compile & run tests
+        run: |
+          bash .scripts/authenticate-npm.sh
+          sbt fetch reload compile gui package test "run --help"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
