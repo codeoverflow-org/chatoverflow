@@ -12,5 +12,5 @@ inThisBuild(List(scalaVersion := "2.12.5"))
 
 import org.codeoverflow.chatoverflow.build.BuildUtils
 
-javacOptions ++= BuildUtils.getJava8CrossOptions
+Global / javacOptions ++= BuildUtils.getJava8CrossOptions
 fork in run := true // Start ChatOverflow in it's own java process when starting it with 'sbt run'
