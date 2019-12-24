@@ -1,45 +1,50 @@
 package org.codeoverflow.chatoverflow.build
 
 import java.io.File
-import java.util.jar.Manifest
 
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
-import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
-import sbt.Keys.Classpath
-import sbt.internal.util.{Attributed, ManagedLogger}
+import sbt.internal.util.ManagedLogger
 import sbt.util.{FileFunction, FilesInfo}
 
-import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Try
 
 class GUIUtility(logger: ManagedLogger) {
 
-  def guiTask(guiProjectPath: String, cacheDir: File): Unit = {
-    withTaskInfo("BUILD GUI", logger) {
-      val guiDir = new File(guiProjectPath)
-      if (!guiDir.exists()) {
-        logger warn s"GUI not found at $guiProjectPath, ignoring GUI build."
-        return
-      }
-
-      val packageJson = new File(guiDir, "package.json")
-
-      if (!executeNpmCommand(guiDir, cacheDir, Set(packageJson), "install",
-        () => logger error "GUI dependencies couldn't be installed, please check above log for further details.",
-        () => new File(guiDir, "node_modules")
-      )) {
-        return // early return on failure, error has already been displayed
-      }
-
-      val srcFiles = BuildUtils.getAllDirectoryChilds(new File(guiDir, "src"))
-      val outDir = new File(guiDir, "dist")
-
-      executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
-        () => logger error "GUI couldn't be built, please check above log for further details.",
-        () => outDir
-      )
+  def guiTask(guiProjectPath: String, cacheDir: File, classesDir: File): Unit = {
+    val guiDir = new File(guiProjectPath)
+    if (!guiDir.exists()) {
+      logger warn s"GUI not found at $guiProjectPath, ignoring GUI build."
+      return
     }
+
+    val packageJson = new File(guiDir, "package.json")
+
+    logger info "Installing NPM dependencies of the gui ..."
+    if (!executeNpmCommand(guiDir, cacheDir, Set(packageJson), "install",
+      () => logger error "GUI dependencies couldn't be installed, please check above log for further details.",
+      () => {
+        logger info "Successfully installed NPM dependencies of the gui."
+        new File(guiDir, "node_modules")
+      }
+    )) {
+      return // early return on failure, error has already been displayed
+    }
+
+    val srcFiles = BuildUtils.getAllDirectoryChilds(new File(guiDir, "src"))
+    val outDir = new File(guiDir, "dist")
+
+    logger info "Compiling Angular GUI ..."
+    executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
+      () => logger error "GUI couldn't be built, please check above log for further details.",
+      () => {
+        logger info "Successfully compiled Angular GUI."
+        outDir
+      }
+    )
+
+    sbt.IO.copyDirectory(outDir, new File(classesDir, "chatoverflow-gui"))
+    writeVersionFiles(new File(guiProjectPath), classesDir)
   }
 
   /**
@@ -64,13 +69,14 @@ class GUIUtility(logger: ManagedLogger) {
     // sbt passes these input files to the passed function, but they aren't used, we just instruct npm to build the gui.
     // sbt invalidates the cache as well if any of the output files (returned by the passed function) doesn't exist anymore.
     val cachedFn = FileFunction.cached(new File(cacheDir, command), FilesInfo.hash) { _ => {
-      val exitCode = new ProcessBuilder(getNpmCommand ++ command.split("\\s+"): _*)
-        .inheritIO()
+      val process = new ProcessBuilder(getNpmCommand ++ command.split("\\s+"): _*)
         .directory(workDir)
         .start()
-        .waitFor()
 
+      val exitCode = process.waitFor()
       if (exitCode != 0) {
+        // Stream error message to the user
+        Source.fromInputStream(process.getErrorStream).getLines().foreach(println)
         failed()
         return false
       } else {
@@ -91,33 +97,8 @@ class GUIUtility(logger: ManagedLogger) {
     }
   }
 
-  def packageGUITask(guiProjectPath: String, crossTargetDir: File): Unit = {
-    val dir = new File(guiProjectPath, "dist")
-    if (!dir.exists()) {
-      logger info "GUI hasn't been compiled. Won't create a jar for it."
-      return
-    }
-
-    val files = BuildUtils.getAllDirectoryChilds(dir)
-
-    // contains tuples with the actual file as the first value and the name with directory in the jar as the second value
-    val jarEntries = files.map(file => file -> s"/chatoverflow-gui/${dir.toURI.relativize(file.toURI).toString}") ++
-      getVersionFiles(guiProjectPath).map(file => file -> s"/${file.getName}")
-
-    sbt.IO.jar(jarEntries, getGUIJarFile(guiProjectPath, crossTargetDir), new Manifest())
-  }
-
-  def getGUIJarClasspath(guiProjectPath: String, crossTargetDir: File): Classpath = {
-    Attributed.blankSeq(Seq(getGUIJarFile(guiProjectPath, crossTargetDir)))
-  }
-
-  private def getGUIJarFile(guiProjectPath: String, crossTargetDir: File): File = {
-    val guiVersion = getPackageJson(guiProjectPath).flatMap(json => getGUIVersion(json)).getOrElse("unknown")
-    new File(crossTargetDir, s"chatoverflow-gui-$guiVersion.jar")
-  }
-
-  private def getPackageJson(guiProjectPath: String): Option[JsonNode] = Try {
-    val packageJson = new File(s"$guiProjectPath/package.json")
+  def getPackageJson(guiProjectPath: File): Option[JsonNode] = Try {
+    val packageJson = new File(guiProjectPath, "package.json")
     if (!packageJson.exists()) {
       logger error "The package.json file of the GUI doesn't exist. Have you cloned the GUI in the correct directory?"
       return None
@@ -131,7 +112,7 @@ class GUIUtility(logger: ManagedLogger) {
     Some(json)
   }.getOrElse(None)
 
-  private def getGUIVersion(packageJson: JsonNode): Option[String] = {
+  def getGUIVersion(packageJson: JsonNode): Option[String] = {
     if (packageJson.has("version")) {
       val version = packageJson.get("version").asText()
 
@@ -146,7 +127,7 @@ class GUIUtility(logger: ManagedLogger) {
     }
   }
 
-  private def getRestVersion(packageJson: JsonNode): Option[String] = {
+  def getRestVersion(packageJson: JsonNode): Option[String] = {
     if (packageJson.has("dependencies") && packageJson.get("dependencies").hasNonNull("@codeoverflow-org/chatoverflow")) {
       val version = packageJson.get("dependencies").get("@codeoverflow-org/chatoverflow").asText()
 
@@ -161,26 +142,17 @@ class GUIUtility(logger: ManagedLogger) {
     }
   }
 
-  private def getVersionFiles(guiProjectPath: String): List[File] = {
-    val json = getPackageJson(guiProjectPath)
+  private def writeVersionFiles(guiProjectDir: File, classDir: File): Unit = {
+    val json = getPackageJson(guiProjectDir)
     if (json.isDefined) {
-      val files = ListBuffer[File]()
-      val tempDir = sbt.IO.createTemporaryDirectory
-
       getGUIVersion(json.get).foreach { ver =>
-        val f = new File(tempDir, "version_gui.txt")
+        val f = new File(classDir, "version_gui.txt")
         sbt.IO.write(f, ver)
-        files += f
       }
       getRestVersion(json.get).foreach { ver =>
-        val f = new File(tempDir, "version_gui_rest.txt")
+        val f = new File(classDir, "version_gui_rest.txt")
         sbt.IO.write(f, ver)
-        files += f
       }
-
-      files.toList
-    } else {
-      List()
     }
   }
 }

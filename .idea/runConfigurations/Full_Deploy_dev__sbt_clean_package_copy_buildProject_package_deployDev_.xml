@@ -1,14 +1,14 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Full Deploy dev (sbt clean gui package copy buildProject/package deployDev)" type="SbtRunConfiguration" factoryName="sbt Task">
+  <configuration default="false" name="Full Deploy dev (sbt clean package copy buildProject/package deployDev)" type="SbtRunConfiguration" factoryName="sbt Task">
     <!-- for IntelliJ < 2019.2-->
-    <setting name="tasks" value="clean gui package buildProject/package deployDev" />
+    <setting name="tasks" value="clean package buildProject/package deployDev" />
     <setting name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
     <setting name="workingDir" value="$PROJECT_DIR$" />
     <setting name="useSbtShell" value="false" />
 
     <!-- for IntelliJ >= 2019.2 -->
     <option name="allowRunningInParallel" value="false" />
-    <option name="tasks" value="clean gui package buildProject/package deployDev" />
+    <option name="tasks" value="clean package buildProject/package deployDev" />
     <option name="useSbtShell" value="false" />
     <option name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
     <option name="workingDir" value="$PROJECT_DIR$" />

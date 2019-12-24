@@ -41,6 +41,6 @@ jobs:
       - name: Compile & run tests
         run: |
           bash .scripts/authenticate-npm.sh
-          sbt fetch reload compile gui package test "run --help"
+          sbt fetch reload compile package test "run --help"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

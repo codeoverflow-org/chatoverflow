@@ -3,7 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
     <module name="ChatOverflow" />
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Full Deploy dev (sbt clean gui package copy buildProject/package deployDev)" run_configuration_type="SbtRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Full Deploy dev (sbt clean package copy buildProject/package deployDev)" run_configuration_type="SbtRunConfiguration" />
     </method>
   </configuration>
 </component>

@@ -20,35 +20,19 @@ lazy val fetch = TaskKey[Unit]("fetch", "Searches for plugins in plugin director
 lazy val copy = TaskKey[Unit]("copy", "Copies all packaged plugin jars to the target plugin folder.")
 lazy val deploy = TaskKey[Unit]("deploy", "Prepares the environment for deployment, fills deploy folder.")
 lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for plugin developers, fills deployDev folder.")
-lazy val gui = TaskKey[Unit]("gui", "Installs GUI dependencies and builds it using npm.")
 
 
 
 // Tasks
 
-import org.codeoverflow.chatoverflow.build.GUIUtility
 import org.codeoverflow.chatoverflow.build.BuildUtils.scalaMajorVersion
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
 import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
-  pluginTargetFolderNames.value, apiProjectPath.value)
+  pluginTargetFolderNames.value, apiProjectPath.value, guiProjectPath.value)
 copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion.value)
 deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion.value)
 deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion.value, apiProjectPath.value)
-gui := new GUIUtility(streams.value.log).guiTask(guiProjectPath.value, streams.value.cacheDirectory / "gui")
-
-
-
-// Enhance existing functionality
-Compile / packageBin := {
-  new GUIUtility(streams.value.log).packageGUITask(guiProjectPath.value, crossTarget.value)
-  (Compile / packageBin).value
-}
-
-Compile / unmanagedJars := new GUIUtility(streams.value.log).getGUIJarClasspath(guiProjectPath.value, crossTarget.value)
-
-cleanFiles += baseDirectory.value / guiProjectPath.value / "dist" // Clears the built GUI dir on clean
-
 

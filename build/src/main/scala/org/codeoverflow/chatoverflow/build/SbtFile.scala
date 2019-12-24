@@ -11,17 +11,18 @@ import org.codeoverflow.chatoverflow.build.plugins.Plugin
  * @param version        the version of a sbt project
  * @param plugins        list of paths of sub projects
  * @param apiProjectPath the path of a base api project which every project depends on
+ * @param guiProjectPath the path of the gui project
  * @param defineRoot     true, if a root project (".") should be defined in the sbt file
  */
 class SbtFile(val name: String, val version: String, val plugins: List[Plugin], val apiProjectPath: String,
-              val defineRoot: Boolean) {
+              val guiProjectPath: String, val defineRoot: Boolean) {
   /**
    * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
    *
    * @param name    the name of a sbt project
    * @param version the version of a sbt project
    */
-  def this(name: String, version: String) = this(name, version, List(), "", false)
+  def this(name: String, version: String) = this(name, version, List(), "", "", false)
 
   /**
    * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
@@ -80,6 +81,9 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
     if (apiProjectPath != "") {
       sbtContent append "\n\nlazy val apiProject = project in file(\"%s\")".format(apiProjectPath)
     }
+    if (guiProjectPath != "") {
+      sbtContent append "\nlazy val guiProject = project in file(\"%s\")".format(guiProjectPath)
+    }
 
     if (defineRoot) {
       var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(%s)"
@@ -87,6 +91,12 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
 
       if (apiProjectPath != "") {
         rootLine += ".dependsOn(apiProject)"
+      }
+      if(guiProjectPath != "") {
+        // The gui doesn't need to be available to the framework while compiling, only at runtime.
+        // That's what the "runtime->compile" means: the framework at runtime needs the compiled gui.
+        // By adding this sbt will compile the framework and gui in parallel.
+        rootLine += ".dependsOn(guiProject % \"runtime->compile\").aggregate(guiProject)"
       }
 
       sbtContent append rootLine

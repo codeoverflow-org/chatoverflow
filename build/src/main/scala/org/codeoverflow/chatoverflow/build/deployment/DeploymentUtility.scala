@@ -108,6 +108,7 @@ object DeploymentUtility {
 
     val sourceJarDirectories = List(
       Some(s"target/scala-$scalaLibraryVersion/"),
+      Some("gui/target/"),
       if (copyApi) Some(s"api/target/") else None
     ).flatten
 

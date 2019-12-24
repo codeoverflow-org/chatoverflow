@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Advanced Build (sbt clean fetch reload compile gui version package copy)" type="SbtRunConfiguration" factoryName="sbt Task">
+  <configuration default="false" name="Advanced Build (sbt clean fetch reload compile version package copy)" type="SbtRunConfiguration" factoryName="sbt Task">
     <!-- for IntelliJ < 2019.2-->
-    <setting name="tasks" value="clean fetch reload compile gui version package copy" />
+    <setting name="tasks" value="clean fetch reload compile version package copy" />
     <setting name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
     <setting name="workingDir" value="$PROJECT_DIR$" />
 
     <!-- for IntelliJ >= 2019.2 -->
     <option name="allowRunningInParallel" value="false" />
-    <option name="tasks" value="clean fetch reload compile gui version package copy" />
+    <option name="tasks" value="clean fetch reload compile version package copy" />
     <option name="useSbtShell" value="false" />
     <option name="vmparams" value="-Xms512M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled" />
     <option name="workingDir" value="$PROJECT_DIR$" />

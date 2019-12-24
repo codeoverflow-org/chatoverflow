@@ -23,7 +23,7 @@ jobs:
       - name: Generate Deployment
         run: |
           bash .scripts/authenticate-npm.sh
-          sbt fetch reload gui package launcherProject/assembly deploy
+          sbt fetch reload package launcherProject/assembly deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,7 +58,7 @@ jobs:
       - name: Generate Deployment
         run: |
           bash .scripts/authenticate-npm.sh
-          sbt fetch reload gui package buildProject/package deployDev
+          sbt fetch reload package buildProject/package deployDev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
