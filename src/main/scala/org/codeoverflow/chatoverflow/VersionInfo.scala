@@ -1,7 +1,7 @@
 package org.codeoverflow.chatoverflow
 
 import org.codeoverflow.chatoverflow.api.APIVersion._
-import org.codeoverflow.chatoverflow.ui.web.GUIServlet._
+import org.codeoverflow.chatoverflow.ui.web.GUIServlet
 
 import scala.io.Source
 import scala.xml.XML
@@ -37,7 +37,11 @@ object VersionInfo extends WithLogger {
   }
 
   private def getGUIVersionFile(name: String): String = try {
-    guiJar.map(jar => Source.fromInputStream(jar.getInputStream(jar.getJarEntry(name))).mkString).getOrElse("unknown")
+    val stream = GUIServlet.getStream(name)
+    if (stream.isDefined)
+      Source.fromInputStream(stream.get).mkString
+    else
+      "unknown"
   } catch {
     case _: Exception => "unknown"
   }
