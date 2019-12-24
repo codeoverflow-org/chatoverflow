@@ -1,0 +1,78 @@
+name: Publish REST Package
+
+on:
+  push:
+    paths:
+      # This file contains the version for the REST package. Only run if something changes in there.
+      - "src/main/scala/org/codeoverflow/chatoverflow/VersionInfo.scala"
+
+jobs:
+  publish_rest:
+    if: startsWith(github.repository, 'codeoverflow-org') # don't run this in forks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Clone other repositories
+        run: bash .scripts/checkout-repos.sh
+      - uses: olafurpg/setup-scala@v5
+        name: Install java & sbt
+        with:
+          java-version: openjdk@1.8
+
+      - name: Login to GPR
+        run: bash .scripts/authenticate-npm.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Authentication for ChatOverflow REST-API package
+
+      - name: Compile ChatOverflow
+        run: sbt fetch reload gui package
+
+      - name: Start ChatOverflow in Background
+        run: bash .scripts/start-co-background.sh
+
+      # Can't publish the same version twice, in this case we ignore the commit. It was probably
+      # some other change in the VersionInfo file.
+      - name: Check if already published
+        run: |
+          REST_VERSION=$(curl http://localhost:2400/api-docs/swagger.json | jq -r .info.version)
+          echo "::set-env name=REST_VERSION::$REST_VERSION"
+          cd gui
+
+          # If we can succesfully install it, it also has already been published
+          set +e # Don't fail on a exit code 1, we are handling it to determine whether the version has already been published
+          npm i --no-save "@codeoverflow-org/chatoverflow@${REST_VERSION}"
+          EXIT_CODE=$?
+          set -e
+          echo "::set-env name=EXIT_CODE::$EXIT_CODE"
+
+      - name: Download Swagger Codegen CLI
+        if: env.EXIT_CODE != 0
+        run: wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.4.9/swagger-codegen-cli-2.4.9.jar
+
+      - name: Generate Package
+        if: env.EXIT_CODE != 0
+        run: |
+          # Generating package
+          echo "Setting version to $REST_VERSION"
+          java -jar swagger-codegen-cli-2.4.9.jar generate \
+             -i http://localhost:2400/api-docs/swagger.json \
+             -l typescript-angular \
+             -o ./angular_api_client \
+             --additional-properties "npmName=@codeoverflow-org/chatoverflow,snapshot=false,npmVersion=${REST_VERSION},ngVersion=7.2.1"
+          cd angular_api_client && npm install --save-dev typescript@3.2.4 tsickle@0.35.0
+
+          # Adding config required to publish package
+          cp package.json package2.json # Needed for line after this. Can't read and write to same file at once.
+          echo '{"publishConfig": { "registry": "https://npm.pkg.github.com/" },
+          "repository": "git://github.com/codeoverflow-org/chatoverflow.git"}' | jq -s add package2.json - > package.json
+          echo "registry=https://npm.pkg.github.com/codeoverflow-org" > .npmrc
+
+          # Allows for checking if json transformation was successful in logs
+          cat package.json
+
+          # Build it!
+          npm i && npm run build
+
+      - name: Publish Package
+        if: env.EXIT_CODE != 0
+        run: npm publish dist
