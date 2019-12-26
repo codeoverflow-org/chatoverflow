@@ -20,8 +20,8 @@ class GUIUtility(logger: ManagedLogger) {
 
     val packageJson = new File(guiDir, "package.json")
 
-    logger info "Installing NPM dependencies of the gui ..."
     if (!executeNpmCommand(guiDir, cacheDir, Set(packageJson), "install",
+      "Installing NPM dependencies of the gui ...",
       () => logger error "GUI dependencies couldn't be installed, please check above log for further details.",
       () => {
         logger info "Successfully installed NPM dependencies of the gui."
@@ -34,8 +34,8 @@ class GUIUtility(logger: ManagedLogger) {
     val srcFiles = BuildUtils.getAllDirectoryChilds(new File(guiDir, "src"))
     val outDir = new File(guiDir, "dist")
 
-    logger info "Compiling Angular GUI ..."
     executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
+      "Compiling Angular GUI ...",
       () => logger error "GUI couldn't be built, please check above log for further details.",
       () => {
         logger info "Successfully compiled Angular GUI."
@@ -51,24 +51,27 @@ class GUIUtility(logger: ManagedLogger) {
    * Executes a npm command in the given directory and skips executing the given command
    * if no input files have changed and the output file still exists.
    *
-   * @param workDir  the directory in which npm should be executed
-   * @param cacheDir a directory required for caching using sbt
-   * @param inputs   the input files, which will be used for caching.
-   *                 If any one of these files change the cache is invalidated.
-   * @param command  the npm command to execute
-   * @param failed   called if npm returned an non-zero exit code
-   * @param success  called if npm returned successfully. Needs to return a file for caching.
-   *                 If the returned file doesn't exist the npm command will ignore the cache.
+   * @param workDir     the directory in which npm should be executed
+   * @param cacheDir    a directory required for caching using sbt
+   * @param inputs      the input files, which will be used for caching.
+   *                    If any one of these files change the cache is invalidated.
+   * @param command     the npm command to execute
+   * @param description a description of the task that will be printed on start if the task isn't cached
+   * @param failed      called if npm returned an non-zero exit code
+   * @param success     called if npm returned successfully. Needs to return a file for caching.
+   *                    If the returned file doesn't exist the npm command will ignore the cache.
    * @return true if npm returned zero as a exit code and false otherwise
    */
-  private def executeNpmCommand(workDir: File, cacheDir: File, inputs: Set[File], command: String,
+  private def executeNpmCommand(workDir: File, cacheDir: File, inputs: Set[File], command: String, description: String,
                                 failed: () => Unit, success: () => File): Boolean = {
     // sbt allows easily to cache our external build using FileFunction.cached
     // sbt will only invoke the passed function when at least one of the input files (passed in the last line of this method)
-    // has been modified. For the gui these input files are all files in the src directory of the gui and the package.json.
+    // has been modified. For the gui these input files are all files in the src directory of the gui, and the package.json.
     // sbt passes these input files to the passed function, but they aren't used, we just instruct npm to build the gui.
     // sbt invalidates the cache as well if any of the output files (returned by the passed function) doesn't exist anymore.
     val cachedFn = FileFunction.cached(new File(cacheDir, command), FilesInfo.hash) { _ => {
+      logger info description
+
       val process = new ProcessBuilder(getNpmCommand ++ command.split("\\s+"): _*)
         .directory(workDir)
         .start()
