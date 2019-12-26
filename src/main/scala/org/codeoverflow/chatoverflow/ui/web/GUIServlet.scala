@@ -38,7 +38,13 @@ class GUIServlet extends ScalatraServlet with WithLogger {
         ActionResult(404, s"Requested file '$path' couldn't be found in the GUI classpath directory!", Map())
       } else {
         contentType = MimeTypes.getDefaultMimeByExtension(path)
-        stream.get
+
+        val is = stream.get
+        val os = response.outputStream
+
+        Iterator.continually(is.read)
+          .takeWhile(_ != -1)
+          .foreach(os.write)
       }
     }
   }
@@ -47,7 +53,7 @@ class GUIServlet extends ScalatraServlet with WithLogger {
 }
 
 /**
- * This companion object holds a reference to the gui jar file and a method to access the files of the jar
+ * This companion object holds a reference to the gui jar file and a method to access the files from the jar
  * or from the class path.
  */
 object GUIServlet extends WithLogger {
