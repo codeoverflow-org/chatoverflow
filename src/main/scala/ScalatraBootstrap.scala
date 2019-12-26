@@ -30,7 +30,8 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new PluginInstanceController(), "/instances/*", "instances")
     context.mount(new ConnectorController(), "/connectors/*", "connectors")
     context.mount(new OpenAPIServlet(), "/api-docs")
-    context.mount(new HostingServlet(), "/data/*")
+    context.mount(new HostingServlet(), "/plugin/data/*")
+    //context.mount(new PluginRESTServlet(), "/plugin/rest/*")
 
     context.mount(new GUIServlet(), "/*")
   }
