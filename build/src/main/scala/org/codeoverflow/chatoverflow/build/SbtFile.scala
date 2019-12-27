@@ -93,10 +93,9 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
         rootLine += ".dependsOn(apiProject)"
       }
       if(guiProjectPath != "") {
-        // The gui doesn't need to be available to the framework while compiling, only at runtime.
-        // That's what the "runtime->compile" means: the framework at runtime needs the compiled gui.
-        // By adding this sbt will compile the framework and gui in parallel.
-        rootLine += ".dependsOn(guiProject % \"runtime->compile\").aggregate(guiProject)"
+        // This % "runtime" says sbt that the gui is only a dependency at runtime and that it can compile
+        // the framework and the gui in parallel.
+        rootLine += ".dependsOn(guiProject % \"runtime\").aggregate(guiProject)"
       }
 
       sbtContent append rootLine
