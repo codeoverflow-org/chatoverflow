@@ -51,4 +51,4 @@ Compile / unmanagedJars := new GUIUtility(streams.value.log).getGUIJarClasspath(
 
 cleanFiles += baseDirectory.value / guiProjectPath.value / "dist" // Clears the built GUI dir on clean
 
-
+fork in run := true // Start ChatOverflow in its own java process when starting it with 'sbt run'
