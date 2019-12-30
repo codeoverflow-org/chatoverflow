@@ -10,6 +10,7 @@ import org.codeoverflow.chatoverflow.connector.actor.ActorMessage
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, TimeoutException}
+import scala.language.{implicitConversions, postfixOps}
 import scala.reflect.ClassTag
 
 /**
