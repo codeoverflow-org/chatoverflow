@@ -52,7 +52,7 @@ class PluginUtility(logger: ManagedLogger) {
       logger info s"Fetching plugins from folder '$pluginSourceFolderName'."
 
       if (!Plugin.sourceFolderExists(pluginSourceFolderName)) {
-        logger error s"Plugin directory '$pluginSourceFolderName' does not exist."
+        logger info s"Plugin directory '$pluginSourceFolderName' does not exist."
         List[Plugin]()
 
       } else {
