@@ -19,7 +19,8 @@ class PluginCreateWizard(logger: ManagedLogger) {
    *
    * @param pluginFolderNames All folder names, containing plugin source code. Defined in build.sbt.
    */
-  def createPluginTask(pluginFolderNames: List[String], apiVersion: Option[(Int, Int)]): Unit = {
+  def createPluginTask(pluginFolderNames: List[String], apiVersion: Option[(Int, Int)]): Unit = System.out.synchronized {
+    // We lock System.out so that only we have access to it inorder to avoid that sbt's super shell overwrites user input.
     withTaskInfo("CREATE PLUGIN", logger) {
 
       // Plugin folders have to be defined in the build.sbt file first
