@@ -11,8 +11,8 @@ echo "Cloning docs repo..."
 git clone https://${REPO_TOKEN}@github.com/codeoverflow-org/chatoverflow-gh-pages --branch master --single-branch --depth 1 docs
 
 echo "Copying docs..."
-cp -fR target/scala-*/api docs/chatoverflow
-cp -fR api/target/api docs/chatoverflow-api
+cp -fR target/scala-*/api code/chatoverflow
+cp -fR api/target/api code/chatoverflow-api
 cd docs
 
 echo "Updating wiki..."
