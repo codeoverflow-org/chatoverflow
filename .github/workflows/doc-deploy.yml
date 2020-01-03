@@ -10,9 +10,18 @@ jobs:
     if: startsWith(github.repository, 'codeoverflow-org') # don't run this in forks
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Clone API
-      run: git clone https://github.com/codeoverflow-org/chatoverflow-api --branch master --single-branch --depth 1 api
+    - uses: actions/checkout@v2
+
+    - uses: actions/checkout@v2
+      with:
+        repository: codeoverflow-org/chatoverflow-api
+        path: api
+
+    - uses: actions/checkout@v2
+      with:
+        repository: codeoverflow-org/chatoverflow-gh-pages
+        path: docs
+
     - uses: olafurpg/setup-scala@v5
       name: Install java & sbt
       with:
@@ -21,8 +30,13 @@ jobs:
     - name: Generate documentation
       run: sbt -Dfile.encoding=UTF8 fetch reload update doc
 
-    - name: Publish documentation
-      run: bash .scripts/update-docs.sh
-      env:
-        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+    - name: Copy documentation
+      run: bash .scripts/copy-docs.sh
+
+    - uses: docker://peaceiris/gh-pages:v2
+        env:
+          ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          PUBLISH_DIR: ./docs
+          EXTERNAL_REPOSITORY: codeoverflow-org/chatoverflow-gh-pages
+          PUBLISH_BRANCH: master
 
