@@ -288,7 +288,7 @@ object ConfigurationService extends WithLogger {
             logger info "Trying to instantiate the requirement content with the loaded value."
 
             try {
-              val reqContent = loadedRequirementType.get.newInstance().asInstanceOf[io.Serializable]
+              val reqContent = loadedRequirementType.get.getDeclaredConstructor().newInstance().asInstanceOf[io.Serializable]
               reqContent.deserialize(content)
               requirements.getAccess.setRequirementContent(requirementId, reqContent)
 

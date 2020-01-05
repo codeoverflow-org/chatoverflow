@@ -17,7 +17,7 @@ import scala.xml.PrettyPrinter
  */
 class Plugin(val pluginSourceDirectoryName: String, val name: String) {
   val normalizedName: String = Plugin.toNormalizedName(name)
-  val pluginDirectoryPath: String = s"$pluginSourceDirectoryName/${normalizedName.toLowerCase}"
+  val pluginDirectoryPath: String = s"$pluginSourceDirectoryName/$name"
 
   /**
    * Creates the plugin folder inside of a plugin source directory

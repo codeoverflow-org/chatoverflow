@@ -14,13 +14,13 @@ jobs:
         with:
           java-version: openjdk@1.8
 
-      - name: Cache Ivy
+      - name: Cache Coursier
         uses: actions/cache@v1
         with:
-          path: ~/.ivy2/cache
-          key: ChatOverflow-Ivy-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('**/build.properties') }}
+          path: ~/.cache/coursier
+          key: ChatOverflow-Coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('**/build.properties') }}
           restore-keys: |
-            ChatOverflow-Ivy-
+            ChatOverflow-Coursier-
 
       - name: Cache sbt
         uses: actions/cache@v1

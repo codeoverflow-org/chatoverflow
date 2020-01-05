@@ -36,3 +36,7 @@ copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.v
 deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion.value)
 deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion.value, apiProjectPath.value)
 
+
+
+// Enhance existing functionality
+fork in run := true // Start ChatOverflow in its own java process when starting it with 'sbt run'
