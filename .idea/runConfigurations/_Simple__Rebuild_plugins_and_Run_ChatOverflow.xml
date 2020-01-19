@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="[Simple] Rebuild plugins and Run ChatOverflow" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
-    <module name="ChatOverflow" />
+    <module name="chatoverflow" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.codeoverflow.chatoverflow.service.*" />

@@ -1,5 +1,5 @@
 // Main project config
-name := "ChatOverflow"
+name := "chatoverflow"
 version := "4.0.0"
 
 // Main class and sub projects
