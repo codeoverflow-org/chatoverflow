@@ -2,10 +2,13 @@ package org.codeoverflow.chatoverflow.build
 
 import java.io.File
 
-import sbt.{Def, Task}
+import sbt._
 import sbt.Keys.scalaVersion
 import sbt.internal.util.ManagedLogger
 
+/**
+ * Provides generic build related utilities.
+ */
 object BuildUtils {
 
   /**
@@ -65,6 +68,18 @@ object BuildUtils {
       Seq()
     else
       Seq("--release", "8") // please compile against Java 8
+  }
+
+  /**
+   * Creates MavenRepository for GPR with the given github repository.
+   * The default user is the CodeOverflow organisation but this can be overwritten with the GITHUB_OWNER env var.
+   *
+   * @param githubRepository the repository to which you want to publish
+   */
+  def publishToGPR(githubRepository: String): Some[MavenRepository] = {
+    val githubOwner = sys.env.getOrElse("GITHUB_OWNER", "codeoverflow-org")
+
+    Some(s"CodeOverflow GitHub Package Registry" at s"https://maven.pkg.github.com/$githubOwner/$githubRepository")
   }
 
   /**
