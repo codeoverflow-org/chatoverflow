@@ -79,7 +79,7 @@ object BuildUtils {
   def publishToGPR(githubRepository: String): Some[MavenRepository] = {
     val githubOwner = sys.env.getOrElse("GITHUB_OWNER", "codeoverflow-org")
 
-    Some(s"CodeOverflow GitHub Package Registry" at s"https://maven.pkg.github.com/$githubOwner/$githubRepository")
+    Some(s"GitHub Package Registry" at s"https://maven.pkg.github.com/$githubOwner/$githubRepository")
   }
 
   /**

@@ -10,10 +10,10 @@
 #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 CRED_FILE="credentials += Credentials(
-  \"CodeOverflow GitHub Package Registry\",
+  \"GitHub Package Registry\",
   \"maven.pkg.github.com\",
   \"${GITHUB_OWNER}\",
   \"${GITHUB_TOKEN}\"
 )"
 
-mkdir -p ~/.sbt/1.0 && echo "${CRED_FILE}" >~/.sbt/1.0/gpr.sbt
+mkdir -p ~/.sbt/1.0 && echo "${CRED_FILE}" > ~/.sbt/1.0/gpr.sbt
