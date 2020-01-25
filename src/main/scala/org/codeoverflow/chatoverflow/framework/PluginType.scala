@@ -1,6 +1,7 @@
 package org.codeoverflow.chatoverflow.framework
 
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 
 import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.APIVersion
@@ -49,11 +50,18 @@ class PluginType(name: String, author: String, version: String, majorAPIVersion:
         logger info s"Successful created a instance of plugin $getName ($getAuthor)"
         Some(plugin)
       } catch {
-        case _: NoSuchMethodException =>
-          logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). It hasn't a constructor with correct signature."
-          None
-        case _: Exception =>
-          logger error s"Exception thrown while creating instance of plugin $getName ($getAuthor)"
+        case ex: Exception =>
+          ex match {
+            case _: NoSuchMethodException =>
+              logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). It hasn't a constructor with correct signature."
+            case _: InstantiationException =>
+              logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). It is represented by a abstract class."
+            case e: InvocationTargetException =>
+              logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). " +
+                s"A exception was thrown by the constructor: ${e.getTargetException}"
+            case e =>
+              logger error s"Unknown exception thrown while creating instance of plugin $getName ($getAuthor): $e"
+          }
           None
       }
     } else {
