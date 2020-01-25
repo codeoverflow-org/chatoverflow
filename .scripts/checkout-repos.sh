@@ -28,9 +28,9 @@ function cloneRepo() {
   # This is needed for simple PRs, where people don't have forked all chatoverflow related repositories
   # and if a change of a branch doesn't require a change in a other repository and the branch hasn't been pushed.
 
-  ([ "$ORG" == "$REPO_OWNER" ] && clone "$REPO_OWNER/$REPO" "$DESIRED_BRANCH" "$LOCATION" "Cloned from fork of $REPO_OWNER") ||
+  ([ "$ORG" != "$REPO_OWNER" ] && clone "$REPO_OWNER/$REPO" "$DESIRED_BRANCH" "$LOCATION" "Cloned from fork of $REPO_OWNER") ||
     (clone "$ORG/$REPO" "$DESIRED_BRANCH" "$LOCATION" "Cloned from codeoverflow-org repo") ||
-    ([ "$ORG" == "$REPO_OWNER" ] && clone "$REPO_OWNER/$REPO" "$FALLBACK_BRANCH" "$LOCATION" "Cloned from fork of $REPO_OWNER with fallback branch ($FALLBACK_BRANCH)") ||
+    ([ "$ORG" != "$REPO_OWNER" ] && clone "$REPO_OWNER/$REPO" "$FALLBACK_BRANCH" "$LOCATION" "Cloned from fork of $REPO_OWNER with fallback branch ($FALLBACK_BRANCH)") ||
     (clone "$ORG/$REPO" "$FALLBACK_BRANCH" "$LOCATION" "Cloned from codeoverflow-org repo with fallback branch ($FALLBACK_BRANCH)")
 }
 
