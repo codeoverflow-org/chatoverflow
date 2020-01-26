@@ -1,0 +1,41 @@
+# When a tag gets created this Action automatically publishes the framework to the GitHub Package Registry
+
+name: Publish Framework Package
+
+on:
+  push:
+    # Please don't run this on any branches ...
+    branches-ignore:
+    - "**"
+    # ..., but run it on any tag
+    tags:
+    - "**"
+
+jobs:
+  publish-framework:
+    name: Publish Framework Package
+    runs-on: ubuntu-latest
+    steps:
+      # Temporarily save repository owner in an env variable(needed by sbt auth)
+      - run: echo "::set-env name=GITHUB_OWNER::$(echo "${GITHUB_REPOSITORY}" | cut -d / -f1)"
+
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ env.GITHUB_OWNER }}/chatoverflow
+          ref: ${{ github.ref }}
+
+      - name: Clone the API
+        run: bash .scripts/checkout-repos.sh
+
+      - uses: olafurpg/setup-scala@v5
+        name: Install java & sbt
+        with:
+          java-version: openjdk@1.8
+
+      - name: Login to GPR
+        run: bash .scripts/authenticate-sbt.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Package
+        run: sbt publishFramework
