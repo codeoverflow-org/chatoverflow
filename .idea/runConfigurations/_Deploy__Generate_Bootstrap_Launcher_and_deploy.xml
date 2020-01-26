@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="[Deploy] Generate Bootstrap Launcher and deploy" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.codeoverflow.chatoverflow.Launcher" />
-    <module name="ChatOverflow" />
+    <module name="chatoverflow" />
     <method v="2">
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Full Deploy (sbt clean package launcherProject/assembly deploy)" run_configuration_type="SbtRunConfiguration" />
     </method>

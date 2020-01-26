@@ -1,5 +1,6 @@
 // Main project config
-name := "ChatOverflow"
+organization := "org.codeoverflow"
+name := "chatoverflow"
 version := "4.0.0"
 
 // Main class and sub projects
