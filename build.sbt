@@ -1,4 +1,5 @@
 // Main project config
+organization := "org.codeoverflow"
 name := "chatoverflow"
 version := "4.0.0"
 
