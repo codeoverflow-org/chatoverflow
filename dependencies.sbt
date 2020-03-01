@@ -6,14 +6,14 @@ libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.30"
 
 // Scalatra (REST, ...)
 libraryDependencies ++= Seq(
-  "org.scalatra" %% "scalatra" % "2.6.5",
-  "org.scalatra" %% "scalatra-scalate" % "2.6.5",
-  "org.scalatra" %% "scalatra-specs2" % "2.6.5",
+  "org.scalatra" %% "scalatra" % "2.7.0",
+  "org.scalatra" %% "scalatra-scalate" % "2.7.0",
+  "org.scalatra" %% "scalatra-specs2" % "2.7.0",
   "ch.qos.logback" % "logback-classic" % "1.2.3" % "provided",
   "org.eclipse.jetty" % "jetty-webapp" % "9.4.7.v20170914" % "provided",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
-  "org.scalatra" %% "scalatra-json" % "2.6.5",
-  "org.scalatra" %% "scalatra-swagger" % "2.6.5",
+  "org.scalatra" %% "scalatra-json" % "2.7.0",
+  "org.scalatra" %% "scalatra-swagger" % "2.7.0",
 )
 
 // JSON Lib (Jackson)

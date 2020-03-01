@@ -1,14 +1,16 @@
 package org.codeoverflow.chatoverflow.ui.web
 
+import java.io.PrintStream
+
 import org.codeoverflow.chatoverflow.{ChatOverflow, WithLogger}
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
 /**
-  * The server runs on the specified port. Servlets are injected from the ScalatraBootstrap Class.
-  *
-  * @param port         the port to run on the localhost
-  * @param chatOverflow the main chat overflow object
+ * The server runs on the specified port. Servlets are injected from the ScalatraBootstrap Class.
+ *
+ * @param port         the port to run on the localhost
+ * @param chatOverflow the main chat overflow object
   */
 class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
 
@@ -26,13 +28,19 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
     */
   def startAsync(): Unit = {
     new Thread(() => startServer()).start()
-
-    println(s"You may open now: http://petstore.swagger.io/?url=http://localhost:$port/api-docs/swagger.json")
-    println(s"Or try out the new gui: http://localhost:$port")
   }
 
   private def startServer(): Unit = {
-    server.start()
+    // Scalatra 2.7.0 has some debug prints in it, so we disable outputting while initializing it.
+    // withOut uses a InheritableThreadLocal internally so other threads won't get disturbed by this.
+    // TODO I should probably submit a fix for this to scalatra
+    Console.withOut(new PrintStream((_: Int) => ())) {
+      server.start()
+    }
+
+    println(s"You may open now: http://petstore.swagger.io/?url=http://localhost:$port/api-docs/swagger.json")
+    println(s"Or try out the new gui: http://localhost:$port")
+
     server.join()
   }
 

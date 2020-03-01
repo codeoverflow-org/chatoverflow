@@ -17,9 +17,9 @@ class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
 
     // Allow CORS
-    context.initParameters("org.scalatra.cors.allowedOrigins") = "*"
-    context.initParameters("org.scalatra.cors.allowCredentials") = "false"
-    context.initParameters("org.scalatra.cors.allowedMethods") = "*"
+    context.setInitParameter("org.scalatra.cors.allowedOrigins", "*")
+    context.setInitParameter("org.scalatra.cors.allowCredentials", "false")
+    context.setInitParameter("org.scalatra.cors.allowedMethods", "*")
 
     // Add all servlets and controller
     val eventsController = new EventsController()
