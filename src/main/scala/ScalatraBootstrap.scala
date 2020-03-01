@@ -14,7 +14,7 @@ import org.scalatra._
 class ScalatraBootstrap extends LifeCycle {
   implicit val swagger: CodeOverflowSwagger = new CodeOverflowSwagger(VersionInfo.rest)
 
-  override def init(context: ServletContext) {
+  override def init(context: ServletContext): Unit = {
 
     // Allow CORS
     context.setInitParameter("org.scalatra.cors.allowedOrigins", "*")

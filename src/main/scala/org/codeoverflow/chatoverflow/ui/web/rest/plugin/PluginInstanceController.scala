@@ -7,8 +7,8 @@ import org.codeoverflow.chatoverflow.ui.web.JsonServlet
 import org.codeoverflow.chatoverflow.ui.web.rest.DTOs._
 import org.scalatra.swagger.Swagger
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
 
 class PluginInstanceController(implicit val swagger: Swagger) extends JsonServlet with PluginInstanceControllerDefinition {
 
@@ -281,7 +281,7 @@ class PluginInstanceController(implicit val swagger: Swagger) extends JsonServle
       pluginInstance.getPluginTypeAuthor, pluginInstance.isRunning,
       pluginInstance.getRequirements.getAccess.getRequirementMap.keySet().asScala.toList,
       pluginInstance.getPluginManager.getLogMessages
-        .asScala.map(logMessage => PluginLogMessageDTO(logMessage.getMessage, logMessage.getTimestamp.toString)))
+        .asScala.toSeq.map(logMessage => PluginLogMessageDTO(logMessage.getMessage, logMessage.getTimestamp.toString)))
   }
 
   private def createRequirement(requirementID: String, requirement: configuration.Requirement[_ <: io.Serializable]): Requirement

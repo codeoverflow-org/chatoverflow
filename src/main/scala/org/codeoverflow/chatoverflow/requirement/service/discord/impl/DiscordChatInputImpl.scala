@@ -19,9 +19,9 @@ import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.requirement.impl.EventInputImpl
 import org.codeoverflow.chatoverflow.requirement.service.discord.DiscordChatConnector
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.compat.java8.OptionConverters._
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 /**

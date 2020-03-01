@@ -1,3 +1,6 @@
+// Scala
+inThisBuild(List(scalaVersion := "2.13.1"))
+
 // Command Line Parsing
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.7.1"
 

@@ -86,7 +86,7 @@ class TypeController(implicit val swagger: Swagger) extends JsonServlet with Typ
       if (classOf[Parameter[_]].isAssignableFrom(cls)) parameter += typeString
     }
 
-    RequirementTypes(input, output, parameter)
+    RequirementTypes(input.toSeq, output.toSeq, parameter.toSeq)
   }
 
   private def getConnectorTypes = chatOverflow.typeRegistry.getConnectorTypes

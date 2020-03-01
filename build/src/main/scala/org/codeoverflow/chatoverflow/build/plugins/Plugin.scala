@@ -2,7 +2,7 @@ package org.codeoverflow.chatoverflow.build.plugins
 
 import java.io.File
 
-import org.codeoverflow.chatoverflow.build.SbtFile
+import org.codeoverflow.chatoverflow.build.{BuildUtils, SbtFile}
 import sbt.io.IO
 
 import scala.annotation.tailrec
@@ -101,17 +101,16 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
   /**
    * Fetches the build plugin jar from the target folder of a given scala version.
    *
-   * @param scalaMajorVersion the major scala version (x.x)
    * @return a seq of found jar files or a empty seq (e.g. if the target folder is not found)
    */
-  def getBuildPluginFiles(scalaMajorVersion: String): Seq[File] = {
+  def getBuildPluginFiles(scalaMajorVersion: String): Set[File] = {
 
-    val pluginTargetFolder = new File(s"$pluginDirectoryPath/target/scala-$scalaMajorVersion")
+    val pluginTargetFolder = new File(s"$pluginDirectoryPath/target/")
 
     if (!pluginTargetFolder.exists()) {
-      Seq[File]()
+      Set[File]()
     } else {
-      pluginTargetFolder.listFiles().filter(_.getName.endsWith(".jar"))
+      BuildUtils.getAllDirectoryChilds(pluginTargetFolder).filter(_.getName.endsWith(".jar"))
     }
   }
 

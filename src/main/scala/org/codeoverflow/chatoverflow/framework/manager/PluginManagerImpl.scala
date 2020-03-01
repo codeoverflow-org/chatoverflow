@@ -6,8 +6,8 @@ import org.codeoverflow.chatoverflow.WithLogger
 import org.codeoverflow.chatoverflow.api.plugin.{PluginLogMessage, PluginManager}
 import org.codeoverflow.chatoverflow.ui.web.rest.events.{EventMessage, EventsDispatcher}
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
 
 /**
   * This is the default implementation of the plugin manager used in the framework.

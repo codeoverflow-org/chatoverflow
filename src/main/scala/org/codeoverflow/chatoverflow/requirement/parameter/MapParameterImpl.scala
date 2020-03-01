@@ -1,16 +1,16 @@
 package org.codeoverflow.chatoverflow.requirement.parameter
 
-import org.codeoverflow.chatoverflow.registry.Impl
 import org.codeoverflow.chatoverflow.api.io.parameter.MapParameter
+import org.codeoverflow.chatoverflow.registry.Impl
 
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
   * A parameter holding a Map<String, String> value.
   */
 @Impl(impl = classOf[MapParameter])
 class MapParameterImpl extends MapParameter {
-  private var value: Map[String, String] = null
+  private var value: Map[String, String] = _
 
   override def getType: Class[java.util.Map[String, String]] = classOf[java.util.Map[String, String]]
 
@@ -22,7 +22,7 @@ class MapParameterImpl extends MapParameter {
     val kvpair = "\\((.+);(.+)\\)".r
     val konly = "\\((.+);\\)".r
     this.value = value.split(",")
-      .map({ case kvpair(k, v) => (k -> v); case konly(k) => (k -> ""); case _ => throw new IllegalArgumentException("Could not convert String to Map")})
+      .map({ case kvpair(k, v) => k -> v; case konly(k) => k -> ""; case _ => throw new IllegalArgumentException("Could not convert String to Map")})
       .toMap
   }
 

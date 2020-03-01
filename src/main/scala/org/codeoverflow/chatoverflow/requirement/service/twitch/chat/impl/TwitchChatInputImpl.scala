@@ -14,8 +14,8 @@ import org.codeoverflow.chatoverflow.requirement.service.twitch.chat
 import org.codeoverflow.chatoverflow.requirement.service.twitch.chat.TwitchChatConnector
 import org.pircbotx.hooks.events.{MessageEvent, UnknownEvent}
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
 
 /**
   * This is the implementation of the twitch chat input, using the twitch connector.

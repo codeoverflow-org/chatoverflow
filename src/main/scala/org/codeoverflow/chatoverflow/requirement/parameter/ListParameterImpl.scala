@@ -1,15 +1,16 @@
 package org.codeoverflow.chatoverflow.requirement.parameter
 
-import collection.JavaConverters._
 import org.codeoverflow.chatoverflow.api.io.parameter.ListParameter
 import org.codeoverflow.chatoverflow.registry.Impl
+
+import scala.jdk.CollectionConverters._
 
 /**
   * A parameter holding a List<String> value.
   */
 @Impl(impl = classOf[ListParameter])
 class ListParameterImpl extends ListParameter {
-  private var value: List[String] = null
+  private var value: List[String] = _
 
   override def getType: Class[java.util.List[String]] = classOf[java.util.List[String]]
 
