@@ -26,6 +26,7 @@ lazy val deployDev = TaskKey[Unit]("deployDev", "Prepares the environment for pl
 // Tasks
 
 import org.codeoverflow.chatoverflow.build.BuildUtils.scalaMajorVersion
+import org.codeoverflow.chatoverflow.build.FrameworkBuild._
 import org.codeoverflow.chatoverflow.build.deployment.DeploymentUtility
 import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUtility}
 
@@ -36,7 +37,11 @@ copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.v
 deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion.value)
 deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion.value, apiProjectPath.value)
 
-
+// Adds the gui production build as a dependency to both deployments, directly running uses the development build of the
+// gui for performance reasons.
+lazy val guiProdBuild = if(guiProject.isDefined) guiProject.get / deploy else Def.task{}
+deploy := deploy.dependsOn(guiProdBuild).value
+deployDev := deployDev.dependsOn(guiProdBuild).value
 
 // Enhance existing functionality
 fork in run := true // Start ChatOverflow in its own java process when starting it with 'sbt run'

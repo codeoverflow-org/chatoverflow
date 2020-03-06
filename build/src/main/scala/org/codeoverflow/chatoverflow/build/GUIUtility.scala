@@ -11,7 +11,7 @@ import scala.util.Try
 
 class GUIUtility(logger: ManagedLogger) {
 
-  def guiTask(guiProjectPath: String, cacheDir: File, classesDir: File): Unit = {
+  def guiTask(guiProjectPath: String, cacheDir: File, classesDir: File, prod: Boolean): Unit = {
     val guiDir = new File(guiProjectPath)
     if (!guiDir.exists()) {
       logger warn s"GUI not found at $guiProjectPath, ignoring GUI build."
@@ -21,7 +21,7 @@ class GUIUtility(logger: ManagedLogger) {
     val packageJson = new File(guiDir, "package.json")
 
     if (!executeNpmCommand(guiDir, cacheDir, Set(packageJson), "install",
-      "Installing NPM dependencies of the gui ...",
+      "Installing NPM dependencies of the gui ...", "install",
       () => logger error "GUI dependencies couldn't be installed, please check above log for further details.",
       () => {
         logger info "Successfully installed NPM dependencies of the gui."
@@ -33,9 +33,10 @@ class GUIUtility(logger: ManagedLogger) {
 
     val srcFiles = BuildUtils.getAllDirectoryChilds(new File(guiDir, "src"))
     val outDir = new File(guiDir, "dist")
+    val buildCommand = if(prod) "prod-build" else "build"
 
-    executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, "run build",
-      "Compiling Angular GUI ...",
+    executeNpmCommand(guiDir, cacheDir, srcFiles + packageJson, s"run $buildCommand",
+      s"Compiling Angular GUI ${if(prod) "(production mode)" else ""} ...", "build",
       () => logger error "GUI couldn't be built, please check above log for further details.",
       () => {
         logger info "Successfully compiled Angular GUI."
@@ -57,19 +58,20 @@ class GUIUtility(logger: ManagedLogger) {
    *                    If any one of these files change the cache is invalidated.
    * @param command     the npm command to execute
    * @param description a description of the task that will be printed on start if the task isn't cached
+   * @param cacheKey    a per-task unique key used for caching
    * @param failed      called if npm returned an non-zero exit code
    * @param success     called if npm returned successfully. Needs to return a file for caching.
    *                    If the returned file doesn't exist the npm command will ignore the cache.
    * @return true if npm returned zero as a exit code and false otherwise
    */
   private def executeNpmCommand(workDir: File, cacheDir: File, inputs: Set[File], command: String, description: String,
-                                failed: () => Unit, success: () => File): Boolean = {
+                                cacheKey: String, failed: () => Unit, success: () => File): Boolean = {
     // sbt allows easily to cache our external build using FileFunction.cached
     // sbt will only invoke the passed function when at least one of the input files (passed in the last line of this method)
     // has been modified. For the gui these input files are all files in the src directory of the gui, and the package.json.
     // sbt passes these input files to the passed function, but they aren't used, we just instruct npm to build the gui.
     // sbt invalidates the cache as well if any of the output files (returned by the passed function) doesn't exist anymore.
-    val cachedFn = FileFunction.cached(new File(cacheDir, command), FilesInfo.hash) { _ => {
+    val cachedFn = FileFunction.cached(new File(cacheDir, cacheKey), FilesInfo.hash) { _ => {
       logger info description
 
       val process = new ProcessBuilder(getNpmCommand ++ command.split("\\s+"): _*)
