@@ -33,7 +33,7 @@ class Server(val chatOverflow: ChatOverflow, val port: Int) extends WithLogger {
   private def startServer(): Unit = {
     // Scalatra 2.7.0 has some debug prints in it, so we disable outputting while initializing it.
     // withOut uses a InheritableThreadLocal internally so other threads won't get disturbed by this.
-    // TODO I should probably submit a fix for this to scalatra
+    // This has already been fixed(https://github.com/scalatra/scalatra/pull/1002) and will probably be released with scalatra 2.7.1.
     Console.withOut(new PrintStream((_: Int) => ())) {
       server.start()
     }
