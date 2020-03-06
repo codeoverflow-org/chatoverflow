@@ -4,7 +4,7 @@ import org.codeoverflow.chatoverflow.Launcher
 import org.json4s.JsonDSL._
 import org.json4s.{JValue, _}
 import org.scalatra.ScalatraServlet
-import org.scalatra.swagger.{Api, ApiInfo, ContactInfo, JacksonSwaggerBase, LicenseInfo, Swagger}
+import org.scalatra.swagger._
 
 /**
   * The open API servlet provides a generated swagger.json with the api definitions of the framework.
@@ -25,8 +25,8 @@ class OpenAPIServlet(implicit val swagger: Swagger) extends ScalatraServlet with
   }
 }
 
-object CodeOverflowApiInfo extends ApiInfo(
-  "Code Overflow API",
+object ChatOverflowApiInfo extends ApiInfo(
+  "Chat Overflow API",
   "This API is the main entry point of the Chat Overflow GUI and third party projects.",
   "http://codeoverflow.org",
   ContactInfo(
@@ -36,7 +36,7 @@ object CodeOverflowApiInfo extends ApiInfo(
   ),
   LicenseInfo(
     "Eclipse Public License 2.0",
-    "https://github.com/codeoverflow-org/chatoverflow/blob/master/LICENSE"
+    "https://opensource.org/licenses/EPL-2.0"
   ))
 
-class CodeOverflowSwagger(apiVersion: String) extends Swagger(Swagger.SpecVersion, apiVersion, CodeOverflowApiInfo)
+class ChatOverflowSwagger(apiVersion: String) extends Swagger(Swagger.SpecVersion, apiVersion, ChatOverflowApiInfo)

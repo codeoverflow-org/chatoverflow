@@ -5,14 +5,14 @@ import org.codeoverflow.chatoverflow.ui.web.rest.connector.ConnectorController
 import org.codeoverflow.chatoverflow.ui.web.rest.events.{EventsController, EventsDispatcher}
 import org.codeoverflow.chatoverflow.ui.web.rest.plugin.PluginInstanceController
 import org.codeoverflow.chatoverflow.ui.web.rest.types.TypeController
-import org.codeoverflow.chatoverflow.ui.web.{CodeOverflowSwagger, GUIServlet, OpenAPIServlet}
+import org.codeoverflow.chatoverflow.ui.web.{ChatOverflowSwagger, GUIServlet, OpenAPIServlet}
 import org.scalatra._
 
 /**
  * This class provides all runtime information for Scalatra. Servlets are mounted here.
  */
 class ScalatraBootstrap extends LifeCycle {
-  implicit val swagger: CodeOverflowSwagger = new CodeOverflowSwagger(VersionInfo.rest)
+  implicit val swagger: ChatOverflowSwagger = new ChatOverflowSwagger(VersionInfo.rest)
 
   override def init(context: ServletContext): Unit = {
 
