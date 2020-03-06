@@ -70,9 +70,8 @@ class PluginUtility(logger: ManagedLogger) {
    *
    * @param pluginSourceFolderNames All folder names, containing plugin source code. Defined in build.sbt.
    * @param pluginTargetFolderNames The generated sbt build file, containing all sub project references. Defined in build.sbt.
-   * @param scalaMajorVersion       The major part (x.x) of the scala version string. Defined in build.sbt.
    */
-  def copyPluginsTask(pluginSourceFolderNames: List[String], pluginTargetFolderNames: List[String], scalaMajorVersion: String): Unit = {
+  def copyPluginsTask(pluginSourceFolderNames: List[String], pluginTargetFolderNames: List[String]): Unit = {
     withTaskInfo("COPY PLUGINS") {
 
       // Get all plugins first
@@ -80,14 +79,18 @@ class PluginUtility(logger: ManagedLogger) {
 
       // Now get all jar files in the target folders of the plugins, warn if not found
       val allJarFiles = (for (plugin <- allPlugins) yield {
-        val jarFiles = plugin.getBuildPluginFiles(scalaMajorVersion)
+        val jarFiles = plugin.getBuildPluginFiles
 
         if (jarFiles.isEmpty) {
           logger warn s"Target jar file(s) of plugin '${plugin.name}' does not exist. Use 'sbt package' first."
-          Seq[File]()
+          Seq()
         } else {
-          jarFiles.foreach(jar => logger info s"Found archive: '${jar.getName}'.")
-          jarFiles
+          val jar = jarFiles.toSeq
+            .sortBy(_.getName) // by sorting the newest version will be the last element
+            .takeRight(1) // take last element which is the newest version
+
+          jar.foreach(jar => logger info s"Found archive: '${jar.getName}'.")
+          jar.map(f => (plugin, f))
         }
       }).flatten
 
@@ -96,7 +99,7 @@ class PluginUtility(logger: ManagedLogger) {
     }
   }
 
-  private def copyPlugins(allJarFiles: List[File], pluginTargetFolderName: String): Unit = {
+  private def copyPlugins(allJarFiles: List[(Plugin, File)], pluginTargetFolderName: String): Unit = {
 
     val pluginTargetFolder = new File(pluginTargetFolderName)
 
@@ -109,13 +112,19 @@ class PluginUtility(logger: ManagedLogger) {
 
     // Copy jars
     var successCounter = 0
-    for (jarFile <- allJarFiles) {
+    for ((plugin, jarFile) <- allJarFiles) {
+      try {
+        plugin.deleteOldJars(pluginTargetFolder)
+      } catch {
+        case e: IOException => logger warn s"Couldn't delete old versions of plugin ${plugin.name}: ${e.getMessage}"
+      }
+
       try {
         Files.copy(jarFile.toPath, new File(pluginTargetFolder, jarFile.getName).toPath, StandardCopyOption.REPLACE_EXISTING)
         logger info s"Copied plugin '${jarFile.getName}'."
         successCounter = successCounter + 1
       } catch {
-        case e: IOException => logger warn s"Unable to copy plugin '${jarFile.getName}'. Error: ${e.getMessage}."
+        case e: IOException => logger warn s"Unable to copy plugin '${plugin.name}'. Error: ${e.getMessage}."
       }
     }
     logger info s"Successfully copied $successCounter / ${allJarFiles.length} plugins to target '${pluginTargetFolder.getPath}'!"

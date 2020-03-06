@@ -33,7 +33,7 @@ import org.codeoverflow.chatoverflow.build.plugins.{PluginCreateWizard, PluginUt
 create := new PluginCreateWizard(streams.value.log).createPluginTask(pluginFolderNames.value, PluginCreateWizard.getApiVersion.value)
 fetch := new PluginUtility(streams.value.log).fetchPluginsTask(pluginFolderNames.value, pluginBuildFileName.value,
   pluginTargetFolderNames.value, apiProjectPath.value, guiProjectPath.value)
-copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value, scalaMajorVersion.value)
+copy := new PluginUtility(streams.value.log).copyPluginsTask(pluginFolderNames.value, pluginTargetFolderNames.value)
 deploy := DeploymentUtility.prepareDeploymentTask(streams.value.log, scalaMajorVersion.value)
 deployDev := DeploymentUtility.prepareDevDeploymentTask(streams.value.log, scalaMajorVersion.value, apiProjectPath.value)
 

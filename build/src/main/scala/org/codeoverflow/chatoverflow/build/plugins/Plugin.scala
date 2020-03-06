@@ -99,11 +99,11 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
   }
 
   /**
-   * Fetches the build plugin jar from the target folder of a given scala version.
+   * Fetches the build plugin jar from the target folder.
    *
    * @return a seq of found jar files or a empty seq (e.g. if the target folder is not found)
    */
-  def getBuildPluginFiles(scalaMajorVersion: String): Set[File] = {
+  def getBuildPluginFiles: Set[File] = {
 
     val pluginTargetFolder = new File(s"$pluginDirectoryPath/target/")
 
@@ -114,6 +114,16 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
     }
   }
 
+  /**
+   * Deletes jars of all versions of this plugin from the plugin target directory.
+   *
+   * @param pluginTargetFolder the directory which contains all plugins including old versions of this plugin
+   */
+  def deleteOldJars(pluginTargetFolder: File): Unit = {
+    pluginTargetFolder.listFiles()
+      .filter(file => file.getName.startsWith(name))
+      .foreach(file => file.delete())
+  }
 }
 
 object Plugin {
