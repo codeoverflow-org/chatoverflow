@@ -3,6 +3,7 @@ package org.codeoverflow.chatoverflow.build.deployment
 import java.io.File
 import java.nio.file.{Files, Paths}
 
+import org.codeoverflow.chatoverflow.build.BuildUtils
 import org.codeoverflow.chatoverflow.build.BuildUtils.withTaskInfo
 import sbt.internal.util.ManagedLogger
 
@@ -76,7 +77,7 @@ object DeploymentUtility {
 
       createOrEmptyFolder("deployDev/project/lib")
       val buildCodeTargetDirectories = List("bin", "deployDev/project/lib")
-      copyJars(s"build/target/scala-$scalaLibraryVersion/sbt-1.0", buildCodeTargetDirectories, logger)
+      copyJars(s"build/target/scala-${BuildUtils.getSbtScalaVersion}/sbt-1.0", buildCodeTargetDirectories, logger)
 
       // Third step: Copy the api
       sbt.IO.copyDirectory(new File(apiProjectPath), new File("deployDev/api/"))
