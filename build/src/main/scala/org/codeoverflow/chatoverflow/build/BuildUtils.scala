@@ -83,6 +83,11 @@ object BuildUtils {
   }
 
   /**
+   * Returns the major scala version which this version of sbt is using.
+   */
+  def getSbtScalaVersion: String = scala.util.Properties.versionNumberString.split('.').dropRight(1).mkString(".")
+
+  /**
    * A task that returns the major and minor version of the currently used version of scala, e.g. 2.12.
    */
   lazy val scalaMajorVersion: Def.Initialize[Task[String]] = Def.task {
