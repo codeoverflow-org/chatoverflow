@@ -148,4 +148,6 @@ class PluginType(name: String, author: String, version: String, majorAPIVersion:
    * @return the dependency future
    */
   def getDependencyFuture: Future[Seq[File]] = pluginDependencies
+
+  override def toString: String = s"$getName@$getVersion ($getAuthor)"
 }

@@ -53,7 +53,13 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
     *
     * @return a list of PluginType definitions
     */
-  def getPlugins: List[PluginType] = pluginTypes.toList
+  def getPlugins: List[PluginType] = {
+    // We are reevaluating this each call because there may be new plugins that needed longer for e.g. dependency resolution
+    // or that were loaded after initial startup.
+    pluginTypes
+      .groupBy(pt => (pt.getAuthor, pt.getName)).values // Create a list for each plugin with its different versions
+      .map(versions => versions.maxBy(pt => pt.getVersion)).toList // Selects the newest (alphabetically last) version
+  }
 
   /**
     * Checks the plugin directory path for not yet loaded jar files, searches for pluggable definitions
@@ -83,7 +89,7 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
           val plugin = pluginOpt.get
 
           if (plugin.testState == PluginCompatibilityState.NotCompatible) {
-            logger warn s"Unable to load plugin '${plugin.getName}' due to different major versions."
+            logger warn s"Unable to load plugin '$plugin' due to different major versions."
           } else {
 
             // Try to test the initiation of the plugin
@@ -91,12 +97,12 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
               case Success(_) =>
                 try {
                   plugin.createPluginInstance(new PluginManagerStub)
-                  logger info s"Successfully tested instantiation of plugin '${plugin.getName}'"
+                  logger info s"Successfully tested instantiation of plugin '$plugin'"
                   pluginTypes += plugin
                 } catch {
                   // Note that we catch not only exceptions, but also errors like NoSuchMethodError. Deep stuff
-                  case _: Error => logger warn s"Error while test init of plugin '${plugin.getName}'."
-                  case _: Exception => logger warn s"Exception while test init of plugin '${plugin.getName}'."
+                  case _: Error => logger warn s"Error while test init of plugin '$plugin'."
+                  case _: Exception => logger warn s"Exception while test init of plugin '$plugin'."
                 }
             }
           }
@@ -104,10 +110,20 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
       }
 
       // If plugins aren't done within this timeout they can still fetch everything in the background, they just won't be included in this summary
-      Try(futures.foreach(f => Await.ready(f, 5.seconds))) // Await.ready throws a exception if the timeout is hit, ignore that!
+      Try(futures.foreach(f => Await.ready(f, 5.seconds))) // Await.ready throws an exception if the timeout is hit, ignore that!
 
       logger info s"Loaded ${pluginTypes.length} plugin types in total: " +
-        s"${pluginTypes.map(pt => s"${pt.getName} (${pt.getAuthor})").mkString(", ")}"
+        s"${pluginTypes.mkString(", ")}"
+
+      // Inform the user of any plugins with multiple installed versions
+      // The newest version is automatically selected in the "getPlugins" method when it is used.
+      pluginTypes.groupBy(pt => (pt.getAuthor, pt.getName)).values // Create a list for each plugin with its different versions
+        .filter(_.size > 1) // Only show warning when there are multiple versions
+        .foreach { pts =>
+          val newest = pts.maxBy(_.getVersion)
+          logger warn s"There are ${pts.size} different version of the '${newest.getName} (${newest.getAuthor})' plugin installed: " +
+            s"${pts.map(_.getVersion).sorted.mkString(", ")}. Using the newest version: $newest."
+        }
     }
   }
 
