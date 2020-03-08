@@ -47,25 +47,25 @@ class PluginType(name: String, author: String, version: String, majorAPIVersion:
         val constructor = pluginClass.getConstructor(classOf[PluginManager])
         val plugin = constructor.newInstance(manager)
 
-        logger info s"Successful created a instance of plugin $getName ($getAuthor)"
+        logger info s"Successful created a instance of plugin $toString"
         Some(plugin)
       } catch {
         case ex: Exception =>
           ex match {
             case _: NoSuchMethodException =>
-              logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). It hasn't a constructor with correct signature."
+              logger error s"Couldn't create plugin instance of plugin $toString. It hasn't a constructor with correct signature."
             case _: InstantiationException =>
-              logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). It is represented by a abstract class."
+              logger error s"Couldn't create plugin instance of plugin $toString. It is represented by a abstract class."
             case e: InvocationTargetException =>
-              logger error s"Couldn't create plugin instance of plugin $getName ($getAuthor). " +
+              logger error s"Couldn't create plugin instance of plugin $toString. " +
                 s"A exception was thrown by the constructor: ${e.getTargetException}"
             case e =>
-              logger error s"Unknown exception thrown while creating instance of plugin $getName ($getAuthor): $e"
+              logger error s"Unknown exception thrown while creating instance of plugin $toString: $e"
           }
           None
       }
     } else {
-      logger debug s"Unable to create instance of plugin type $getName ($getAuthor) due to different API Versions."
+      logger debug s"Unable to create instance of plugin type $toString due to different API Versions."
       None
     }
   }
@@ -84,15 +84,15 @@ class PluginType(name: String, author: String, version: String, majorAPIVersion:
     */
   def testState: PluginCompatibilityState = {
     if (getMajorAPIVersion != APIVersion.MAJOR_VERSION) {
-      logger info s"PluginType '$getName' has different major API version: $getMajorAPIVersion."
+      logger info s"PluginType '$toString' has different major API version: $getMajorAPIVersion."
       pluginVersionState = PluginCompatibilityState.NotCompatible
 
     } else if (getMinorAPIVersion != APIVersion.MINOR_VERSION) {
-      logger info s"PluginType '$getName' has different minor API version: $getMinorAPIVersion."
+      logger info s"PluginType '$toString' has different minor API version: $getMinorAPIVersion."
       pluginVersionState = PluginCompatibilityState.MajorCompatible
 
     } else {
-      logger info s"PluginType '$getName' has no difference in API version numbers. That's good!"
+      logger info s"PluginType '$toString' has no difference in API version numbers. That's good!"
       pluginVersionState = PluginCompatibilityState.FullyCompatible
     }
 

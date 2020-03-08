@@ -96,9 +96,12 @@ class PluginFramework(pluginDirectoryPath: String) extends WithLogger {
             futures += plugin.getDependencyFuture andThen {
               case Success(_) =>
                 try {
-                  plugin.createPluginInstance(new PluginManagerStub)
-                  logger info s"Successfully tested instantiation of plugin '$plugin'"
-                  pluginTypes += plugin
+                  if (plugin.createPluginInstance(new PluginManagerStub).isDefined) {
+                    logger info s"Successfully tested instantiation of plugin '$plugin'."
+                    pluginTypes += plugin
+                  } else {
+                    logger info s"Instantiation test of plugin '$plugin' failed."
+                  }
                 } catch {
                   // Note that we catch not only exceptions, but also errors like NoSuchMethodError. Deep stuff
                   case _: Error => logger warn s"Error while test init of plugin '$plugin'."
