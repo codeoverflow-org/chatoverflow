@@ -2,8 +2,8 @@ package org.codeoverflow.chatoverflow.build
 
 import java.io.File
 
-import sbt._
 import sbt.Keys.scalaVersion
+import sbt._
 import sbt.internal.util.ManagedLogger
 
 /**
@@ -80,6 +80,24 @@ object BuildUtils {
     val githubOwner = sys.env.getOrElse("GITHUB_OWNER", "codeoverflow-org")
 
     Some(s"GitHub Package Registry" at s"https://maven.pkg.github.com/$githubOwner/$githubRepository")
+  }
+
+  private val isSnapshot = sys.env.getOrElse("PUBLISH_SNAPSHOT", "false").trim.toLowerCase == "true"
+
+  /**
+   * Returns the passed version with a -SNAPSHOT suffix when the "PUBLISH_SNAPSHOT" environment variable is set to true.
+   * This variable gets set by the GitHub Actions which is responsible for publishing the maven packages.
+   * Otherwise it will return the normal version for use in a normal dev environment or on an actual release.
+   *
+   * @param version the version of a sbt project
+   * @return the version with an SNAPSHOT suffix depending on the environment
+   */
+  def dynamicSnapshotVersion(version: String): String = {
+    if (isSnapshot) {
+      s"$version-SNAPSHOT"
+    } else {
+      version
+    }
   }
 
   /**
