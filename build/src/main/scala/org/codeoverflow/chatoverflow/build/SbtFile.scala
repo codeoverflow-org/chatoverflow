@@ -7,15 +7,16 @@ import org.codeoverflow.chatoverflow.build.plugins.Plugin
 /**
  * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
  *
- * @param name           the name of a sbt project
- * @param version        the version of a sbt project
- * @param plugins        list of paths of sub projects
- * @param apiProjectPath the path of a base api project which every project depends on
- * @param guiProjectPath the path of the gui project
- * @param defineRoot     true, if a root project (".") should be defined in the sbt file
+ * @param name            the name of a sbt project
+ * @param version         the version of a sbt project
+ * @param plugins         list of paths of sub projects
+ * @param apiProjectPath  the path of a base api project which every project depends on
+ * @param guiProjectPath  the path of the gui project
+ * @param defineRoot      true, if a root project (".") should be defined in the sbt file
+ * @param excludeScalaLib true, if the scala library and library version suffix should be disabled
  */
 class SbtFile(val name: String, val version: String, val plugins: List[Plugin], val apiProjectPath: String,
-              val guiProjectPath: String, val defineRoot: Boolean) {
+              val guiProjectPath: String, val defineRoot: Boolean, excludeScalaLib: Boolean = false) {
   /**
    * Represents a simple sbt files content and methods to create a new sbt file. Not intended to open/read sbt files.
    *
@@ -92,13 +93,23 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
       if (apiProjectPath != "") {
         rootLine += ".dependsOn(apiProject)"
       }
-      if(guiProjectPath != "") {
+      if (guiProjectPath != "") {
         // This % "runtime" says sbt that the gui is only a dependency at runtime and that it can compile
         // the framework and the gui in parallel.
         rootLine += ".dependsOn(guiProject % \"runtime\").aggregate(guiProject)"
       }
 
       sbtContent append rootLine
+    }
+
+    if (excludeScalaLib) {
+      sbtContent append
+        """
+          |// Excludes the Scala library
+          |// Remove these two lines if you now wish to use Scala
+          |autoScalaLibrary := false
+          |crossPaths := false
+          |""".stripMargin
     }
 
     sbtContent.mkString

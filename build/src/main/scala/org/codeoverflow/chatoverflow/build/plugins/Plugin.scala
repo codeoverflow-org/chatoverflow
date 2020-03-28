@@ -39,10 +39,12 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
    * Creates a simple sbt file with name and version info into the plugin folder
    *
    * @param version the version of the sbt plugin project
+   * @param language the language the plugin is written in, if it isn't scala, the scala lib will be excluded
    * @return true, if the process was successful
    */
-  def createSbtFile(version: String): Boolean = {
-    val sbtFile = new SbtFile(name, version)
+  def createSbtFile(version: String, language: PluginLanguage.Value): Boolean = {
+    val sbtFile = new SbtFile(name, version, List(), "", "", false,
+      excludeScalaLib = language != PluginLanguage.SCALA)
 
     // The name of the sbt file is the plugin name. This worked in first tests
     sbtFile.save(s"$pluginDirectoryPath/$normalizedName.sbt")

@@ -127,7 +127,7 @@ class PluginCreateWizard(logger: ManagedLogger) {
           logger warn "Unable to create plugin.xml containing metadata in plugin resources."
         }
 
-        if (plugin.createSbtFile(version)) {
+        if (plugin.createSbtFile(version, language)) {
           logger info "Successfully created plugins sbt file."
         } else {
           logger warn "Unable to create plugins sbt file."
