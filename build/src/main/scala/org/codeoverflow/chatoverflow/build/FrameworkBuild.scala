@@ -19,10 +19,11 @@ object FrameworkBuild extends BuildDef {
   }
 
   lazy val apiProject = project in file("api")
+  lazy val apiScalaProject = (project in file("api/scala")).dependsOn(apiProject)
 
   lazy val root = {
     val frameworkWithApi = (project in file(".") withId "root")
-      .dependsOn(apiProject).aggregate(apiProject)
+      .dependsOn(apiProject).aggregate(apiProject, apiScalaProject)
 
     guiProject match {
       // This % "runtime" says sbt that the gui is only a dependency at runtime and that it can compile
@@ -33,6 +34,6 @@ object FrameworkBuild extends BuildDef {
   }
 
   override def projects: Seq[Project] = {
-    Seq(root, apiProject) ++ guiProject
+    Seq(root, apiProject, apiScalaProject) ++ guiProject
   }
 }

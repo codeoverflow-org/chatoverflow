@@ -74,6 +74,9 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
 
       if (apiProjectPath != "") {
         pluginLine += ".dependsOn(apiProject)"
+        if(plugin.isScala) {
+          pluginLine += ".dependsOn(apiScalaProject)"
+        }
       }
 
       sbtContent append pluginLine
@@ -81,6 +84,7 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
 
     if (apiProjectPath != "") {
       sbtContent append "\n\nlazy val apiProject = project in file(\"%s\")".format(apiProjectPath)
+      sbtContent append "\nlazy val apiScalaProject = (project in file(\"%s/scala\")).dependsOn(apiProject)".format(apiProjectPath)
     }
     if (guiProjectPath != "") {
       sbtContent append "\nlazy val guiProject = project in file(\"%s\")".format(guiProjectPath)
@@ -88,10 +92,10 @@ class SbtFile(val name: String, val version: String, val plugins: List[Plugin], 
 
     if (defineRoot) {
       var rootLine = "\n\nlazy val root = (project in file(\".\")).aggregate(%s)"
-        .format(("apiProject" +: plugins.map(p => s"`${p.normalizedName}`")).mkString(", "))
+        .format(plugins.map(p => s"`${p.normalizedName}`").mkString(", "))
 
       if (apiProjectPath != "") {
-        rootLine += ".dependsOn(apiProject)"
+        rootLine += ".dependsOn(apiProject, apiScalaProject).aggregate(apiProject, apiScalaProject)"
       }
       if (guiProjectPath != "") {
         // This % "runtime" says sbt that the gui is only a dependency at runtime and that it can compile

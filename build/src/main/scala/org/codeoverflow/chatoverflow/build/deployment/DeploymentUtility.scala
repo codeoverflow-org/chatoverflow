@@ -110,7 +110,8 @@ object DeploymentUtility {
     val sourceJarDirectories = List(
       Some(s"target/scala-$scalaLibraryVersion/"),
       Some("gui/target/"),
-      if (copyApi) Some(s"api/target/") else None
+      if (copyApi) Some(s"api/target/") else None,
+      if (copyApi) Some(s"api/scala/target/") else None
     ).flatten
 
     sourceJarDirectories.foreach(d => copyJars(d, targetDirs, logger))

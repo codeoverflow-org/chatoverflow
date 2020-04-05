@@ -69,6 +69,7 @@ object PluginLanguage extends Enumeration {
       """.stripMargin
     case SCALA =>
       s"""import org.codeoverflow.chatoverflow.api.plugin.{PluginImpl, PluginManager}
+         |import org.codeoverflow.chatoverflow.api.scala._
          |
          |class ${name}Plugin(manager: PluginManager) extends PluginImpl(manager) {
          |

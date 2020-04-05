@@ -126,6 +126,15 @@ class Plugin(val pluginSourceDirectoryName: String, val name: String) {
       .filter(file => file.getName.startsWith(name))
       .foreach(file => file.delete())
   }
+
+  /**
+   * Returns whether this is an plugin which is using scala.
+   * This is determined by checking if at least one .scala file exists.
+   */
+  def isScala: Boolean = {
+    BuildUtils.getAllDirectoryChilds(new File(s"$pluginDirectoryPath/src/main"))
+      .exists(_.getName.endsWith(".scala"))
+  }
 }
 
 object Plugin {
