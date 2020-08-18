@@ -2,6 +2,16 @@
   <img src = "chatoverflow-logo.png"/>
 </p>
 
+# Deprecated
+
+The **ChatOverflow** framework started as simple idea of three computer science students. Fast forward, three years later, we built a large framework which exceeded our expectations. Unfortunately, the choice of *Scala* as main programming language limited the number of volunteers which are crucial to an open-source project like this. Additionally, the distance to modern web-based frameworks with good integrations of used APIs impaired the progress.
+
+We choose to abandon **ChatOverflow** but not the idea behind it. We still aim to create a framework for simplified development of streaming-centric services. We choose to build upon [node-cg](https://nodecg.com/), a popular framework for creating overlays and integrations for livestream events. We created [node-cg-io](https://github.com/codeoverflow-org/nodecg-io) which realizes the vision of **ChatOverflow** using node-cg.
+
+**TL;DR** **ChatOverflow** is deprecated. Use our successor [node-cg-io](https://github.com/codeoverflow-org/nodecg-io) instead.
+
+# Legacy Readme
+
 What if you could **combine** the power of
 - **Chat bots** like *nightbot*, *moobot* and *botler*
 - **Supporting services** like *StreamElements*, *Streamlabs*, *TipeeeStream*, *Loots* and
